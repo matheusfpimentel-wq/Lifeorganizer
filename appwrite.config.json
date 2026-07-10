@@ -1,0 +1,1561 @@
+{
+  "projectId": "REPLACE_WITH_PROJECT_ID",
+  "projectName": "Morada",
+  "databases": [
+    {
+      "$id": "morada",
+      "name": "Morada",
+      "enabled": true
+    }
+  ],
+  "tables": [
+    {
+      "$id": "households",
+      "databaseId": "morada",
+      "name": "Households",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "teamId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "size": 128,
+          "required": true
+        },
+        {
+          "key": "settings",
+          "type": "string",
+          "size": 2000,
+          "required": true
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_teamId",
+          "type": "unique",
+          "columns": [
+            "teamId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "profiles",
+      "databaseId": "morada",
+      "name": "Profiles",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "userId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "displayName",
+          "type": "string",
+          "size": 64,
+          "required": true
+        },
+        {
+          "key": "avatarFileId",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "color",
+          "type": "string",
+          "size": 7,
+          "required": true
+        },
+        {
+          "key": "pixKey",
+          "type": "string",
+          "size": 77
+        },
+        {
+          "key": "notificationPrefs",
+          "type": "string",
+          "size": 2000
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_userId",
+          "type": "unique",
+          "columns": [
+            "userId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "pushSubscriptions",
+      "databaseId": "morada",
+      "name": "Push Subscriptions",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "userId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "endpoint",
+          "type": "string",
+          "size": 1024,
+          "required": true
+        },
+        {
+          "key": "keys",
+          "type": "string",
+          "size": 512,
+          "required": true
+        },
+        {
+          "key": "lastSeenAt",
+          "type": "datetime"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_userId",
+          "type": "key",
+          "columns": [
+            "userId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "icalTokens",
+      "databaseId": "morada",
+      "name": "iCal Tokens",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "userId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "token",
+          "type": "string",
+          "size": 64,
+          "required": true
+        },
+        {
+          "key": "revoked",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_token",
+          "type": "unique",
+          "columns": [
+            "token"
+          ]
+        },
+        {
+          "key": "idx_userId",
+          "type": "key",
+          "columns": [
+            "userId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "routineBlocks",
+      "databaseId": "morada",
+      "name": "Routine Blocks",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "memberId",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "size": 128,
+          "required": true
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "trabalho",
+            "estudo",
+            "treino",
+            "casa",
+            "lazer",
+            "sono",
+            "outro"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "weekdays",
+          "type": "integer",
+          "required": true,
+          "array": true,
+          "min": 0,
+          "max": 6
+        },
+        {
+          "key": "startTime",
+          "type": "string",
+          "size": 5,
+          "required": true
+        },
+        {
+          "key": "endTime",
+          "type": "string",
+          "size": 5,
+          "required": true
+        },
+        {
+          "key": "color",
+          "type": "string",
+          "size": 7
+        },
+        {
+          "key": "notes",
+          "type": "string",
+          "size": 500
+        },
+        {
+          "key": "active",
+          "type": "boolean",
+          "required": true,
+          "default": true
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "events",
+      "databaseId": "morada",
+      "name": "Events",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "size": 200,
+          "required": true
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "size": 2000
+        },
+        {
+          "key": "location",
+          "type": "string",
+          "size": 200
+        },
+        {
+          "key": "startAt",
+          "type": "datetime",
+          "required": true
+        },
+        {
+          "key": "endAt",
+          "type": "datetime",
+          "required": true
+        },
+        {
+          "key": "allDay",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "key": "memberIds",
+          "type": "string",
+          "size": 36,
+          "array": true
+        },
+        {
+          "key": "rrule",
+          "type": "string",
+          "size": 500
+        },
+        {
+          "key": "exdates",
+          "type": "string",
+          "size": 36,
+          "array": true
+        },
+        {
+          "key": "reminderMinutes",
+          "type": "integer",
+          "array": true
+        },
+        {
+          "key": "createdBy",
+          "type": "string",
+          "size": 36,
+          "required": true
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        },
+        {
+          "key": "idx_startAt",
+          "type": "key",
+          "columns": [
+            "startAt"
+          ]
+        },
+        {
+          "key": "idx_household_start",
+          "type": "key",
+          "columns": [
+            "householdId",
+            "startAt"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "exercises",
+      "databaseId": "morada",
+      "name": "Exercises",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "size": 128,
+          "required": true
+        },
+        {
+          "key": "muscleGroup",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "peito",
+            "costas",
+            "ombros",
+            "biceps",
+            "triceps",
+            "pernas",
+            "gluteos",
+            "core",
+            "cardio",
+            "outro"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "equipment",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "barra",
+            "halter",
+            "maquina",
+            "polia",
+            "pesoCorporal",
+            "kettlebell",
+            "elastico",
+            "outro"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "instructions",
+          "type": "string",
+          "size": 2000
+        },
+        {
+          "key": "videoUrl",
+          "type": "string",
+          "size": 500
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_muscleGroup",
+          "type": "key",
+          "columns": [
+            "muscleGroup"
+          ]
+        },
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "workoutPlans",
+      "databaseId": "morada",
+      "name": "Workout Plans",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "memberId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "size": 128,
+          "required": true
+        },
+        {
+          "key": "goal",
+          "type": "string",
+          "size": 200
+        },
+        {
+          "key": "active",
+          "type": "boolean",
+          "required": true,
+          "default": true
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        },
+        {
+          "key": "idx_memberId",
+          "type": "key",
+          "columns": [
+            "memberId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "workoutPlanDays",
+      "databaseId": "morada",
+      "name": "Workout Plan Days",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "planId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "label",
+          "type": "string",
+          "size": 64,
+          "required": true
+        },
+        {
+          "key": "weekday",
+          "type": "integer",
+          "min": 0,
+          "max": 6
+        },
+        {
+          "key": "order",
+          "type": "integer",
+          "required": true
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_planId",
+          "type": "key",
+          "columns": [
+            "planId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "workoutPlanExercises",
+      "databaseId": "morada",
+      "name": "Workout Plan Exercises",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "planDayId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "exerciseId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "sets",
+          "type": "integer",
+          "required": true,
+          "min": 1,
+          "max": 20
+        },
+        {
+          "key": "repRange",
+          "type": "string",
+          "size": 20,
+          "required": true
+        },
+        {
+          "key": "targetLoadKg",
+          "type": "double"
+        },
+        {
+          "key": "restSeconds",
+          "type": "integer",
+          "required": true,
+          "default": 90
+        },
+        {
+          "key": "order",
+          "type": "integer",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "type": "string",
+          "size": 200
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_planDayId",
+          "type": "key",
+          "columns": [
+            "planDayId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "workoutSessions",
+      "databaseId": "morada",
+      "name": "Workout Sessions",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "memberId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "planDayId",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "startedAt",
+          "type": "datetime",
+          "required": true
+        },
+        {
+          "key": "finishedAt",
+          "type": "datetime"
+        },
+        {
+          "key": "notes",
+          "type": "string",
+          "size": 500
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_memberId",
+          "type": "key",
+          "columns": [
+            "memberId"
+          ]
+        },
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        },
+        {
+          "key": "idx_startedAt",
+          "type": "key",
+          "columns": [
+            "startedAt"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "workoutSessionSets",
+      "databaseId": "morada",
+      "name": "Workout Session Sets",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "sessionId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "exerciseId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "setNumber",
+          "type": "integer",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "reps",
+          "type": "integer",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "loadKg",
+          "type": "double",
+          "required": true,
+          "min": 0
+        },
+        {
+          "key": "rpe",
+          "type": "double",
+          "min": 0,
+          "max": 10
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_sessionId",
+          "type": "key",
+          "columns": [
+            "sessionId"
+          ]
+        },
+        {
+          "key": "idx_exercise_load",
+          "type": "key",
+          "columns": [
+            "exerciseId",
+            "loadKg"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "shoppingLists",
+      "databaseId": "morada",
+      "name": "Shopping Lists",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "size": 128,
+          "required": true
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "active",
+            "archived"
+          ],
+          "size": 255,
+          "required": true,
+          "default": "active"
+        },
+        {
+          "key": "isDefault",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "key": "totalCents",
+          "type": "integer",
+          "min": 0
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        },
+        {
+          "key": "idx_status",
+          "type": "key",
+          "columns": [
+            "status"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "shoppingItems",
+      "databaseId": "morada",
+      "name": "Shopping Items",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "listId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "size": 128,
+          "required": true
+        },
+        {
+          "key": "qty",
+          "type": "double",
+          "required": true,
+          "default": 1
+        },
+        {
+          "key": "unit",
+          "type": "string",
+          "size": 20
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "hortifruti",
+            "acougue",
+            "limpeza",
+            "higiene",
+            "mercearia",
+            "bebidas",
+            "outro"
+          ],
+          "size": 255,
+          "required": true,
+          "default": "outro"
+        },
+        {
+          "key": "note",
+          "type": "string",
+          "size": 200
+        },
+        {
+          "key": "addedBy",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "checked",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "key": "checkedBy",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "checkedAt",
+          "type": "datetime"
+        },
+        {
+          "key": "priceCents",
+          "type": "integer",
+          "min": 0
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_listId",
+          "type": "key",
+          "columns": [
+            "listId"
+          ]
+        },
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "staples",
+      "databaseId": "morada",
+      "name": "Staples",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "size": 128,
+          "required": true
+        },
+        {
+          "key": "defaultQty",
+          "type": "double",
+          "required": true,
+          "default": 1
+        },
+        {
+          "key": "unit",
+          "type": "string",
+          "size": 20
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "hortifruti",
+            "acougue",
+            "limpeza",
+            "higiene",
+            "mercearia",
+            "bebidas",
+            "outro"
+          ],
+          "size": 255,
+          "required": true,
+          "default": "outro"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "expenses",
+      "databaseId": "morada",
+      "name": "Expenses",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "size": 200,
+          "required": true
+        },
+        {
+          "key": "amountCents",
+          "type": "integer",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "moradia",
+            "mercado",
+            "contasFixas",
+            "transporte",
+            "lazer",
+            "saude",
+            "pets",
+            "outro"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "paidBy",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "date",
+          "type": "datetime",
+          "required": true
+        },
+        {
+          "key": "splitType",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "equal",
+            "percent",
+            "shares",
+            "exact"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "splits",
+          "type": "string",
+          "size": 4000,
+          "required": true
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "confirmed",
+            "pending"
+          ],
+          "size": 255,
+          "required": true,
+          "default": "confirmed"
+        },
+        {
+          "key": "rrule",
+          "type": "string",
+          "size": 500
+        },
+        {
+          "key": "recurrenceKey",
+          "type": "string",
+          "size": 100
+        },
+        {
+          "key": "receiptFileId",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "createdBy",
+          "type": "string",
+          "size": 36,
+          "required": true
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        },
+        {
+          "key": "idx_date",
+          "type": "key",
+          "columns": [
+            "date"
+          ]
+        },
+        {
+          "key": "idx_paidBy",
+          "type": "key",
+          "columns": [
+            "paidBy"
+          ]
+        },
+        {
+          "key": "idx_recurrenceKey",
+          "type": "key",
+          "columns": [
+            "recurrenceKey"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "settlements",
+      "databaseId": "morada",
+      "name": "Settlements",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "fromMember",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "toMember",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "amountCents",
+          "type": "integer",
+          "required": true,
+          "min": 1
+        },
+        {
+          "key": "method",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "pix",
+            "dinheiro",
+            "outro"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "settledAt",
+          "type": "datetime",
+          "required": true
+        },
+        {
+          "key": "note",
+          "type": "string",
+          "size": 200
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        },
+        {
+          "key": "idx_settledAt",
+          "type": "key",
+          "columns": [
+            "settledAt"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "tasks",
+      "databaseId": "morada",
+      "name": "Tasks",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "size": 200,
+          "required": true
+        },
+        {
+          "key": "description",
+          "type": "string",
+          "size": 2000
+        },
+        {
+          "key": "type",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "routine",
+            "specific"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "category",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "limpeza",
+            "cozinha",
+            "roupas",
+            "pets",
+            "manutencao",
+            "admin",
+            "outro"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "rrule",
+          "type": "string",
+          "size": 500
+        },
+        {
+          "key": "dueDate",
+          "type": "datetime"
+        },
+        {
+          "key": "assignmentMode",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "fixed",
+            "rotation",
+            "volunteer"
+          ],
+          "size": 255,
+          "required": true
+        },
+        {
+          "key": "assignedMemberId",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "rotationMemberIds",
+          "type": "string",
+          "size": 36,
+          "array": true
+        },
+        {
+          "key": "rotationIndex",
+          "type": "integer",
+          "required": true,
+          "default": 0
+        },
+        {
+          "key": "priority",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "baixa",
+            "media",
+            "alta"
+          ],
+          "size": 255,
+          "required": true,
+          "default": "media"
+        },
+        {
+          "key": "checklist",
+          "type": "string",
+          "size": 4000
+        },
+        {
+          "key": "points",
+          "type": "integer",
+          "required": true,
+          "default": 1,
+          "min": 1,
+          "max": 100
+        },
+        {
+          "key": "active",
+          "type": "boolean",
+          "required": true,
+          "default": true
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        },
+        {
+          "key": "idx_active",
+          "type": "key",
+          "columns": [
+            "active"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "taskOccurrences",
+      "databaseId": "morada",
+      "name": "Task Occurrences",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "taskId",
+          "type": "string",
+          "size": 36,
+          "required": true
+        },
+        {
+          "key": "dueAt",
+          "type": "datetime",
+          "required": true
+        },
+        {
+          "key": "assignedMemberId",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "pending",
+            "done",
+            "skipped"
+          ],
+          "size": 255,
+          "required": true,
+          "default": "pending"
+        },
+        {
+          "key": "completedBy",
+          "type": "string",
+          "size": 36
+        },
+        {
+          "key": "completedAt",
+          "type": "datetime"
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_taskId",
+          "type": "key",
+          "columns": [
+            "taskId"
+          ]
+        },
+        {
+          "key": "idx_householdId",
+          "type": "key",
+          "columns": [
+            "householdId"
+          ]
+        },
+        {
+          "key": "idx_dueAt",
+          "type": "key",
+          "columns": [
+            "dueAt"
+          ]
+        },
+        {
+          "key": "idx_task_due",
+          "type": "unique",
+          "columns": [
+            "taskId",
+            "dueAt"
+          ]
+        },
+        {
+          "key": "idx_assignedMemberId",
+          "type": "key",
+          "columns": [
+            "assignedMemberId"
+          ]
+        }
+      ]
+    }
+  ],
+  "buckets": [
+    {
+      "$id": "avatars",
+      "name": "Avatars",
+      "enabled": true,
+      "fileSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "maximumFileSize": 5242880,
+      "allowedFileExtensions": [
+        "jpg",
+        "jpeg",
+        "png",
+        "webp"
+      ],
+      "compression": "gzip",
+      "encryption": true,
+      "antivirus": true
+    },
+    {
+      "$id": "receipts",
+      "name": "Receipts",
+      "enabled": true,
+      "fileSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "maximumFileSize": 10485760,
+      "allowedFileExtensions": [
+        "jpg",
+        "jpeg",
+        "png",
+        "webp",
+        "pdf"
+      ],
+      "compression": "gzip",
+      "encryption": true,
+      "antivirus": true
+    }
+  ],
+  "functions": [
+    {
+      "$id": "tick",
+      "name": "tick",
+      "runtime": "node-22",
+      "path": "functions/tick",
+      "entrypoint": "dist/main.js",
+      "commands": "",
+      "schedule": "*/5 * * * *",
+      "timeout": 120,
+      "enabled": true,
+      "logging": true,
+      "execute": [],
+      "scopes": [
+        "users.read",
+        "teams.read",
+        "databases.read",
+        "tables.read",
+        "rows.read",
+        "rows.write"
+      ],
+      "ignore": "node_modules,src"
+    },
+    {
+      "$id": "api",
+      "name": "api",
+      "runtime": "node-22",
+      "path": "functions/api",
+      "entrypoint": "dist/main.js",
+      "commands": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "execute": [
+        "any"
+      ],
+      "scopes": [
+        "users.read",
+        "teams.read",
+        "databases.read",
+        "tables.read",
+        "rows.read",
+        "rows.write"
+      ],
+      "ignore": "node_modules,src"
+    }
+  ]
+}
