@@ -1,0 +1,11 @@
+node_modules/
+dist/
+functions/*/dist/
+functions/*/node_modules/
+coverage/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+.appwrite/
