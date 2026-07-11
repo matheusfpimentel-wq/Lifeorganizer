@@ -1,14 +1,16 @@
 /**
- * Hotfix cirúrgico de schema (sem `push tables`, sem risco de recriação):
- * 1. workoutSessionSets: cria durationSeconds (int) e technique (enum) se faltarem.
- * 2. households: recria teamId/name/settings (opcionais) se faltarem — colunas
- *    apagadas pelo push #13 que detectou diff falso e recriou colunas.
- * 3. repara a linha de households com teamId nulo usando o Team existente.
+ * Auditoria e reparo de schema (sem `push tables`, nunca apaga nada):
+ * 1. Para cada tabela do appwrite.config.json, cria as colunas que faltarem no
+ *    remoto (sempre como opcionais — tabelas com linhas não aceitam required).
+ * 2. Cria os índices que faltarem.
+ * 3. Repara dados: households sem teamId (via permissões/Team) e profiles sem
+ *    displayName/color (nome vem do cadastro de login via Users API).
  *
- * Uso (CI): node scripts/schema-hotfix.mjs  — requer APPWRITE_ENDPOINT,
+ * Uso (CI): node scripts/schema-hotfix.mjs — requer APPWRITE_ENDPOINT,
  * APPWRITE_PROJECT_ID e APPWRITE_API_KEY no ambiente.
  */
-import { Client, Query, TablesDB, Teams } from 'node-appwrite';
+import { readFileSync } from 'node:fs';
+import { Client, Query, TablesDB, Teams, Users } from 'node-appwrite';
 
 const endpoint = process.env.APPWRITE_ENDPOINT;
 const projectId = process.env.APPWRITE_PROJECT_ID;
@@ -23,96 +25,95 @@ if (!endpoint || !projectId || !apiKey) {
 const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey);
 const tables = new TablesDB(client);
 const teams = new Teams(client);
+const users = new Users(client);
 
-async function ensure(label, fn) {
-  try {
-    await fn();
-    console.log(`+ criado: ${label}`);
-  } catch (err) {
-    if (err?.code === 409) console.log(`= já existe: ${label}`);
-    else throw err;
+const config = JSON.parse(readFileSync(new URL('../appwrite.config.json', import.meta.url), 'utf8'));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const PALETTE = ['#0ea5e9', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#eab308', '#14b8a6'];
+
+/** Cria uma coluna a partir da definição do config. Sempre opcional (seguro). */
+async function createColumn(tableId, col) {
+  const base = { databaseId: DB_ID, tableId, key: col.key, required: false };
+  if (col.array) base.array = true;
+  if (col.format === 'enum') {
+    return tables.createEnumColumn({ ...base, elements: col.elements });
+  }
+  switch (col.type) {
+    case 'string':
+      return tables.createStringColumn({ ...base, size: col.size ?? 255 });
+    case 'integer': {
+      const opts = { ...base };
+      if (col.min !== undefined && col.min !== null) opts.min = Number(col.min);
+      if (col.max !== undefined && col.max !== null) opts.max = Number(col.max);
+      return tables.createIntegerColumn(opts);
+    }
+    case 'double': {
+      const opts = { ...base };
+      if (col.min !== undefined && col.min !== null) opts.min = Number(col.min);
+      if (col.max !== undefined && col.max !== null) opts.max = Number(col.max);
+      return tables.createFloatColumn(opts);
+    }
+    case 'boolean':
+      return tables.createBooleanColumn(base);
+    case 'datetime':
+      return tables.createDatetimeColumn(base);
+    default:
+      throw new Error(`Tipo não suportado: ${col.type} (${tableId}.${col.key})`);
   }
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function auditTable(tableDef) {
+  const tableId = tableDef.$id;
+  const remote = await tables.listColumns({ databaseId: DB_ID, tableId });
+  const remoteKeys = new Set(remote.columns.map((c) => c.key));
+  let created = 0;
 
-async function main() {
-  // 1. colunas novas da academia -------------------------------------------
-  await ensure('workoutSessionSets.durationSeconds', () =>
-    tables.createIntegerColumn({
-      databaseId: DB_ID,
-      tableId: 'workoutSessionSets',
-      key: 'durationSeconds',
-      required: false,
-      min: 0,
-    }),
-  );
-  await ensure('workoutSessionSets.technique', () =>
-    tables.createEnumColumn({
-      databaseId: DB_ID,
-      tableId: 'workoutSessionSets',
-      key: 'technique',
-      elements: ['normal', 'aquecimento', 'dropset', 'restPause', 'falha', 'superset', 'isometria'],
-      required: false,
-    }),
-  );
-
-  // 2. households: garante colunas (opcionais — a tabela tem linhas) --------
-  await ensure('households.teamId', () =>
-    tables.createStringColumn({
-      databaseId: DB_ID,
-      tableId: 'households',
-      key: 'teamId',
-      size: 36,
-      required: false,
-    }),
-  );
-  await ensure('households.name', () =>
-    tables.createStringColumn({
-      databaseId: DB_ID,
-      tableId: 'households',
-      key: 'name',
-      size: 128,
-      required: false,
-    }),
-  );
-  await ensure('households.settings', () =>
-    tables.createStringColumn({
-      databaseId: DB_ID,
-      tableId: 'households',
-      key: 'settings',
-      size: 2000,
-      required: false,
-    }),
-  );
-
-  // aguarda as colunas ficarem disponíveis antes de gravar
-  await sleep(3000);
-
-  // 3. repara linhas de households sem teamId -------------------------------
-  const { rows } = await tables.listRows({
-    databaseId: DB_ID,
-    tableId: 'households',
-    queries: [Query.limit(100)],
-  });
-  const teamList = (await teams.list()).teams;
-  console.log(`households: ${rows.length} linha(s); teams: ${teamList.length}`);
-
-  for (const row of rows) {
-    if (row.teamId) {
-      console.log(`= linha ${row.$id} ok (teamId=${row.teamId})`);
-      continue;
+  for (const col of tableDef.columns ?? []) {
+    if (remoteKeys.has(col.key)) continue;
+    try {
+      await createColumn(tableId, col);
+      console.log(`+ coluna criada: ${tableId}.${col.key}`);
+      created++;
+    } catch (err) {
+      if (err?.code === 409) console.log(`= coluna já existe: ${tableId}.${col.key}`);
+      else throw err;
     }
-    // associa pelo Team cujas permissões da linha o referenciam; fallback: único team
+  }
+
+  const remoteIdx = await tables.listIndexes({ databaseId: DB_ID, tableId });
+  const remoteIdxKeys = new Set(remoteIdx.indexes.map((i) => i.key));
+  for (const idx of tableDef.indexes ?? []) {
+    if (remoteIdxKeys.has(idx.key)) continue;
+    try {
+      // índices dependem das colunas estarem disponíveis
+      if (created > 0) await sleep(2000);
+      await tables.createIndex({
+        databaseId: DB_ID,
+        tableId,
+        key: idx.key,
+        type: idx.type,
+        columns: idx.columns,
+      });
+      console.log(`+ índice criado: ${tableId}.${idx.key}`);
+    } catch (err) {
+      if (err?.code === 409) console.log(`= índice já existe: ${tableId}.${idx.key}`);
+      else console.log(`! índice ${tableId}.${idx.key} falhou: ${err.message}`);
+    }
+  }
+  return created;
+}
+
+async function repairHouseholds() {
+  const { rows } = await tables.listRows({ databaseId: DB_ID, tableId: 'households', queries: [Query.limit(100)] });
+  const teamList = (await teams.list()).teams;
+  for (const row of rows) {
+    if (row.teamId) continue;
     const permTeam = (row.$permissions ?? [])
       .map((p) => /team:([a-zA-Z0-9_]+)/.exec(p)?.[1])
       .find(Boolean);
-    const team =
-      teamList.find((t) => t.$id === permTeam) ?? (teamList.length === 1 ? teamList[0] : null);
-    if (!team) {
-      console.log(`! linha ${row.$id} sem teamId e sem team inferível — pulei`);
-      continue;
-    }
+    const team = teamList.find((t) => t.$id === permTeam) ?? (teamList.length === 1 ? teamList[0] : null);
+    if (!team) continue;
     await tables.updateRow({
       databaseId: DB_ID,
       tableId: 'households',
@@ -123,10 +124,65 @@ async function main() {
         settings: row.settings ?? JSON.stringify({ weekStart: 'sunday', currency: 'BRL' }),
       },
     });
-    console.log(`+ linha ${row.$id} reparada (teamId=${team.$id}, name=${team.name})`);
+    console.log(`+ household ${row.$id} reparado (team=${team.name})`);
   }
+}
 
-  console.log('Hotfix concluído.');
+async function repairProfiles() {
+  const { rows } = await tables.listRows({ databaseId: DB_ID, tableId: 'profiles', queries: [Query.limit(100)] });
+  let i = 0;
+  for (const row of rows) {
+    const needsName = !row.displayName;
+    const needsColor = !row.color;
+    const needsUser = !row.userId;
+    if (!needsName && !needsColor && !needsUser) {
+      console.log(`= profile ${row.$id} ok (${row.displayName})`);
+      continue;
+    }
+    // userId perdido? tenta recuperar pelas permissões da linha (user:xxx)
+    const userId =
+      row.userId ??
+      (row.$permissions ?? []).map((p) => /user:([a-zA-Z0-9_]+)/.exec(p)?.[1]).find(Boolean);
+    if (!userId) {
+      console.log(`! profile ${row.$id} sem userId inferível — pulei`);
+      continue;
+    }
+    let name = row.displayName;
+    if (!name) {
+      try {
+        const account = await users.get({ userId });
+        name = account.name || account.email || 'Membro';
+      } catch {
+        name = 'Membro';
+      }
+    }
+    await tables.updateRow({
+      databaseId: DB_ID,
+      tableId: 'profiles',
+      rowId: row.$id,
+      data: {
+        userId,
+        displayName: name,
+        color: row.color ?? PALETTE[i % PALETTE.length],
+      },
+    });
+    console.log(`+ profile ${row.$id} reparado (${name})`);
+    i++;
+  }
+}
+
+async function main() {
+  let totalCreated = 0;
+  for (const tableDef of config.tables) {
+    totalCreated += await auditTable(tableDef);
+  }
+  if (totalCreated > 0) {
+    console.log(`Aguardando ${totalCreated} coluna(s) ficarem disponíveis...`);
+    await sleep(5000);
+  }
+  await repairHouseholds();
+  await repairProfiles();
+  console.log('Auditoria e reparo concluídos.');
 }
 
 main().catch((err) => {
