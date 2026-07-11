@@ -3,6 +3,7 @@ import { ID, Query } from 'appwrite';
 import { DB_ID, TABLES, tablesDB } from '@/lib/appwrite';
 import { listAllRows } from '@/lib/pagination';
 import { withHouseholdPermissions } from '@/lib/permissions';
+import { computeBalance, balanceWindowStart } from '@/core/balance';
 import { useAuth } from '@/features/auth/AuthContext';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,14 +11,15 @@ export type OccurrenceRow = Record<string, any> & { $id: string };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TaskRow = Record<string, any> & { $id: string };
 
-export function useTasks(householdId: string | null) {
+/** Modelos de tarefa. `includeInactive` para a tela de gerenciamento. */
+export function useTasks(householdId: string | null, includeInactive = false) {
   return useQuery({
-    queryKey: ['tasks', householdId],
+    queryKey: ['tasks', householdId, includeInactive],
     enabled: !!householdId,
     queryFn: () =>
       listAllRows<TaskRow>(TABLES.tasks, [
         Query.equal('householdId', householdId!),
-        Query.equal('active', true),
+        ...(includeInactive ? [] : [Query.equal('active', true)]),
       ]),
   });
 }
@@ -76,6 +78,71 @@ export function useCreateTask(householdId: string | null) {
   });
 }
 
+export function useUpdateTask(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mutationFn: async ({ taskId, data }: { taskId: string; data: Record<string, any> }) =>
+      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.tasks, rowId: taskId, data }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['tasks', householdId] });
+      void queryClient.invalidateQueries({ queryKey: ['occurrences', householdId] });
+    },
+  });
+}
+
+/** Excluir tarefa: remove também suas ocorrências (deleção em cascata). */
+export function useDeleteTask(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (taskId: string) => {
+      const occurrences = await listAllRows<OccurrenceRow>(TABLES.taskOccurrences, [
+        Query.equal('taskId', taskId),
+      ]);
+      for (const occurrence of occurrences) {
+        await tablesDB.deleteRow({
+          databaseId: DB_ID,
+          tableId: TABLES.taskOccurrences,
+          rowId: occurrence.$id,
+        });
+      }
+      await tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.tasks, rowId: taskId });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['tasks', householdId] });
+      void queryClient.invalidateQueries({ queryKey: ['occurrences', householdId] });
+    },
+  });
+}
+
+/**
+ * Painel de equilíbrio: conclusões (status=done) dos últimos 30 dias,
+ * ponderadas pelos `points` da tarefa. Apresentação neutra (ver core/balance).
+ */
+export function useBalancePanel(householdId: string | null, memberIds: string[]) {
+  const tasks = useTasks(householdId, true);
+  const query = useQuery({
+    queryKey: ['taskBalance', householdId],
+    enabled: !!householdId,
+    queryFn: () =>
+      listAllRows<OccurrenceRow>(TABLES.taskOccurrences, [
+        Query.equal('householdId', householdId!),
+        Query.equal('status', 'done'),
+        Query.greaterThanEqual('completedAt', balanceWindowStart().toISOString()),
+      ]),
+  });
+
+  const pointsByTask = new Map((tasks.data ?? []).map((t) => [t.$id, t.points ?? 1]));
+  const balance = computeBalance(
+    (query.data ?? []).map((o) => ({
+      completedBy: o.completedBy,
+      points: pointsByTask.get(o.taskId) ?? 1,
+    })),
+    memberIds,
+  );
+  return { ...balance, isLoading: query.isLoading || tasks.isLoading };
+}
+
 export function useOccurrenceAction(householdId: string | null) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -102,6 +169,9 @@ export function useOccurrenceAction(householdId: string | null) {
         data,
       });
     },
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['occurrences', householdId] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['occurrences', householdId] });
+      void queryClient.invalidateQueries({ queryKey: ['taskBalance', householdId] });
+    },
   });
 }

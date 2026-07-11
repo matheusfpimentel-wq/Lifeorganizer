@@ -2,6 +2,26 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — F1 Tarefas
+
+### Added
+- **Painel de equilíbrio** (`src/core/balance.ts`, núcleo puro, 8 testes):
+  conclusões dos últimos 30 dias ponderadas por `points`, apresentação neutra
+  (barras factuais por membro, sem ranking). Hook `useBalancePanel` + componente
+  `BalancePanel`.
+- **CRUD completo de tarefas:** editar (`useUpdateTask`), excluir com deleção em
+  cascata das ocorrências (`useDeleteTask`), pausar/ativar modelo.
+- Formulário unificado (`TaskForm`) para criar e editar, com **checklist**,
+  descrição, prioridade, pontos, e seletor de **dias da semana** para recorrência
+  semanal (`weekdays.ts`: `buildRrule`/`describeRrule`).
+- `TasksPage` reorganizada em 3 abas: **Pendências** (ocorrências acionáveis),
+  **Modelos** (gerenciar/editar/pausar/excluir) e **Equilíbrio**.
+
+### Notes
+- Materialização de ocorrências (14 dias, idempotente) e push "tarefas de hoje"
+  já vieram na função `tick` da F0; testes 7.2–7.4 (settle/recurrence/rotation)
+  seguem verdes. Total: 61 testes.
+
 ## [Unreleased] — F0 Fundação (aguardando credenciais para o gate)
 
 ### Added
