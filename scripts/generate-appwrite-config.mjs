@@ -50,15 +50,17 @@ const idx = (key, columns, type = 'key') => ({ key, type, columns });
  */
 function normalizeColumn(col) {
   const out = { ...col };
+  // campos SEMPRE explícitos — o differ do push compara com o remoto e trata
+  // `undefined` como mudança (chegou a recriar colunas por `array` ausente).
+  out.array = out.array === true;
   if (out.array) {
-    delete out.default;
     out.required = false;
-    return out;
-  }
-  if (out.required === true) {
+    out.default = null;
+  } else if (out.required === true) {
     out.default = null;
   } else {
     out.required = false;
+    if (out.default === undefined) out.default = null;
   }
   return out;
 }
@@ -86,9 +88,11 @@ const tables = [
     'households',
     'Households',
     [
-      id('teamId', req),
-      str('name', 128, req),
-      json('settings', 2000, req), // { weekStart: 'monday'|'sunday', currency: 'BRL' }
+      // opcionais: colunas required não podem ser criadas em tabela com linhas
+      // (recuperação pós-incidente do push #13); Zod garante no client.
+      id('teamId'),
+      str('name', 128),
+      json('settings', 2000), // { weekStart: 'monday'|'sunday', currency: 'BRL' }
     ],
     [idx('idx_teamId', ['teamId'], 'unique')],
   ),

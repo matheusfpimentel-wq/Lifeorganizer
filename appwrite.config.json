@@ -23,21 +23,24 @@
           "key": "teamId",
           "type": "string",
           "size": 36,
-          "required": true,
+          "array": false,
+          "required": false,
           "default": null
         },
         {
           "key": "name",
           "type": "string",
           "size": 128,
-          "required": true,
+          "array": false,
+          "required": false,
           "default": null
         },
         {
           "key": "settings",
           "type": "string",
           "size": 2000,
-          "required": true,
+          "array": false,
+          "required": false,
           "default": null
         }
       ],
@@ -66,6 +69,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -73,32 +77,40 @@
           "type": "string",
           "size": 64,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "avatarFileId",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "color",
           "type": "string",
           "size": 7,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "pixKey",
           "type": "string",
           "size": 77,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "notificationPrefs",
           "type": "string",
           "size": 2000,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -126,6 +138,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -133,6 +146,7 @@
           "type": "string",
           "size": 1024,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -140,12 +154,15 @@
           "type": "string",
           "size": 512,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "lastSeenAt",
           "type": "datetime",
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -173,6 +190,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -180,6 +198,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -187,12 +206,14 @@
           "type": "string",
           "size": 64,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "revoked",
           "type": "boolean",
           "default": false,
+          "array": false,
           "required": false
         }
       ],
@@ -228,19 +249,23 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "memberId",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "title",
           "type": "string",
           "size": 128,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -258,6 +283,7 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -266,13 +292,15 @@
           "required": false,
           "array": true,
           "min": 0,
-          "max": 6
+          "max": 6,
+          "default": null
         },
         {
           "key": "startTime",
           "type": "string",
           "size": 5,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -280,24 +308,30 @@
           "type": "string",
           "size": 5,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "color",
           "type": "string",
           "size": 7,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "notes",
           "type": "string",
           "size": 500,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "active",
           "type": "boolean",
           "default": true,
+          "array": false,
           "required": false
         }
       ],
@@ -326,6 +360,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -333,36 +368,44 @@
           "type": "string",
           "size": 200,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "description",
           "type": "string",
           "size": 2000,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "location",
           "type": "string",
           "size": 200,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "startAt",
           "type": "datetime",
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "endAt",
           "type": "datetime",
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "allDay",
           "type": "boolean",
           "default": false,
+          "array": false,
           "required": false
         },
         {
@@ -370,32 +413,38 @@
           "type": "string",
           "size": 36,
           "array": true,
-          "required": false
+          "required": false,
+          "default": null
         },
         {
           "key": "rrule",
           "type": "string",
           "size": 500,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "exdates",
           "type": "string",
           "size": 36,
           "array": true,
-          "required": false
+          "required": false,
+          "default": null
         },
         {
           "key": "reminderMinutes",
           "type": "integer",
           "array": true,
-          "required": false
+          "required": false,
+          "default": null
         },
         {
           "key": "createdBy",
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         }
       ],
@@ -438,13 +487,16 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "name",
           "type": "string",
           "size": 128,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -465,6 +517,7 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -483,19 +536,24 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "instructions",
           "type": "string",
           "size": 2000,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "videoUrl",
           "type": "string",
           "size": 500,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -530,6 +588,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -537,6 +596,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -544,18 +604,22 @@
           "type": "string",
           "size": 128,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "goal",
           "type": "string",
           "size": 200,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "active",
           "type": "boolean",
           "default": true,
+          "array": false,
           "required": false
         }
       ],
@@ -591,6 +655,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -598,6 +663,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -605,6 +671,7 @@
           "type": "string",
           "size": 64,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -612,12 +679,15 @@
           "type": "integer",
           "min": 0,
           "max": 6,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "order",
           "type": "integer",
           "required": true,
+          "array": false,
           "default": null
         }
       ],
@@ -646,6 +716,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -653,6 +724,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -660,6 +732,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -668,6 +741,7 @@
           "required": true,
           "min": 1,
           "max": 20,
+          "array": false,
           "default": null
         },
         {
@@ -675,30 +749,37 @@
           "type": "string",
           "size": 20,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "targetLoadKg",
           "type": "double",
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "restSeconds",
           "type": "integer",
           "default": 90,
+          "array": false,
           "required": false
         },
         {
           "key": "order",
           "type": "integer",
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "notes",
           "type": "string",
           "size": 200,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -726,6 +807,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -733,30 +815,38 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "planDayId",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "startedAt",
           "type": "datetime",
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "finishedAt",
           "type": "datetime",
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "notes",
           "type": "string",
           "size": 500,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -798,6 +888,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -805,6 +896,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -812,6 +904,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -819,6 +912,7 @@
           "type": "integer",
           "required": true,
           "min": 1,
+          "array": false,
           "default": null
         },
         {
@@ -826,6 +920,7 @@
           "type": "integer",
           "required": true,
           "min": 0,
+          "array": false,
           "default": null
         },
         {
@@ -833,6 +928,7 @@
           "type": "double",
           "required": true,
           "min": 0,
+          "array": false,
           "default": null
         },
         {
@@ -840,13 +936,17 @@
           "type": "double",
           "min": 0,
           "max": 10,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "durationSeconds",
           "type": "integer",
           "min": 0,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "technique",
@@ -862,7 +962,9 @@
             "isometria"
           ],
           "size": 255,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -898,6 +1000,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -905,6 +1008,7 @@
           "type": "string",
           "size": 128,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -917,19 +1021,23 @@
           ],
           "size": 255,
           "default": "active",
+          "array": false,
           "required": false
         },
         {
           "key": "isDefault",
           "type": "boolean",
           "default": false,
+          "array": false,
           "required": false
         },
         {
           "key": "totalCents",
           "type": "integer",
           "min": 0,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -964,6 +1072,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -971,6 +1080,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -978,19 +1088,23 @@
           "type": "string",
           "size": 128,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "qty",
           "type": "double",
           "default": 1,
+          "array": false,
           "required": false
         },
         {
           "key": "unit",
           "type": "string",
           "size": 20,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "category",
@@ -1007,43 +1121,54 @@
           ],
           "size": 255,
           "default": "outro",
+          "array": false,
           "required": false
         },
         {
           "key": "note",
           "type": "string",
           "size": 200,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "addedBy",
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "checked",
           "type": "boolean",
           "default": false,
+          "array": false,
           "required": false
         },
         {
           "key": "checkedBy",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "checkedAt",
           "type": "datetime",
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "priceCents",
           "type": "integer",
           "min": 0,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -1078,6 +1203,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1085,19 +1211,23 @@
           "type": "string",
           "size": 128,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "defaultQty",
           "type": "double",
           "default": 1,
+          "array": false,
           "required": false
         },
         {
           "key": "unit",
           "type": "string",
           "size": 20,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "category",
@@ -1114,6 +1244,7 @@
           ],
           "size": 255,
           "default": "outro",
+          "array": false,
           "required": false
         }
       ],
@@ -1142,6 +1273,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1149,6 +1281,7 @@
           "type": "string",
           "size": 200,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1156,6 +1289,7 @@
           "type": "integer",
           "required": true,
           "min": 1,
+          "array": false,
           "default": null
         },
         {
@@ -1174,6 +1308,7 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1181,12 +1316,14 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "date",
           "type": "datetime",
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1201,6 +1338,7 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1208,6 +1346,7 @@
           "type": "string",
           "size": 4000,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1220,31 +1359,39 @@
           ],
           "size": 255,
           "default": "confirmed",
+          "array": false,
           "required": false
         },
         {
           "key": "rrule",
           "type": "string",
           "size": 500,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "recurrenceKey",
           "type": "string",
           "size": 100,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "receiptFileId",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "createdBy",
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         }
       ],
@@ -1294,6 +1441,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1301,6 +1449,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1308,6 +1457,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1315,6 +1465,7 @@
           "type": "integer",
           "required": true,
           "min": 1,
+          "array": false,
           "default": null
         },
         {
@@ -1328,19 +1479,23 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "settledAt",
           "type": "datetime",
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "note",
           "type": "string",
           "size": 200,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -1375,6 +1530,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1382,13 +1538,16 @@
           "type": "string",
           "size": 200,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "description",
           "type": "string",
           "size": 2000,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "type",
@@ -1400,6 +1559,7 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1417,18 +1577,23 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "rrule",
           "type": "string",
           "size": 500,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "dueDate",
           "type": "datetime",
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "assignmentMode",
@@ -1441,25 +1606,30 @@
           ],
           "size": 255,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "assignedMemberId",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "rotationMemberIds",
           "type": "string",
           "size": 36,
           "array": true,
-          "required": false
+          "required": false,
+          "default": null
         },
         {
           "key": "rotationIndex",
           "type": "integer",
           "default": 0,
+          "array": false,
           "required": false
         },
         {
@@ -1473,13 +1643,16 @@
           ],
           "size": 255,
           "default": "media",
+          "array": false,
           "required": false
         },
         {
           "key": "checklist",
           "type": "string",
           "size": 4000,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "points",
@@ -1487,12 +1660,14 @@
           "default": 1,
           "min": 1,
           "max": 100,
+          "array": false,
           "required": false
         },
         {
           "key": "active",
           "type": "boolean",
           "default": true,
+          "array": false,
           "required": false
         }
       ],
@@ -1528,6 +1703,7 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
@@ -1535,19 +1711,23 @@
           "type": "string",
           "size": 36,
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "dueAt",
           "type": "datetime",
           "required": true,
+          "array": false,
           "default": null
         },
         {
           "key": "assignedMemberId",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "status",
@@ -1560,18 +1740,23 @@
           ],
           "size": 255,
           "default": "pending",
+          "array": false,
           "required": false
         },
         {
           "key": "completedBy",
           "type": "string",
           "size": 36,
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         },
         {
           "key": "completedAt",
           "type": "datetime",
-          "required": false
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
