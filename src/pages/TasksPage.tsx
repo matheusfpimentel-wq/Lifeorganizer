@@ -12,7 +12,6 @@ import {
   type TaskRow,
 } from '@/features/tasks/hooks';
 import TaskForm, { type TaskFormValues } from '@/features/tasks/TaskForm';
-import BalancePanel from '@/features/tasks/BalancePanel';
 import { describeRrule } from '@/features/tasks/weekdays';
 import { anchorLabels, taskCategoryLabels } from '@/shared/labels';
 import { formatDate } from '@/lib/format';
@@ -21,7 +20,7 @@ import { Icon } from '@/components/icons';
 import SwipeRow from '@/components/SwipeRow';
 import { HouseScene, ModuleHero } from '@/components/scenes';
 
-type Tab = 'pending' | 'models' | 'balance';
+type Tab = 'pending' | 'models';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Occurrence = Record<string, any> & { $id: string };
@@ -114,7 +113,6 @@ export default function TasksPage() {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'pending', label: 'Pendências' },
     { id: 'models', label: 'Modelos' },
-    { id: 'balance', label: 'Equilíbrio' },
   ];
 
   return (
@@ -135,7 +133,7 @@ export default function TasksPage() {
         }
       />
 
-      <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+      <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -348,8 +346,6 @@ export default function TasksPage() {
             ))}
           </ul>
         ))}
-
-      {tab === 'balance' && <BalancePanel householdId={householdId} members={memberOptions} />}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import type { SplitSpec } from '@/core/split';
 import { computeSplits } from '@/core/split';
 import { expenseCategoryLabels, splitTypeLabels } from '@/shared/labels';
 import { formatCentsBRL, parseBRLToCents } from '@/lib/format';
+import type { ExpenseRow } from './hooks';
 
 interface Member {
   id: string;
@@ -14,6 +15,8 @@ interface Props {
   currentUserId: string;
   /** Proporção combinada do lar (percentBp por membro); habilita "Proporcional". */
   proportional?: { memberId: string; percentBp: number }[] | null;
+  /** Despesa existente para edição (pré-preenche o formulário). */
+  initial?: ExpenseRow;
   submitting?: boolean;
   onSubmit: (values: {
     description: string;
@@ -29,16 +32,45 @@ interface Props {
 
 type SplitType = 'equal' | 'percent' | 'shares' | 'exact' | 'proportional';
 
-export default function ExpenseForm({ members, currentUserId, proportional, submitting, onSubmit, onCancel }: Props) {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('mercado');
-  const [paidBy, setPaidBy] = useState(currentUserId);
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [splitType, setSplitType] = useState<SplitType>('equal');
-  const [included, setIncluded] = useState<string[]>(members.map((m) => m.id));
-  const [recurring, setRecurring] = useState(false);
-  const [values, setValues] = useState<Record<string, string>>({});
+/** Despesa ISO (meio-dia −03:00) → yyyy-mm-dd em São Paulo (UTC−3 fixo). */
+function isoToSpDateInput(iso: string): string {
+  return new Date(new Date(iso).getTime() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+export default function ExpenseForm({ members, currentUserId, proportional, initial, submitting, onSubmit, onCancel }: Props) {
+  // na edição, divisões não-iguais voltam como "exato" com os valores gravados
+  const initialSplits: { memberId: string; amountCents: number }[] = (() => {
+    if (!initial) return [];
+    try {
+      return JSON.parse(initial.splits as string);
+    } catch {
+      return [];
+    }
+  })();
+  const [description, setDescription] = useState(initial?.description ?? '');
+  const [amount, setAmount] = useState(
+    initial ? (initial.amountCents / 100).toFixed(2).replace('.', ',') : '',
+  );
+  const [category, setCategory] = useState(initial?.category ?? 'mercado');
+  const [paidBy, setPaidBy] = useState(initial?.paidBy ?? currentUserId);
+  const [date, setDate] = useState(() =>
+    initial ? isoToSpDateInput(initial.date) : new Date().toISOString().slice(0, 10),
+  );
+  const [splitType, setSplitType] = useState<SplitType>(
+    initial ? (initial.splitType === 'equal' ? 'equal' : 'exact') : 'equal',
+  );
+  const [included, setIncluded] = useState<string[]>(
+    initial && initialSplits.length > 0
+      ? initialSplits.map((s) => s.memberId)
+      : members.map((m) => m.id),
+  );
+  const [recurring, setRecurring] = useState(!!initial?.rrule);
+  const [values, setValues] = useState<Record<string, string>>(() => {
+    if (!initial || initial.splitType === 'equal') return {};
+    return Object.fromEntries(
+      initialSplits.map((s) => [s.memberId, (s.amountCents / 100).toFixed(2).replace('.', ',')]),
+    );
+  });
   const [error, setError] = useState<string | null>(null);
 
   const amountCents = useMemo(() => {
@@ -222,7 +254,9 @@ export default function ExpenseForm({ members, currentUserId, proportional, subm
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-2">
-        <button type="submit" className="btn-primary flex-1" disabled={submitting}>Lançar</button>
+        <button type="submit" className="btn-primary flex-1" disabled={submitting}>
+          {initial ? 'Salvar' : 'Lançar'}
+        </button>
         {onCancel && <button type="button" className="btn-secondary" onClick={onCancel}>Cancelar</button>}
       </div>
     </form>

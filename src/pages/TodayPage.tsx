@@ -151,28 +151,6 @@ export default function TodayPage() {
         )}
       </div>
 
-      {/* círculos de estatísticas (estilo Vistage) */}
-      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-        {[
-          { to: '/tarefas', label: 'Tarefas', value: String(todayOccurrences.length + overdue.length), icon: Icon.CheckSquare, tint: 'bg-amber-200/80 text-amber-900 dark:bg-amber-500/25 dark:text-amber-300' },
-          { to: '/compras', label: 'Mercado', value: String(pendingItems), icon: Icon.Cart, tint: 'bg-emerald-200/80 text-emerald-900 dark:bg-emerald-500/25 dark:text-emerald-300' },
-          { to: '/contas', label: 'Saldo', value: `${myBalance > 0 ? '+' : ''}${Math.round(myBalance / 100)}`, icon: Icon.Banknote, tint: 'bg-sky-200/80 text-sky-900 dark:bg-sky-500/25 dark:text-sky-300' },
-          { to: '/agenda', label: 'Eventos', value: String(todayEvents.length), icon: Icon.Calendar, tint: 'bg-violet-200/80 text-violet-900 dark:bg-violet-500/25 dark:text-violet-300' },
-          { to: '/academia', label: 'Treino', value: 'ir', icon: Icon.Dumbbell, tint: 'bg-rose-200/80 text-rose-900 dark:bg-rose-500/25 dark:text-rose-300' },
-        ].map((stat) => {
-          const StatIcon = stat.icon;
-          return (
-            <Link key={stat.to + stat.label} to={stat.to} className="flex shrink-0 flex-col items-center gap-1">
-              <span className={`flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full shadow-sm transition-transform active:scale-90 ${stat.tint}`}>
-                <StatIcon className="h-4 w-4 opacity-80" />
-                <span className="text-base font-bold leading-none">{stat.value}</span>
-              </span>
-              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{stat.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-
       {pausedUntil && (
         <section className="card border-l-4 border-sky-500">
           <h2 className="font-semibold text-sky-600">Modo férias</h2>
@@ -195,8 +173,11 @@ export default function TodayPage() {
         weather={weather.data?.kind ?? null}
       />
 
+      {/* cards da home em 2 colunas */}
+      <div className="grid grid-cols-2 items-start gap-3">
+
       {/* dia de compras -> agenda */}
-      <section className="card flex flex-col gap-2">
+      <section className="card col-span-2 flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon.Calendar className="h-5 w-5 text-emerald-600" />
@@ -241,10 +222,10 @@ export default function TodayPage() {
           </div>
           <ul className="flex flex-col gap-2">
             {overdue.slice(0, 5).map((o) => (
-              <li key={o.$id} className="flex items-center justify-between gap-2">
+              <li key={o.$id} className="flex flex-col gap-1">
                 <button
                   type="button"
-                  className="min-w-0 flex-1 truncate text-left"
+                  className="min-w-0 truncate text-left"
                   aria-label={`Editar ${taskTitle(o.taskId)}`}
                   onClick={() => navigate('/tarefas', { state: { editTaskId: o.taskId } })}
                 >
@@ -252,13 +233,14 @@ export default function TodayPage() {
                 </button>
                 <span className="flex gap-1">
                   <button
-                    className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                    className="btn-secondary !min-h-[32px] !px-2 text-sm"
+                    aria-label="Concluir"
                     onClick={() => occurrenceAction.mutate({ occurrenceId: o.$id, action: 'done' })}
                   >
                     <Icon.Check className="h-4 w-4" />
                   </button>
                   <button
-                    className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                    className="btn-secondary !min-h-[32px] !px-2 text-sm"
                     onClick={() => occurrenceAction.mutate({ occurrenceId: o.$id, action: 'skipped' })}
                   >
                     Pular
@@ -294,11 +276,11 @@ export default function TodayPage() {
                   aria-label={`Editar ${taskTitle(o.taskId)}`}
                   onClick={() => navigate('/tarefas', { state: { editTaskId: o.taskId } })}
                 >
-                  {taskTitle(o.taskId)}
-                  <span className="ml-2 text-sm text-slate-500">{formatTime(o.dueAt)}</span>
+                  <span className="block truncate">{taskTitle(o.taskId)}</span>
+                  <span className="block text-sm text-slate-500">{formatTime(o.dueAt)}</span>
                 </button>
                 <button
-                  className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                  className="btn-secondary !min-h-[32px] shrink-0 !px-2 text-sm"
                   aria-label="Concluir"
                   onClick={() => occurrenceAction.mutate({ occurrenceId: o.$id, action: 'done' })}
                 >
@@ -320,14 +302,16 @@ export default function TodayPage() {
         ) : (
           <ul className="flex flex-col gap-1.5">
             {todayEvents.map((o, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm">
-                <span className="w-12 text-slate-500">{formatTime(o.startAt)}</span>
-                <span>{eventTitle(o.eventId)}</span>
+              <li key={i} className="flex flex-col text-sm">
+                <span className="text-slate-500">{formatTime(o.startAt)}</span>
+                <span className="truncate">{eventTitle(o.eventId)}</span>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      </div>
     </div>
   );
 }

@@ -113,6 +113,45 @@ export function useConfirmExpense(householdId: string | null) {
   });
 }
 
+export function useUpdateExpense(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      expenseId,
+      input,
+    }: {
+      expenseId: string;
+      input: {
+        description: string;
+        amountCents: number;
+        category: string;
+        paidBy: string;
+        date: string;
+        splitSpec: SplitSpec;
+        rrule?: string | null;
+      };
+    }) => {
+      const splits = computeSplits(input.amountCents, input.splitSpec);
+      return tablesDB.updateRow({
+        databaseId: DB_ID,
+        tableId: TABLES.expenses,
+        rowId: expenseId,
+        data: {
+          description: input.description,
+          amountCents: input.amountCents,
+          category: input.category,
+          paidBy: input.paidBy,
+          date: input.date,
+          splitType: input.splitSpec.type,
+          splits: JSON.stringify(splits),
+          rrule: input.rrule ?? null,
+        },
+      });
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['expenses', householdId] }),
+  });
+}
+
 export function useDeleteExpense(householdId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({

@@ -2,6 +2,31 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Editar/excluir em tudo + Home em 2 colunas
+
+### Added
+- **Agenda**: tocar num evento (lista, mês ou semana) abre o formulário de
+  edição; o "×" continua excluindo (ou cancelando só a ocorrência, quando
+  o evento repete).
+- **Contas**: tocar numa despesa em "Últimas despesas" abre a edição
+  (valor, categoria, quem pagou, data, divisão, conta fixa); cada linha
+  ganhou "×" para excluir com confirmação. Divisões não-iguais voltam
+  pré-preenchidas como "exato" com os valores gravados.
+- **Academia**: séries registradas podem ser excluídas durante o treino;
+  treinos do Histórico podem ser excluídos (com as séries); planos e dias
+  podem ser renomeados e excluídos (em cascata); exercícios do dia podem
+  ser editados (toque carrega séries/reps/descanso) e removidos.
+- **Rotina semanal**: tocar num bloco abre a edição; salvar atualiza o
+  bloco existente.
+
+### Changed
+- **Home**: círculos de estatísticas removidos (o mapa já conta a
+  história); os cards (Dia de compras, Atrasadas, Tarefas de hoje,
+  Eventos de hoje) agora ficam em **2 colunas**.
+
+### Removed
+- Aba **Equilíbrio** das Tarefas (não era usada pelo lar).
+
 ## [Unreleased] — Tocar na tarefa abre a edição
 
 ### Added

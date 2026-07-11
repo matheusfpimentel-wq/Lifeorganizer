@@ -10,6 +10,8 @@ import {
   useExpenses,
   useMonthlyReport,
   usePendingExpenses,
+  useUpdateExpense,
+  type ExpenseRow,
 } from '@/features/expenses/hooks';
 import ExpenseForm from '@/features/expenses/ExpenseForm';
 import MonthlyClosing from '@/features/expenses/MonthlyClosing';
@@ -28,6 +30,7 @@ export default function ExpensesPage() {
   const pending = usePendingExpenses(householdId);
   const { balances, transfers, isLoading: balancesLoading } = useBalances(householdId);
   const createExpense = useCreateExpense(householdId);
+  const updateExpense = useUpdateExpense(householdId);
   const createSettlement = useCreateSettlement(householdId);
   const confirmExpense = useConfirmExpense(householdId);
   const deleteExpense = useDeleteExpense(householdId);
@@ -36,7 +39,14 @@ export default function ExpensesPage() {
 
   const [tab, setTab] = useState<Tab>('summary');
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<ExpenseRow | null>(null);
   const [showPayment, setShowPayment] = useState(false);
+
+  function openEditor(expense: ExpenseRow) {
+    setEditing(expense);
+    setShowForm(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   const report = useMonthlyReport(householdId, 0);
 
   const memberName = (id: string) =>
@@ -88,26 +98,41 @@ export default function ExpensesPage() {
         scene={<BankScene className="h-24 w-full" />}
         title="Contas"
         action={
-          <button className="btn-primary !min-h-[40px]" onClick={() => setShowForm((s) => !s)}>
-            {showForm ? 'Fechar' : '+ Despesa'}
+          <button
+            className="btn-primary !min-h-[40px]"
+            onClick={() => {
+              setEditing(null);
+              setShowForm((s) => !s);
+            }}
+          >
+            {showForm && !editing ? 'Fechar' : '+ Despesa'}
           </button>
         }
       />
 
-      {showForm && user && (
+      {(showForm || editing) && user && (
         <ExpenseForm
+          key={editing?.$id ?? 'new'}
           members={memberOptions}
           currentUserId={user.$id}
           proportional={proportional}
-          submitting={createExpense.isPending}
-          onSubmit={(values) =>
-            createExpense.mutate(values, { onSuccess: () => setShowForm(false) })
-          }
-          onCancel={() => setShowForm(false)}
+          initial={editing ?? undefined}
+          submitting={createExpense.isPending || updateExpense.isPending}
+          onSubmit={(values) => {
+            if (editing) {
+              updateExpense.mutate(
+                { expenseId: editing.$id, input: values },
+                { onSuccess: () => { setEditing(null); setShowForm(false); } },
+              );
+            } else {
+              createExpense.mutate(values, { onSuccess: () => setShowForm(false) });
+            }
+          }}
+          onCancel={() => { setShowForm(false); setEditing(null); }}
         />
       )}
-      {createExpense.isError && (
-        <p className="text-sm text-red-600">{(createExpense.error as Error).message}</p>
+      {(createExpense.isError || updateExpense.isError) && (
+        <p className="text-sm text-red-600">{((createExpense.error ?? updateExpense.error) as Error).message}</p>
       )}
 
       <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
@@ -279,21 +304,37 @@ export default function ExpensesPage() {
                   .filter((e) => e.status !== 'pending')
                   .slice(0, 20)
                   .map((expense) => (
-                    <li key={expense.$id} className="flex justify-between gap-2">
-                      <div>
-                        <p className="font-medium">
+                    <li key={expense.$id} className="flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        className="min-w-0 flex-1 text-left"
+                        aria-label={`Editar ${expense.description}`}
+                        onClick={() => openEditor(expense)}
+                      >
+                        <span className="block truncate font-medium">
                           {expense.description}
                           {expense.rrule && (
                             <span className="ml-2 rounded bg-brand-100 px-1.5 py-0.5 text-xs text-brand-800 dark:bg-brand-900 dark:text-brand-100">
                               fixa
                             </span>
                           )}
-                        </p>
-                        <p className="text-sm text-slate-500">
+                        </span>
+                        <span className="block truncate text-sm text-slate-500">
                           {formatDate(expense.date)} · {expenseCategoryLabels[expense.category] ?? expense.category} · pagou: {memberName(expense.paidBy)}
-                        </p>
-                      </div>
-                      <span className="font-semibold">{formatCentsBRL(expense.amountCents)}</span>
+                        </span>
+                      </button>
+                      <span className="shrink-0 font-semibold">{formatCentsBRL(expense.amountCents)}</span>
+                      <button
+                        className="shrink-0 text-slate-400 hover:text-red-600"
+                        aria-label={`Excluir ${expense.description}`}
+                        onClick={() => {
+                          if (confirm(`Excluir "${expense.description}" (${formatCentsBRL(expense.amountCents)})?`)) {
+                            deleteExpense.mutate(expense.$id);
+                          }
+                        }}
+                      >
+                        <Icon.X className="h-4 w-4" />
+                      </button>
                     </li>
                   ))}
               </ul>

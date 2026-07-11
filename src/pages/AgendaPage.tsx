@@ -7,6 +7,7 @@ import {
   useCreateEvent,
   useDeleteEvent,
   useEvents,
+  useUpdateEvent,
   type EventRow,
 } from '@/features/events/hooks';
 import { useRoutineBlocks } from '@/features/routine/hooks';
@@ -26,6 +27,7 @@ export default function AgendaPage() {
   const events = useEvents(householdId);
   const routine = useRoutineBlocks(householdId);
   const createEvent = useCreateEvent(householdId);
+  const updateEvent = useUpdateEvent(householdId);
   const deleteEvent = useDeleteEvent(householdId);
   const cancelOccurrence = useCancelOccurrence(householdId);
   const { people, profileById } = useHouseholdPeople(householdId);
@@ -35,6 +37,13 @@ export default function AgendaPage() {
 
   const [view, setView] = useState<View>('agenda');
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<EventRow | null>(null);
+
+  function openEditor(event: EventRow) {
+    setEditing(event);
+    setShowForm(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   const [monthOffset, setMonthOffset] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -66,21 +75,40 @@ export default function AgendaPage() {
         scene={<ParkScene className="h-24 w-full" />}
         title="Agenda"
         action={
-          <button className="btn-primary !min-h-[40px]" onClick={() => setShowForm((s) => !s)}>
-            {showForm ? 'Fechar' : '+ Evento'}
+          <button
+            className="btn-primary !min-h-[40px]"
+            onClick={() => {
+              setEditing(null);
+              setShowForm((s) => !s);
+            }}
+          >
+            {showForm && !editing ? 'Fechar' : '+ Evento'}
           </button>
         }
       />
 
-      {showForm && (
+      {(showForm || editing) && (
         <EventForm
+          key={editing?.$id ?? 'new'}
           members={memberOptions}
-          submitting={createEvent.isPending}
-          onSubmit={(values) => createEvent.mutate(values, { onSuccess: () => setShowForm(false) })}
-          onCancel={() => setShowForm(false)}
+          initial={editing ?? undefined}
+          submitting={createEvent.isPending || updateEvent.isPending}
+          onSubmit={(values) => {
+            if (editing) {
+              updateEvent.mutate(
+                { eventId: editing.$id, data: values },
+                { onSuccess: () => { setEditing(null); setShowForm(false); } },
+              );
+            } else {
+              createEvent.mutate(values, { onSuccess: () => setShowForm(false) });
+            }
+          }}
+          onCancel={() => { setShowForm(false); setEditing(null); }}
         />
       )}
-      {createEvent.isError && <p className="text-sm text-red-600">{(createEvent.error as Error).message}</p>}
+      {(createEvent.isError || updateEvent.isError) && (
+        <p className="text-sm text-red-600">{((createEvent.error ?? updateEvent.error) as Error).message}</p>
+      )}
 
       {/* filtro por membro */}
       <div className="flex flex-wrap gap-2">
@@ -136,6 +164,10 @@ export default function AgendaPage() {
           eventById={eventById}
           eventColor={eventColor}
           occKey={occKey}
+          onEdit={(o) => {
+            const e = eventById.get(o.eventId);
+            if (e) openEditor(e);
+          }}
           onCancel={(o) => {
             const e = eventById.get(o.eventId);
             if (!e) return;
@@ -153,6 +185,10 @@ export default function AgendaPage() {
           eventColor={eventColor}
           selectedDay={selectedDay}
           setSelectedDay={setSelectedDay}
+          onEdit={(id) => {
+            const e = eventById.get(id);
+            if (e) openEditor(e);
+          }}
         />
       ) : (
         <WeekView
@@ -167,6 +203,10 @@ export default function AgendaPage() {
           setShowRoutine={setShowRoutine}
           memberFilter={memberFilter}
           memberColor={memberColor}
+          onEdit={(id) => {
+            const e = eventById.get(id);
+            if (e) openEditor(e);
+          }}
         />
       )}
     </div>
@@ -178,24 +218,26 @@ function OccurrenceItem({
   o,
   event,
   color,
+  onEdit,
   onCancel,
 }: {
   o: EventOccurrence;
   event: EventRow | undefined;
   color: string;
+  onEdit: () => void;
   onCancel: () => void;
 }) {
   return (
     <li className="flex items-center gap-3">
       <span className="h-8 w-1 rounded-full" style={{ backgroundColor: color }} />
-      <div className="flex-1">
-        <p className="font-medium">{event?.title ?? 'Evento'}</p>
-        <p className="text-sm text-slate-500">
+      <button type="button" className="min-w-0 flex-1 text-left" aria-label={`Editar ${event?.title ?? 'evento'}`} onClick={onEdit}>
+        <span className="block truncate font-medium">{event?.title ?? 'Evento'}</span>
+        <span className="block truncate text-sm text-slate-500">
           {event?.allDay ? 'Dia inteiro' : `${formatTime(o.startAt)}–${formatTime(o.endAt)}`}
           {event?.location ? ` · ${event.location}` : ''}
           {event?.rrule ? ' · repete' : ''}
-        </p>
-      </div>
+        </span>
+      </button>
       <button className="text-slate-400 hover:text-red-600" aria-label="Excluir" onClick={onCancel}><Icon.X className="h-4 w-4" /></button>
     </li>
   );
@@ -206,12 +248,14 @@ function AgendaList({
   eventById,
   eventColor,
   occKey,
+  onEdit,
   onCancel,
 }: {
   occurrences: EventOccurrence[];
   eventById: Map<string, EventRow>;
   eventColor: (e: EventRow) => string;
   occKey: (o: EventOccurrence) => string;
+  onEdit: (o: EventOccurrence) => void;
   onCancel: (o: EventOccurrence) => void;
 }) {
   if (occurrences.length === 0) {
@@ -234,7 +278,7 @@ function AgendaList({
             {occs.map((o) => {
               const e = eventById.get(o.eventId);
               return (
-                <OccurrenceItem key={occKey(o)} o={o} event={e} color={e ? eventColor(e) : '#0ea5e9'} onCancel={() => onCancel(o)} />
+                <OccurrenceItem key={occKey(o)} o={o} event={e} color={e ? eventColor(e) : '#0ea5e9'} onEdit={() => onEdit(o)} onCancel={() => onCancel(o)} />
               );
             })}
           </ul>
@@ -253,6 +297,7 @@ function MonthView({
   eventColor,
   selectedDay,
   setSelectedDay,
+  onEdit,
 }: {
   now: Date;
   monthOffset: number;
@@ -262,6 +307,7 @@ function MonthView({
   eventColor: (e: EventRow) => string;
   selectedDay: string | null;
   setSelectedDay: (k: string | null) => void;
+  onEdit: (eventId: string) => void;
 }) {
   const grid = monthMatrix(now, monthOffset, WEEK_START);
   const occurrences = expandEventOccurrences(
@@ -326,10 +372,10 @@ function MonthView({
                 return (
                   <li key={i} className="flex items-center gap-3">
                     <span className="h-8 w-1 rounded-full" style={{ backgroundColor: e ? eventColor(e) : '#0ea5e9' }} />
-                    <div>
-                      <p className="font-medium">{e?.title ?? 'Evento'}</p>
-                      <p className="text-sm text-slate-500">{e?.allDay ? 'Dia inteiro' : `${formatTime(o.startAt)}–${formatTime(o.endAt)}`}</p>
-                    </div>
+                    <button type="button" className="min-w-0 flex-1 text-left" aria-label={`Editar ${e?.title ?? 'evento'}`} onClick={() => onEdit(o.eventId)}>
+                      <span className="block truncate font-medium">{e?.title ?? 'Evento'}</span>
+                      <span className="block text-sm text-slate-500">{e?.allDay ? 'Dia inteiro' : `${formatTime(o.startAt)}–${formatTime(o.endAt)}`}</span>
+                    </button>
                   </li>
                 );
               })}
@@ -353,6 +399,7 @@ function WeekView({
   setShowRoutine,
   memberFilter,
   memberColor,
+  onEdit,
 }: {
   now: Date;
   weekOffset: number;
@@ -366,6 +413,7 @@ function WeekView({
   setShowRoutine: (b: boolean) => void;
   memberFilter: string | null;
   memberColor: (id: string) => string;
+  onEdit: (eventId: string) => void;
 }) {
   const week = weekDays(now, weekOffset, WEEK_START);
   const occurrences = expandEventOccurrences(
@@ -410,7 +458,9 @@ function WeekView({
                     <li key={`e${i}`} className="flex items-center gap-2 text-sm">
                       <span className="h-4 w-1 rounded-full" style={{ backgroundColor: e ? eventColor(e) : '#0ea5e9' }} />
                       <span className="text-slate-500">{e?.allDay ? '—' : formatTime(o.startAt)}</span>
-                      <span>{e?.title ?? 'Evento'}</span>
+                      <button type="button" className="min-w-0 flex-1 truncate text-left" aria-label={`Editar ${e?.title ?? 'evento'}`} onClick={() => onEdit(o.eventId)}>
+                        {e?.title ?? 'Evento'}
+                      </button>
                     </li>
                   );
                 })}

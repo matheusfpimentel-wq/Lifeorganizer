@@ -47,6 +47,15 @@ export function useCreateRoutineBlock(householdId: string | null) {
   });
 }
 
+export function useUpdateRoutineBlock(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ blockId, data }: { blockId: string; data: Partial<RoutineInputData> }) =>
+      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.routineBlocks, rowId: blockId, data }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['routineBlocks', householdId] }),
+  });
+}
+
 export function useDeleteRoutineBlock(householdId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({

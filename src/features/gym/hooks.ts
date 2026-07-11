@@ -130,6 +130,99 @@ export function useAddPlanExercise(householdId: string | null, memberId: string 
   });
 }
 
+export function useUpdatePlan(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mutationFn: async ({ planId, data }: { planId: string; data: Record<string, any> }) =>
+      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.workoutPlans, rowId: planId, data }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['workoutPlans', householdId] }),
+  });
+}
+
+/** Exclui o plano com seus dias e exercícios (sem cascata nativa no Appwrite). */
+export function useDeletePlan(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (planId: string) => {
+      const days = await listAllRows<PlanDayRow>(TABLES.workoutPlanDays, [
+        Query.equal('planId', planId),
+      ]);
+      for (const day of days) {
+        const exercises = await listAllRows<PlanExerciseRow>(TABLES.workoutPlanExercises, [
+          Query.equal('planDayId', day.$id),
+        ]);
+        for (const pe of exercises) {
+          await tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutPlanExercises, rowId: pe.$id });
+        }
+        await tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutPlanDays, rowId: day.$id });
+      }
+      return tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutPlans, rowId: planId });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['workoutPlans', householdId] });
+      void queryClient.invalidateQueries({ queryKey: ['planDays'] });
+      void queryClient.invalidateQueries({ queryKey: ['planExercises'] });
+    },
+  });
+}
+
+export function useUpdatePlanDay() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mutationFn: async ({ dayId, data }: { dayId: string; planId: string; data: Record<string, any> }) =>
+      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.workoutPlanDays, rowId: dayId, data }),
+    onSuccess: (_r, v) => void queryClient.invalidateQueries({ queryKey: ['planDays', v.planId] }),
+  });
+}
+
+/** Exclui o dia do plano com seus exercícios. */
+export function useDeletePlanDay() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ dayId }: { dayId: string; planId: string }) => {
+      const exercises = await listAllRows<PlanExerciseRow>(TABLES.workoutPlanExercises, [
+        Query.equal('planDayId', dayId),
+      ]);
+      for (const pe of exercises) {
+        await tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutPlanExercises, rowId: pe.$id });
+      }
+      return tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutPlanDays, rowId: dayId });
+    },
+    onSuccess: (_r, v) => {
+      void queryClient.invalidateQueries({ queryKey: ['planDays', v.planId] });
+      void queryClient.invalidateQueries({ queryKey: ['planExercises'] });
+    },
+  });
+}
+
+export function useUpdatePlanExercise() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      exerciseRowId,
+      data,
+    }: {
+      exerciseRowId: string;
+      planDayId: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      data: Record<string, any>;
+    }) =>
+      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.workoutPlanExercises, rowId: exerciseRowId, data }),
+    onSuccess: (_r, v) => void queryClient.invalidateQueries({ queryKey: ['planExercises', v.planDayId] }),
+  });
+}
+
+export function useDeletePlanExercise() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ exerciseRowId }: { exerciseRowId: string; planDayId: string }) =>
+      tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutPlanExercises, rowId: exerciseRowId }),
+    onSuccess: (_r, v) => void queryClient.invalidateQueries({ queryKey: ['planExercises', v.planDayId] }),
+  });
+}
+
 // --- Sessões ----------------------------------------------------------------
 export function useSessions(householdId: string | null, memberId: string | null) {
   return useQuery({
@@ -212,5 +305,34 @@ export function useFinishSession(householdId: string | null) {
         data: { finishedAt: new Date().toISOString() },
       }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['sessions', householdId] }),
+  });
+}
+
+export function useDeleteSet(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (setId: string) =>
+      tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutSessionSets, rowId: setId }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['sessionSets', householdId] }),
+  });
+}
+
+/** Exclui a sessão de treino com todas as suas séries. */
+export function useDeleteSession(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      const sets = await listAllRows<SetRow>(TABLES.workoutSessionSets, [
+        Query.equal('sessionId', sessionId),
+      ]);
+      for (const set of sets) {
+        await tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutSessionSets, rowId: set.$id });
+      }
+      return tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.workoutSessions, rowId: sessionId });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['sessions', householdId] });
+      void queryClient.invalidateQueries({ queryKey: ['sessionSets', householdId] });
+    },
   });
 }

@@ -5,6 +5,7 @@ import {
   useCreateRoutineBlock,
   useDeleteRoutineBlock,
   useRoutineBlocks,
+  useUpdateRoutineBlock,
   type RoutineRow,
 } from '@/features/routine/hooks';
 import { routineCategoryLabels } from '@/shared/labels';
@@ -19,10 +20,12 @@ export default function RoutinePage() {
   const { householdId } = useActiveHousehold();
   const blocks = useRoutineBlocks(householdId);
   const createBlock = useCreateRoutineBlock(householdId);
+  const updateBlock = useUpdateRoutineBlock(householdId);
   const deleteBlock = useDeleteRoutineBlock(householdId);
   const { people } = useHouseholdPeople(householdId);
 
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [onlyMe, setOnlyMe] = useState(false);
 
   // form
@@ -48,10 +51,27 @@ export default function RoutinePage() {
     e.preventDefault();
     if (weekdays.length === 0 || startTime >= endTime) return;
     const memberId = target === 'me' ? user?.$id : target === 'household' ? null : target;
-    createBlock.mutate(
-      { title: title.trim(), category, weekdays, startTime, endTime, memberId, color: memberColor(memberId) },
-      { onSuccess: () => { setShowForm(false); setTitle(''); } },
-    );
+    const data = { title: title.trim(), category, weekdays, startTime, endTime, memberId, color: memberColor(memberId) };
+    if (editingId) {
+      updateBlock.mutate(
+        { blockId: editingId, data },
+        { onSuccess: () => { setShowForm(false); setEditingId(null); setTitle(''); } },
+      );
+    } else {
+      createBlock.mutate(data, { onSuccess: () => { setShowForm(false); setTitle(''); } });
+    }
+  }
+
+  function openEditor(b: RoutineRow) {
+    setEditingId(b.$id);
+    setTitle(b.title ?? '');
+    setCategory(b.category ?? 'trabalho');
+    setWeekdays(b.weekdays ?? []);
+    setStartTime(b.startTime ?? '09:00');
+    setEndTime(b.endTime ?? '10:00');
+    setTarget(!b.memberId ? 'household' : b.memberId === user?.$id ? 'me' : b.memberId);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   const blocksForDay = (d: number) =>
@@ -63,8 +83,15 @@ export default function RoutinePage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Rotina semanal</h1>
-        <button className="btn-primary" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? 'Fechar' : '+ Bloco'}
+        <button
+          className="btn-primary"
+          onClick={() => {
+            setEditingId(null);
+            setTitle('');
+            setShowForm((s) => !s);
+          }}
+        >
+          {showForm && !editingId ? 'Fechar' : '+ Bloco'}
         </button>
       </div>
 
@@ -124,8 +151,12 @@ export default function RoutinePage() {
               ))}
             </div>
           </div>
-          <button type="submit" className="btn-primary" disabled={createBlock.isPending}>Criar bloco</button>
-          {createBlock.isError && <p className="text-sm text-red-600">{(createBlock.error as Error).message}</p>}
+          <button type="submit" className="btn-primary" disabled={createBlock.isPending || updateBlock.isPending}>
+            {editingId ? 'Salvar bloco' : 'Criar bloco'}
+          </button>
+          {(createBlock.isError || updateBlock.isError) && (
+            <p className="text-sm text-red-600">{((createBlock.error ?? updateBlock.error) as Error).message}</p>
+          )}
         </form>
       )}
 
@@ -144,8 +175,15 @@ export default function RoutinePage() {
                   {dayBlocks.map((b: RoutineRow) => (
                     <li key={`${d}-${b.$id}`} className="flex items-center gap-2 text-sm">
                       <span className="h-6 w-1 rounded-full" style={{ backgroundColor: b.color ?? memberColor(b.memberId) }} />
-                      <span className="w-24 text-slate-500">{b.startTime}–{b.endTime}</span>
-                      <span className="flex-1">{b.title}</span>
+                      <button
+                        type="button"
+                        className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                        aria-label={`Editar ${b.title}`}
+                        onClick={() => openEditor(b)}
+                      >
+                        <span className="w-24 shrink-0 text-slate-500">{b.startTime}–{b.endTime}</span>
+                        <span className="min-w-0 flex-1 truncate">{b.title}</span>
+                      </button>
                       <span className="text-xs text-slate-400">{memberName(b.memberId).split(' ')[0]}</span>
                       <button className="text-slate-400 hover:text-red-600" aria-label="Excluir" onClick={() => deleteBlock.mutate(b.$id)}><Icon.X className="h-4 w-4" /></button>
                     </li>

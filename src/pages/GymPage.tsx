@@ -16,6 +16,11 @@ import {
   useAddPlanDay,
   useAddPlanExercise,
   useCreatePlan,
+  useDeletePlan,
+  useDeletePlanDay,
+  useDeletePlanExercise,
+  useDeleteSession,
+  useDeleteSet,
   useExerciseLibrary,
   useFinishSession,
   useLogSet,
@@ -24,8 +29,12 @@ import {
   useSessions,
   useSessionSets,
   useStartSession,
+  useUpdatePlan,
+  useUpdatePlanDay,
+  useUpdatePlanExercise,
   useWorkoutPlans,
   type PlanDayRow,
+  type PlanExerciseRow,
   type SetRow,
 } from '@/features/gym/hooks';
 import RestTimer from '@/features/gym/RestTimer';
@@ -91,7 +100,7 @@ export default function GymPage() {
         <PlansTab householdId={householdId} memberId={memberId} plans={plans.data ?? []} library={library} exName={exName} />
       )}
       {tab === 'history' && (
-        <HistoryTab sessions={sessions.data ?? []} mySets={mySets} exName={exName} />
+        <HistoryTab householdId={householdId} sessions={sessions.data ?? []} mySets={mySets} exName={exName} />
       )}
       {tab === 'progress' && <ProgressTab mySets={mySets} exName={exName} />}
     </div>
@@ -124,6 +133,7 @@ function TrainTab({
   const dayExercises = usePlanExercises(dayId || null);
   const startSession = useStartSession(householdId, memberId);
   const logSet = useLogSet(householdId, memberId);
+  const deleteSet = useDeleteSet(householdId);
   const finishSession = useFinishSession(householdId);
 
   const sessionSets = mySets.filter((s) => s.sessionId === sessionId);
@@ -238,6 +248,7 @@ function TrainTab({
               logSet.mutate({ sessionId, exerciseId, setNumber: logged.length + 1, ...values });
               setRestFor({ key: exerciseId, seconds: rest });
             }}
+            onDeleteSet={(setId) => deleteSet.mutate(setId)}
             resting={restFor?.key === exerciseId ? restFor.seconds : null}
             onDismissRest={() => setRestFor(null)}
           />
@@ -270,6 +281,7 @@ function ExerciseLogger({
   defaultLoad,
   suggestedLoad,
   onLog,
+  onDeleteSet,
   resting,
   onDismissRest,
 }: {
@@ -280,6 +292,7 @@ function ExerciseLogger({
   defaultLoad: number;
   suggestedLoad?: number | null;
   onLog: (values: SetLogValues) => void;
+  onDeleteSet: (setId: string) => void;
   resting: number | null;
   onDismissRest: () => void;
 }) {
@@ -320,8 +333,16 @@ function ExerciseLogger({
       {logged.length > 0 && (
         <ol className="flex flex-wrap gap-1 text-sm">
           {logged.map((s, i) => (
-            <li key={s.$id} className="rounded bg-slate-100 px-2 py-0.5 dark:bg-slate-800">
+            <li key={s.$id} className="flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-slate-800">
               {i + 1}: {describeSet(s)}
+              <button
+                type="button"
+                className="text-slate-400 hover:text-red-600"
+                aria-label={`Excluir série ${i + 1}`}
+                onClick={() => onDeleteSet(s.$id)}
+              >
+                <Icon.X className="h-3.5 w-3.5" />
+              </button>
             </li>
           ))}
         </ol>
@@ -433,8 +454,15 @@ function PlansTab({
   exName: (id: string) => string;
 }) {
   const createPlan = useCreatePlan(householdId, memberId);
+  const updatePlan = useUpdatePlan(householdId);
+  const deletePlan = useDeletePlan(householdId);
   const [name, setName] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  function renamePlan(p: PlanRow) {
+    const next = prompt('Novo nome do plano:', p.name);
+    if (next?.trim() && next.trim() !== p.name) updatePlan.mutate({ planId: p.$id, data: { name: next.trim() } });
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -451,10 +479,24 @@ function PlansTab({
       ) : (
         plans.map((p) => (
           <section key={p.$id} className="card">
-            <button className="flex w-full items-center justify-between" onClick={() => setSelectedPlan(selectedPlan === p.$id ? null : p.$id)}>
-              <span className="font-semibold">{p.name}</span>
-              <span className="text-slate-400">{selectedPlan === p.$id ? <Icon.ChevronUp className="h-4 w-4" /> : <Icon.ChevronDown className="h-4 w-4" />}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button className="flex min-w-0 flex-1 items-center justify-between" onClick={() => setSelectedPlan(selectedPlan === p.$id ? null : p.$id)}>
+                <span className="truncate font-semibold">{p.name}</span>
+                <span className="text-slate-400">{selectedPlan === p.$id ? <Icon.ChevronUp className="h-4 w-4" /> : <Icon.ChevronDown className="h-4 w-4" />}</span>
+              </button>
+              <button className="btn-secondary !min-h-[32px] shrink-0 !px-2 text-xs" onClick={() => renamePlan(p)}>
+                Renomear
+              </button>
+              <button
+                className="shrink-0 text-slate-400 hover:text-red-600"
+                aria-label={`Excluir plano ${p.name}`}
+                onClick={() => {
+                  if (confirm(`Excluir o plano "${p.name}" com seus dias e exercícios?`)) deletePlan.mutate(p.$id);
+                }}
+              >
+                <Icon.Trash className="h-4 w-4" />
+              </button>
+            </div>
             {selectedPlan === p.$id && (
               <PlanEditor householdId={householdId} memberId={memberId} planId={p.$id} library={library} exName={exName} />
             )}
@@ -480,8 +522,15 @@ function PlanEditor({
 }) {
   const days = usePlanDays(planId);
   const addDay = useAddPlanDay(householdId, memberId);
+  const updateDay = useUpdatePlanDay();
+  const deleteDay = useDeletePlanDay();
   const [label, setLabel] = useState('');
   const [openDay, setOpenDay] = useState<string | null>(null);
+
+  function renameDay(d: PlanDayRow) {
+    const next = prompt('Novo nome do dia:', d.label);
+    if (next?.trim() && next.trim() !== d.label) updateDay.mutate({ dayId: d.$id, planId, data: { label: next.trim() } });
+  }
 
   return (
     <div className="mt-3 flex flex-col gap-2 border-t border-slate-200 pt-3 dark:border-slate-700">
@@ -493,9 +542,24 @@ function PlanEditor({
       </div>
       {(days.data ?? []).map((d: PlanDayRow) => (
         <div key={d.$id} className="rounded-lg bg-slate-50 p-2 dark:bg-slate-800/50">
-          <button className="flex w-full items-center justify-between text-sm font-medium" onClick={() => setOpenDay(openDay === d.$id ? null : d.$id)}>
-            {d.label}<span className="text-slate-400">{openDay === d.$id ? <Icon.ChevronUp className="h-4 w-4" /> : <Icon.ChevronDown className="h-4 w-4" />}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button className="flex min-w-0 flex-1 items-center justify-between text-sm font-medium" onClick={() => setOpenDay(openDay === d.$id ? null : d.$id)}>
+              <span className="truncate">{d.label}</span>
+              <span className="text-slate-400">{openDay === d.$id ? <Icon.ChevronUp className="h-4 w-4" /> : <Icon.ChevronDown className="h-4 w-4" />}</span>
+            </button>
+            <button className="btn-secondary !min-h-[28px] shrink-0 !px-2 text-xs" onClick={() => renameDay(d)}>
+              Renomear
+            </button>
+            <button
+              className="shrink-0 text-slate-400 hover:text-red-600"
+              aria-label={`Excluir dia ${d.label}`}
+              onClick={() => {
+                if (confirm(`Excluir o dia "${d.label}" e seus exercícios?`)) deleteDay.mutate({ dayId: d.$id, planId });
+              }}
+            >
+              <Icon.Trash className="h-4 w-4" />
+            </button>
+          </div>
           {openDay === d.$id && (
             <DayEditor householdId={householdId} memberId={memberId} planDayId={d.$id} library={library} exName={exName} />
           )}
@@ -520,23 +584,72 @@ function DayEditor({
 }) {
   const exercises = usePlanExercises(planDayId);
   const addExercise = useAddPlanExercise(householdId, memberId);
+  const updateExercise = useUpdatePlanExercise();
+  const deleteExercise = useDeletePlanExercise();
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [exerciseId, setExerciseId] = useState('');
   const [sets, setSets] = useState(3);
   const [repRange, setRepRange] = useState('8-12');
   const [rest, setRest] = useState(90);
 
+  function startEdit(pe: PlanExerciseRow) {
+    setEditingRowId(pe.$id);
+    setExerciseId(pe.exerciseId);
+    setSets(pe.sets ?? 3);
+    setRepRange(pe.repRange ?? '8-12');
+    setRest(pe.restSeconds ?? 90);
+  }
+
+  function resetForm() {
+    setEditingRowId(null);
+    setExerciseId('');
+    setSets(3);
+    setRepRange('8-12');
+    setRest(90);
+  }
+
+  function submit() {
+    if (!exerciseId) return;
+    if (editingRowId) {
+      updateExercise.mutate(
+        { exerciseRowId: editingRowId, planDayId, data: { exerciseId, sets, repRange, restSeconds: rest } },
+        { onSuccess: resetForm },
+      );
+    } else {
+      addExercise.mutate({ planDayId, exerciseId, sets, repRange, restSeconds: rest, order: (exercises.data ?? []).length });
+      setExerciseId('');
+    }
+  }
+
   return (
     <div className="mt-2 flex flex-col gap-2">
       <ul className="flex flex-col gap-1 text-sm">
         {(exercises.data ?? []).map((pe) => (
-          <li key={pe.$id} className="flex justify-between">
-            <span>{exName(pe.exerciseId)}</span>
-            <span className="text-slate-500">{pe.sets}× {pe.repRange} · {pe.restSeconds}s</span>
+          <li key={pe.$id} className="flex items-center gap-2">
+            <button
+              type="button"
+              className={`flex min-w-0 flex-1 justify-between gap-2 text-left ${editingRowId === pe.$id ? 'text-brand-600 dark:text-brand-400' : ''}`}
+              aria-label={`Editar ${exName(pe.exerciseId)}`}
+              onClick={() => startEdit(pe)}
+            >
+              <span className="truncate">{exName(pe.exerciseId)}</span>
+              <span className="shrink-0 text-slate-500">{pe.sets}× {pe.repRange} · {pe.restSeconds}s</span>
+            </button>
+            <button
+              className="shrink-0 text-slate-400 hover:text-red-600"
+              aria-label={`Remover ${exName(pe.exerciseId)}`}
+              onClick={() => {
+                if (editingRowId === pe.$id) resetForm();
+                deleteExercise.mutate({ exerciseRowId: pe.$id, planDayId });
+              }}
+            >
+              <Icon.X className="h-4 w-4" />
+            </button>
           </li>
         ))}
       </ul>
       <select className="input !min-h-[40px]" value={exerciseId} onChange={(e) => setExerciseId(e.target.value)}>
-        <option value="">Adicionar exercício…</option>
+        <option value="">{editingRowId ? 'Trocar exercício…' : 'Adicionar exercício…'}</option>
         {library.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
       </select>
       <div className="flex items-end gap-2">
@@ -544,23 +657,31 @@ function DayEditor({
         <label className="flex-1 text-sm">Reps<input className="input !min-h-[40px]" value={repRange} onChange={(e) => setRepRange(e.target.value)} /></label>
         <label className="text-sm">Desc.(s)<input type="number" min={0} className="input !min-h-[40px] w-20" value={rest} onChange={(e) => setRest(Math.max(0, Number(e.target.value)))} /></label>
       </div>
-      <button className="btn-secondary" disabled={!exerciseId || addExercise.isPending} onClick={() => { if (exerciseId) { addExercise.mutate({ planDayId, exerciseId, sets, repRange, restSeconds: rest, order: (exercises.data ?? []).length }); setExerciseId(''); } }}>
-        Adicionar ao dia
-      </button>
+      <div className="flex gap-2">
+        <button className="btn-secondary flex-1" disabled={!exerciseId || addExercise.isPending || updateExercise.isPending} onClick={submit}>
+          {editingRowId ? 'Salvar exercício' : 'Adicionar ao dia'}
+        </button>
+        {editingRowId && (
+          <button className="btn-secondary" onClick={resetForm}>Cancelar</button>
+        )}
+      </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
 function HistoryTab({
+  householdId,
   sessions,
   mySets,
   exName,
 }: {
+  householdId: string | null;
   sessions: PlanRow[];
   mySets: SetRow[];
   exName: (id: string) => string;
 }) {
+  const deleteSession = useDeleteSession(householdId);
   if (sessions.length === 0) return <div className="card text-center text-slate-500">Nenhum treino registrado.</div>;
   return (
     <div className="flex flex-col gap-3">
@@ -574,10 +695,23 @@ function HistoryTab({
         }
         return (
           <section key={s.$id} className="card">
-            <div className="flex justify-between">
+            <div className="flex items-start justify-between gap-2">
               <h3 className="font-semibold">{formatDate(s.startedAt)}</h3>
-              <span className="text-sm text-slate-500">
-                {sets.length} séries{durationMin !== null ? ` · ${durationMin} min` : ' · em aberto'} · {Math.round(volumeKg(sets.map((x) => ({ exerciseId: x.exerciseId, reps: x.reps, loadKg: x.loadKg }))))} kg
+              <span className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">
+                  {sets.length} séries{durationMin !== null ? ` · ${durationMin} min` : ' · em aberto'} · {Math.round(volumeKg(sets.map((x) => ({ exerciseId: x.exerciseId, reps: x.reps, loadKg: x.loadKg }))))} kg
+                </span>
+                <button
+                  className="shrink-0 text-slate-400 hover:text-red-600"
+                  aria-label={`Excluir treino de ${formatDate(s.startedAt)}`}
+                  onClick={() => {
+                    if (confirm(`Excluir o treino de ${formatDate(s.startedAt)} com ${sets.length} série(s)?`)) {
+                      deleteSession.mutate(s.$id);
+                    }
+                  }}
+                >
+                  <Icon.Trash className="h-4 w-4" />
+                </button>
               </span>
             </div>
             <ul className="mt-1 text-sm text-slate-500">
