@@ -4,6 +4,8 @@ import { useAuth } from '@/features/auth/AuthContext';
 import {
   useActiveHousehold,
   useHouseholdMembers,
+  useHouseholdMeta,
+  useHouseholdPeople,
   useInviteMember,
   useMyProfile,
   useMyTeams,
@@ -311,6 +313,7 @@ export function SettingsPage() {
         )}
       </section>
 
+      <ProportionalSettings />
       <NotificationsSettings />
       <DataSettings />
     </div>
@@ -449,6 +452,91 @@ function DailySummarySettings() {
       )}
       {save.isError && <p className="mt-1 text-sm text-red-600">{(save.error as Error).message}</p>}
     </div>
+  );
+}
+
+/**
+ * Proporção combinada para dividir contas (ex.: 60/40 quando as rendas são
+ * diferentes). Fica em households.settings.splitRatio e habilita o tipo
+ * "Proporcional" no lançamento de despesas.
+ */
+function ProportionalSettings() {
+  const { householdId } = useActiveHousehold();
+  const { people } = useHouseholdPeople(householdId);
+  const meta = useHouseholdMeta(householdId);
+  const queryClient = useQueryClient();
+  const [values, setValues] = useState<Record<string, string> | null>(null);
+
+  const saved: Record<string, number> = (() => {
+    try {
+      return meta.data?.settings ? (JSON.parse(meta.data.settings as string).splitRatio ?? {}) : {};
+    } catch {
+      return {};
+    }
+  })();
+  const current = values ?? Object.fromEntries(people.map((p) => [p.id, saved[p.id] ? String(saved[p.id]) : '']));
+  const sum = people.reduce((acc, p) => acc + (Number(current[p.id]) || 0), 0);
+
+  const save = useMutation({
+    mutationFn: async (clear: boolean) => {
+      if (!meta.data) throw new Error('Lar ainda não carregado.');
+      let settings: Record<string, unknown> = {};
+      try {
+        settings = meta.data.settings ? JSON.parse(meta.data.settings as string) : {};
+      } catch {
+        settings = {};
+      }
+      const splitRatio = clear
+        ? {}
+        : Object.fromEntries(people.map((p) => [p.id, Number(current[p.id]) || 0]).filter(([, v]) => (v as number) > 0));
+      return tablesDB.updateRow({
+        databaseId: DB_ID,
+        tableId: TABLES.households,
+        rowId: meta.data.$id,
+        data: { settings: JSON.stringify({ ...settings, splitRatio }) },
+      });
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['householdMeta', householdId] }),
+  });
+
+  return (
+    <section className="card flex flex-col gap-3">
+      <div>
+        <h2 className="font-semibold">Divisão proporcional das contas</h2>
+        <p className="text-sm text-slate-500">
+          Se as rendas são diferentes, combinem uma proporção (ex.: 60% / 40%). Ela vira a opção
+          "Proporcional" ao lançar despesas — percepção de justiça sem calcular toda vez.
+        </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        {people.map((p) => (
+          <label key={p.id} className="flex items-center gap-2">
+            <span className="flex-1">{p.name.split(' ')[0]}</span>
+            <input
+              inputMode="numeric"
+              className="input !min-h-[40px] w-20 text-right"
+              placeholder="%"
+              value={current[p.id] ?? ''}
+              onChange={(e) => setValues({ ...current, [p.id]: e.target.value })}
+            />
+            <span className="text-sm text-slate-400">%</span>
+          </label>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <button className="btn-primary flex-1" disabled={sum !== 100 || save.isPending} onClick={() => save.mutate(false)}>
+          Salvar proporção
+        </button>
+        {Object.keys(saved).length > 0 && (
+          <button className="btn-secondary" disabled={save.isPending} onClick={() => save.mutate(true)}>
+            Remover
+          </button>
+        )}
+      </div>
+      {sum !== 100 && sum > 0 && <p className="text-sm text-amber-600">A soma precisa dar 100% (está em {sum}%).</p>}
+      {save.isSuccess && <p className="text-sm text-green-600">Salvo!</p>}
+      {save.isError && <p className="text-sm text-red-600">{(save.error as Error).message}</p>}
+    </section>
   );
 }
 

@@ -12,6 +12,8 @@ interface Member {
 interface Props {
   members: Member[];
   currentUserId: string;
+  /** Proporção combinada do lar (percentBp por membro); habilita "Proporcional". */
+  proportional?: { memberId: string; percentBp: number }[] | null;
   submitting?: boolean;
   onSubmit: (values: {
     description: string;
@@ -25,9 +27,9 @@ interface Props {
   onCancel?: () => void;
 }
 
-type SplitType = 'equal' | 'percent' | 'shares' | 'exact';
+type SplitType = 'equal' | 'percent' | 'shares' | 'exact' | 'proportional';
 
-export default function ExpenseForm({ members, currentUserId, submitting, onSubmit, onCancel }: Props) {
+export default function ExpenseForm({ members, currentUserId, proportional, submitting, onSubmit, onCancel }: Props) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('mercado');
@@ -54,6 +56,17 @@ export default function ExpenseForm({ members, currentUserId, submitting, onSubm
   function buildSpec(): SplitSpec {
     const ids = included;
     if (splitType === 'equal') return { type: 'equal', memberIds: ids };
+    if (splitType === 'proportional') {
+      // usa a proporção combinada do lar, renormalizada aos participantes
+      const parts = (proportional ?? []).filter((p) => ids.includes(p.memberId));
+      const sum = parts.reduce((acc, p) => acc + p.percentBp, 0);
+      const scaled = parts.map((p) => ({ memberId: p.memberId, percentBp: sum > 0 ? Math.floor((p.percentBp * 10000) / sum) : 0 }));
+      let remainder = 10000 - scaled.reduce((acc, p) => acc + p.percentBp, 0);
+      for (let i = 0; remainder > 0 && scaled.length > 0; i = (i + 1) % scaled.length, remainder--) {
+        scaled[i].percentBp++;
+      }
+      return { type: 'percent', parts: scaled };
+    }
     if (splitType === 'percent') {
       return {
         type: 'percent',
@@ -158,6 +171,7 @@ export default function ExpenseForm({ members, currentUserId, submitting, onSubm
           {Object.entries(splitTypeLabels).map(([value, label]) => (
             <option key={value} value={value}>{label}</option>
           ))}
+          {(proportional ?? []).length >= 2 && <option value="proportional">Proporcional (combinado do lar)</option>}
         </select>
       </div>
 
@@ -173,7 +187,7 @@ export default function ExpenseForm({ members, currentUserId, submitting, onSubm
               aria-label={`Incluir ${m.name}`}
             />
             <span className="flex-1">{m.name}</span>
-            {included.includes(m.id) && splitType !== 'equal' && (
+            {included.includes(m.id) && splitType !== 'equal' && splitType !== 'proportional' && (
               <input
                 aria-label={`${splitType === 'percent' ? 'Percentual' : splitType === 'shares' ? 'Proporção' : 'Valor'} de ${m.name}`}
                 className="input !min-h-[36px] w-24 !py-1 text-right text-sm"

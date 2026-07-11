@@ -400,6 +400,27 @@ export default async ({ req, res, log, error }: AppwriteContext) => {
   // bloco diário: 07:00 UTC == 04:00 BRT
   const isDailyBlock = windowEnd.getUTCHours() === 7 && windowEnd.getUTCMinutes() === 0;
   if (isDailyBlock) {
+    // ritual de fechamento: dia 1º (BRT) — um push convidando a acertar o mês
+    const wallNow = new Date(now.getTime() - SAO_PAULO_OFFSET_MS);
+    if (hasVapid && wallNow.getUTCDate() === 1) {
+      try {
+        const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        const prevMonth = MONTHS[(wallNow.getUTCMonth() + 11) % 12];
+        const profiles = await listAll(tables, 'profiles');
+        for (const profile of profiles) {
+          await pushToUser(
+            tables,
+            profile.userId,
+            { title: 'Virada de mês!', body: `Que tal fechar ${prevMonth} e acertar o saldo? Começar o mês no zero é uma delícia.`, url: '/contas' },
+            log,
+          );
+        }
+        results.closingRitual = 'ok';
+      } catch (err) {
+        error(`ritual de fechamento: ${String(err)}`);
+        results.closingRitual = 'error';
+      }
+    }
     try {
       await materializeTaskOccurrences(tables, teams, now, log);
       results.materialize = 'ok';

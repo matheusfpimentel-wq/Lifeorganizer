@@ -1193,6 +1193,13 @@
           "columns": [
             "householdId"
           ]
+        },
+        {
+          "key": "idx_name",
+          "type": "key",
+          "columns": [
+            "name"
+          ]
         }
       ]
     },
@@ -1677,6 +1684,14 @@
           "default": true,
           "array": false,
           "required": false
+        },
+        {
+          "key": "createdBy",
+          "type": "string",
+          "size": 36,
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [

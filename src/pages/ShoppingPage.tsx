@@ -16,7 +16,7 @@ import { useCreateExpense } from '@/features/expenses/hooks';
 import { useAuth } from '@/features/auth/AuthContext';
 import { shoppingCategoryLabels } from '@/shared/labels';
 import { formatCentsBRL, parseBRLToCents } from '@/lib/format';
-import { shoppingTotalCents } from '@/core/shopping';
+import { estimatedTotalCents, shoppingTotalCents } from '@/core/shopping';
 import { Icon } from '@/components/icons';
 import SwipeRow from '@/components/SwipeRow';
 
@@ -131,6 +131,7 @@ export default function ShoppingPage() {
   }
 
   const runningTotal = shoppingTotalCents(items.data ?? []);
+  const estimatedTotal = estimatedTotalCents(items.data ?? []);
   const itemCount = (items.data ?? []).length;
 
   return (
@@ -232,9 +233,15 @@ export default function ShoppingPage() {
           ))}
 
           <section className="card flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Total lançado</p>
-              <p className="text-xl font-bold">{formatCentsBRL(runningTotal)}</p>
+            <div className="flex gap-6">
+              <div>
+                <p className="text-sm text-slate-500">Estimado</p>
+                <p className="text-xl font-bold">{formatCentsBRL(estimatedTotal)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-500">Comprado</p>
+                <p className="text-xl font-bold text-emerald-600">{formatCentsBRL(runningTotal)}</p>
+              </div>
             </div>
             <button className="btn-primary" onClick={handleArchive} disabled={archive.isPending}>
               {archive.isPending ? 'Arquivando…' : 'Arquivar lista'}

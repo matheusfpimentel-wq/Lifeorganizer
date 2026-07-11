@@ -248,6 +248,7 @@ export const taskSchema = z
     checklist: z.array(checklistItemSchema).default([]),
     points: z.number().int().min(1).max(100).default(1),
     active: z.boolean().default(true),
+    createdBy: idSchema.nullish(),
   })
   .refine((t) => t.type !== 'routine' || !!t.rrule, {
     message: 'Tarefa rotineira exige recorrência',

@@ -72,11 +72,25 @@ export function useAddItem(householdId: string | null, listId: string | null) {
   return useMutation({
     mutationFn: async ({ name, qty, category }: { name: string; qty: number; category: string }) => {
       if (!householdId || !listId) throw new Error('Lista indisponível');
+      // pré-preenche com o último preço pago pelo mesmo item (estimativa)
+      let priceCents: number | null = null;
+      try {
+        const previous = await tablesDB.listRows({
+          databaseId: DB_ID,
+          tableId: TABLES.shoppingItems,
+          queries: [Query.equal('name', name), Query.orderDesc('$createdAt'), Query.limit(10)],
+        });
+        priceCents =
+          (previous.rows.find((r) => typeof (r as ItemRow).priceCents === 'number') as ItemRow | undefined)
+            ?.priceCents ?? null;
+      } catch {
+        /* índice de nome pode ainda não existir; segue sem estimativa */
+      }
       return tablesDB.createRow({
         databaseId: DB_ID,
         tableId: TABLES.shoppingItems,
         rowId: ID.unique(),
-        data: { householdId, listId, name, qty, category, addedBy: user!.$id, checked: false },
+        data: { householdId, listId, name, qty, category, addedBy: user!.$id, checked: false, priceCents },
         permissions: withHouseholdPermissions(householdId),
       });
     },

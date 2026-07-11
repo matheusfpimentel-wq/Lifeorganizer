@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pricedItemCount, shoppingTotalCents } from './shopping';
+import { estimatedTotalCents, pricedItemCount, shoppingTotalCents } from './shopping';
 
 describe('shoppingTotalCents', () => {
   it('soma apenas os itens marcados quando há algum marcado', () => {
@@ -43,5 +43,22 @@ describe('pricedItemCount', () => {
     expect(
       pricedItemCount([{ priceCents: 100 }, { priceCents: 0 }, { priceCents: null }, {}]),
     ).toBe(2);
+  });
+});
+
+describe('estimatedTotalCents', () => {
+  it('soma todos os itens com preço, marcados ou não', () => {
+    expect(
+      estimatedTotalCents([
+        { priceCents: 500, checked: false },
+        { priceCents: 300, checked: true },
+        { priceCents: null },
+        {},
+      ]),
+    ).toBe(800);
+  });
+
+  it('lista sem preços estima zero', () => {
+    expect(estimatedTotalCents([{ checked: true }, {}])).toBe(0);
   });
 });

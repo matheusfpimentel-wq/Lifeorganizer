@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
-import { useActiveHousehold, useHouseholdPeople } from '@/features/households/hooks';
+import { useActiveHousehold, useHouseholdMeta, useHouseholdPeople } from '@/features/households/hooks';
 import {
   useBalances,
   useConfirmExpense,
@@ -31,6 +31,7 @@ export default function ExpensesPage() {
   const confirmExpense = useConfirmExpense(householdId);
   const deleteExpense = useDeleteExpense(householdId);
   const { people: memberOptions, profileById } = useHouseholdPeople(householdId);
+  const meta = useHouseholdMeta(householdId);
 
   const [tab, setTab] = useState<Tab>('summary');
   const [showForm, setShowForm] = useState(false);
@@ -39,6 +40,25 @@ export default function ExpensesPage() {
 
   const memberName = (id: string) =>
     memberOptions.find((p) => p.id === id)?.name ?? profileById.get(id)?.displayName ?? 'Membro';
+
+  // proporção combinada do lar (Configurações), ex.: { userId: 60 }
+  const proportional = (() => {
+    try {
+      const settings = meta.data?.settings ? JSON.parse(meta.data.settings as string) : {};
+      const ratio: Record<string, number> = settings.splitRatio ?? {};
+      const parts = memberOptions
+        .filter((p) => typeof ratio[p.id] === 'number' && ratio[p.id] > 0)
+        .map((p) => ({ memberId: p.id, percentBp: Math.round(ratio[p.id] * 100) }));
+      return parts.length >= 2 ? parts : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  // ritual de fechamento: dias 1–5 com acertos pendentes
+  const spDay = new Date(Date.now() - 3 * 60 * 60 * 1000).getUTCDate();
+  const showClosingRitual = spDay <= 5 && transfers.length > 0;
+  const allSettled = !balancesLoading && transfers.length === 0 && (expenses.data ?? []).some((e) => e.status !== 'pending');
   const myBalance = user ? (balances.get(user.$id) ?? 0) : 0;
 
   function handlePixCharge(toMember: string, amountCents: number) {
@@ -74,6 +94,7 @@ export default function ExpensesPage() {
         <ExpenseForm
           members={memberOptions}
           currentUserId={user.$id}
+          proportional={proportional}
           submitting={createExpense.isPending}
           onSubmit={(values) =>
             createExpense.mutate(values, { onSuccess: () => setShowForm(false) })
@@ -99,6 +120,28 @@ export default function ExpensesPage() {
 
       {tab === 'summary' && (
         <>
+          {showClosingRitual && (
+            <section className="card flex items-center justify-between gap-3 border-l-4 border-amber-500">
+              <div>
+                <h2 className="font-semibold text-amber-600">Virada de mês!</h2>
+                <p className="text-sm text-slate-500">
+                  Bom momento para acertar o saldo e começar {report.monthLabel} no zero.
+                </p>
+              </div>
+              <button className="btn-primary shrink-0 !min-h-[40px]" onClick={() => setShowPayment(true)}>
+                Acertar
+              </button>
+            </section>
+          )}
+          {allSettled && (
+            <section className="card flex items-center gap-3 border-l-4 border-emerald-500">
+              <Icon.Check className="h-6 w-6 shrink-0 text-emerald-500 motion-safe:animate-pop" />
+              <div>
+                <h2 className="font-semibold text-emerald-600">Contas zeradas!</h2>
+                <p className="text-sm text-slate-500">Ninguém deve nada a ninguém. Bom trabalho, casinha.</p>
+              </div>
+            </section>
+          )}
           {/* visão do mês em um card só */}
           <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-md">
             <div className="flex items-start justify-between">

@@ -1,4 +1,4 @@
-import { useBalancePanel } from './hooks';
+import { useBalancePanel, usePlanningPanel } from './hooks';
 
 interface Props {
   householdId: string | null;
@@ -12,6 +12,7 @@ interface Props {
 export default function BalancePanel({ householdId, members }: Props) {
   const memberIds = members.map((m) => m.id);
   const { rows, totalCount, totalWeightedPoints, isLoading } = useBalancePanel(householdId, memberIds);
+  const planning = usePlanningPanel(householdId, memberIds);
 
   const nameOf = (id: string) => members.find((m) => m.id === id)?.name ?? 'Membro';
   const colorOf = (id: string) => members.find((m) => m.id === id)?.color ?? '#64748b';
@@ -60,6 +61,41 @@ export default function BalancePanel({ householdId, members }: Props) {
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                   <div
                     className="h-full rounded-full transition-all"
+                    style={{ width: `${Math.round(row.share * 100)}%`, backgroundColor: colorOf(row.memberId) }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="card flex flex-col gap-3">
+        <div>
+          <h2 className="font-semibold">Carga mental (30 dias)</h2>
+          <p className="text-sm text-slate-500">
+            Planejar também é trabalho: aqui contam os <strong>modelos de tarefa criados</strong>, os{' '}
+            <strong>eventos agendados</strong> e as <strong>despesas lançadas</strong> por cada pessoa —
+            o lado invisível de organizar a casa.
+          </p>
+        </div>
+        {planning.isLoading ? (
+          <div className="h-16 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
+        ) : planning.total === 0 ? (
+          <p className="text-slate-500">Nada planejado no período ainda.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {planning.rows.map((row) => (
+              <li key={row.memberId} className="flex flex-col gap-1">
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">{nameOf(row.memberId)}</span>
+                  <span className="text-slate-500">
+                    {row.count} ato{row.count === 1 ? '' : 's'} de organização · {Math.round(row.share * 100)}%
+                  </span>
+                </div>
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                  <div
+                    className="h-full rounded-full opacity-70 transition-all"
                     style={{ width: `${Math.round(row.share * 100)}%`, backgroundColor: colorOf(row.memberId) }}
                   />
                 </div>

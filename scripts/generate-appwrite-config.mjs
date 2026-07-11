@@ -312,7 +312,7 @@ const tables = [
       dt('checkedAt'),
       int('priceCents', { min: 0 }),
     ],
-    [idx('idx_listId', ['listId']), idx('idx_householdId', ['householdId'])],
+    [idx('idx_listId', ['listId']), idx('idx_householdId', ['householdId']), idx('idx_name', ['name'])],
   ),
 
   table(
@@ -392,6 +392,7 @@ const tables = [
       json('checklist', 4000), // [{label, done}]
       int('points', { default: 1, min: 1, max: 100 }),
       bool('active', { default: true }),
+      id('createdBy'), // carga mental: quem planejou/criou o modelo
     ],
     [idx('idx_householdId', ['householdId']), idx('idx_active', ['active'])],
   ),

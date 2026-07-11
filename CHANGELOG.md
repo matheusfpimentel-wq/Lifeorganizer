@@ -2,6 +2,26 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Onda 2 (justiça percebida + finanças saudáveis)
+
+### Added
+- **Carga mental visível**: seção nova no Equilíbrio conta os atos de
+  PLANEJAMENTO dos últimos 30 dias por pessoa (modelos de tarefa criados,
+  eventos agendados, despesas lançadas) — o trabalho invisível de organizar.
+  Nova coluna `tasks.createdBy` preenchida nas criações daqui em diante.
+- **Divisão proporcional**: Configurações ganhou "Divisão proporcional das
+  contas" (ex.: 60/40, salva em `households.settings.splitRatio`); vira a
+  opção "Proporcional (combinado do lar)" ao lançar despesa, renormalizada
+  aos participantes incluídos.
+- **Ritual de fechamento**: nos dias 1–5, banner "Virada de mês!" em Contas
+  quando há acertos pendentes (efeito recomeço); push no dia 1º às 04h BRT
+  convidando a fechar o mês anterior; card verde "Contas zeradas!" quando
+  ninguém deve nada.
+- **Estimativa do mercado**: itens novos herdam o último preço pago
+  (índice `idx_name` em shoppingItems) e o rodapé da lista mostra
+  **Estimado** (tudo com preço) ao lado de **Comprado** — orçamento mental
+  antes de sair de casa. Núcleo `estimatedTotalCents` com testes (92 total).
+
 ## [Unreleased] — Vila ousada + Agenda com nomes
 
 ### Added

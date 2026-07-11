@@ -41,6 +41,7 @@ export function useOccurrences(householdId: string | null) {
 }
 
 export function useCreateTask(householdId: string | null) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,7 +51,7 @@ export function useCreateTask(householdId: string | null) {
         databaseId: DB_ID,
         tableId: TABLES.tasks,
         rowId: ID.unique(),
-        data: { ...data, householdId, checklist: data.checklist ?? '[]' },
+        data: { ...data, householdId, checklist: data.checklist ?? '[]', createdBy: user?.$id ?? null },
         permissions: withHouseholdPermissions(householdId),
       });
       // tarefa específica gera a ocorrência imediatamente (rotineiras: via tick)
@@ -213,6 +214,51 @@ export function useBalancePanel(householdId: string | null, memberIds: string[])
     memberIds,
   );
   return { ...balance, isLoading: query.isLoading || tasks.isLoading };
+}
+
+/**
+ * Carga mental (30 dias): atos de PLANEJAMENTO por pessoa — modelos de tarefa
+ * criados, eventos agendados e despesas lançadas. Torna visível o trabalho
+ * invisível de organizar a casa (não só executar).
+ */
+export function usePlanningPanel(householdId: string | null, memberIds: string[]) {
+  const query = useQuery({
+    queryKey: ['planningPanel', householdId],
+    enabled: !!householdId,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const since = balanceWindowStart().toISOString();
+      const [tasks, events, expenses] = await Promise.all([
+        listAllRows<TaskRow>(TABLES.tasks, [
+          Query.equal('householdId', householdId!),
+          Query.greaterThanEqual('$createdAt', since),
+        ]),
+        listAllRows<TaskRow>(TABLES.events, [
+          Query.equal('householdId', householdId!),
+          Query.greaterThanEqual('$createdAt', since),
+        ]),
+        listAllRows<TaskRow>(TABLES.expenses, [
+          Query.equal('householdId', householdId!),
+          Query.greaterThanEqual('$createdAt', since),
+        ]),
+      ]);
+      return [...tasks, ...events, ...expenses]
+        .map((row) => row.createdBy as string | null)
+        .filter(Boolean) as string[];
+    },
+  });
+
+  const counts = new Map<string, number>(memberIds.map((id) => [id, 0]));
+  for (const creator of query.data ?? []) {
+    if (counts.has(creator)) counts.set(creator, (counts.get(creator) ?? 0) + 1);
+  }
+  const total = [...counts.values()].reduce((a, b) => a + b, 0);
+  const rows = memberIds.map((memberId) => ({
+    memberId,
+    count: counts.get(memberId) ?? 0,
+    share: total > 0 ? (counts.get(memberId) ?? 0) / total : 0,
+  }));
+  return { rows, total, isLoading: query.isLoading };
 }
 
 export function useOccurrenceAction(householdId: string | null) {

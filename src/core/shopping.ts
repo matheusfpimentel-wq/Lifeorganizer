@@ -27,3 +27,10 @@ export function shoppingTotalCents(items: PricedItem[]): number {
 export function pricedItemCount(items: PricedItem[]): number {
   return items.filter((i) => typeof i.priceCents === 'number' && i.priceCents! >= 0).length;
 }
+
+/** Estimativa antes de sair de casa: soma de TODOS os itens com preço. */
+export function estimatedTotalCents(items: PricedItem[]): number {
+  return items
+    .filter((i) => typeof i.priceCents === 'number' && i.priceCents! >= 0)
+    .reduce((acc, i) => acc + (i.priceCents ?? 0), 0);
+}
