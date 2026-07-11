@@ -4,7 +4,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { ID, type Models } from 'appwrite';
-import { account, isAppwriteConfigured } from '@/lib/appwrite';
+import { account, appUrl, isAppwriteConfigured } from '@/lib/appwrite';
 
 interface AuthContextValue {
   user: Models.User<Models.Preferences> | null;
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await account.createMagicURLToken({
       userId: ID.unique(),
       email,
-      url: `${window.location.origin}/`,
+      url: appUrl(),
     });
   }, []);
 

@@ -1,7 +1,7 @@
 /** Lar = Team do Appwrite. Metadados na tabela `households`. */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ID, Query, type Models } from 'appwrite';
-import { DB_ID, TABLES, tablesDB, teams } from '@/lib/appwrite';
+import { appUrl, DB_ID, TABLES, tablesDB, teams } from '@/lib/appwrite';
 import { withHouseholdPermissions, withPersonalPermissions } from '@/lib/permissions';
 import { householdSettingsSchema, type Profile } from '@/shared/schemas';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -154,7 +154,7 @@ export function useInviteMember(teamId: string | null) {
         teamId,
         roles: ['member'],
         email,
-        url: `${window.location.origin}/convite`,
+        url: appUrl('convite'),
       });
     },
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['members', teamId] }),

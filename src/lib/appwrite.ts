@@ -55,3 +55,13 @@ export const BUCKETS = {
 export function tableChannel(tableId: TableId): string {
   return `databases.${DB_ID}.tables.${tableId}.rows`;
 }
+
+/**
+ * URL absoluta do app respeitando o base path (ex.: /Lifeorganizer/ no GitHub
+ * Pages). Usado em links de convite e magic link — sem o base o link cai fora
+ * do app. `import.meta.env.BASE_URL` já termina com '/'.
+ */
+export function appUrl(path = ''): string {
+  const base = import.meta.env.BASE_URL; // '/' ou '/Lifeorganizer/'
+  return `${window.location.origin}${base}${path.replace(/^\//, '')}`;
+}
