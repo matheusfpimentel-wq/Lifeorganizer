@@ -1692,6 +1692,14 @@
           "array": false,
           "required": false,
           "default": null
+        },
+        {
+          "key": "anchor",
+          "type": "string",
+          "size": 40,
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [

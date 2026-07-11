@@ -13,7 +13,7 @@ import {
 import TaskForm, { type TaskFormValues } from '@/features/tasks/TaskForm';
 import BalancePanel from '@/features/tasks/BalancePanel';
 import { describeRrule } from '@/features/tasks/weekdays';
-import { taskCategoryLabels } from '@/shared/labels';
+import { anchorLabels, taskCategoryLabels } from '@/shared/labels';
 import { formatDate } from '@/lib/format';
 import { spDateKey } from '@/lib/dates';
 import { Icon } from '@/components/icons';
@@ -174,6 +174,7 @@ export default function TasksPage() {
                         <div className="min-w-0">
                           <p className="truncate font-medium">{task?.title ?? 'Tarefa'}</p>
                           <p className="truncate text-sm text-slate-500">
+                            {task?.anchor && anchorLabels[task.anchor] ? `${anchorLabels[task.anchor]} · ` : ''}
                             {memberName(o.assignedMemberId)}
                             {task && ` · ${taskCategoryLabels[task.category] ?? task.category}`}
                             {task && task.points > 1 && ` · ${task.points} pts`}

@@ -2,6 +2,23 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Onda 3 (hábitos + inteligência leve)
+
+### Added
+- **Staples preditivos**: card "Ciclo venceu — hora de repor" no Mercado —
+  aprende o intervalo REAL de recompra (mediana entre compras marcadas; núcleo
+  `restock.ts` testado) e sugere quando vence; 1 toque adiciona à lista. Sem
+  histórico suficiente, não chuta.
+- **Âncoras de rotina**: tarefas podem ser ligadas a um hábito existente
+  ("Depois do café", "Antes de dormir"...); a âncora aparece nas pendências.
+  Nova coluna `tasks.anchor` (implementation intentions).
+- **Progressão dupla na academia**: bateu o teto de reps na mesma carga nas 2
+  últimas sessões → aviso verde sugere +2,5 kg (1 toque aplica). Núcleo
+  `suggestNextLoad` testado (102 testes no total).
+- **Modo férias**: em Configurações, pause as rotinas até uma data — a `tick`
+  não gera ocorrências e arquiva pendências vencidas do lar pausado (nada de
+  "atrasadas" acumulando); banner na home avisa o período.
+
 ## [Unreleased] — Onda 2 (justiça percebida + finanças saudáveis)
 
 ### Added

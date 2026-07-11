@@ -249,6 +249,7 @@ export const taskSchema = z
     points: z.number().int().min(1).max(100).default(1),
     active: z.boolean().default(true),
     createdBy: idSchema.nullish(),
+    anchor: z.string().max(40).nullish(),
   })
   .refine((t) => t.type !== 'routine' || !!t.rrule, {
     message: 'Tarefa rotineira exige recorrência',

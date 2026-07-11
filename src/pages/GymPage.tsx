@@ -29,7 +29,7 @@ import {
   type SetRow,
 } from '@/features/gym/hooks';
 import RestTimer from '@/features/gym/RestTimer';
-import { bestSetByExercise, estimate1RM, prTimeline, volumeKg, weeklyVolume } from '@/core/workout';
+import { bestSetByExercise, estimate1RM, prTimeline, suggestNextLoad, volumeKg, weeklyVolume } from '@/core/workout';
 import { techniqueLabels } from '@/shared/labels';
 import { formatDate } from '@/lib/format';
 import { Icon } from '@/components/icons';
@@ -204,12 +204,33 @@ function TrainTab({
         const logged = sessionSets.filter((s) => s.exerciseId === exerciseId);
         const last = lastSetFor(exerciseId);
         const rest = plan?.restSeconds ?? 90;
+        // progressão dupla: melhor série por sessão passada, mais recente primeiro
+        const repTop = plan ? Number(String(plan.repRange).split('-').pop()) || 0 : 0;
+        const suggestedLoad = (() => {
+          if (!repTop) return null;
+          const past = mySets.filter(
+            (s) => s.exerciseId === exerciseId && s.sessionId !== sessionId && !s.durationSeconds,
+          );
+          const topBySession = new Map<string, { reps: number; loadKg: number; at: string }>();
+          for (const s of past) {
+            const cur = topBySession.get(s.sessionId);
+            const at = String(s.$createdAt ?? '');
+            if (!cur || s.loadKg > cur.loadKg || (s.loadKg === cur.loadKg && s.reps > cur.reps)) {
+              topBySession.set(s.sessionId, { reps: s.reps, loadKg: s.loadKg, at });
+            }
+          }
+          const tops = [...topBySession.values()]
+            .sort((a, b) => b.at.localeCompare(a.at))
+            .map(({ reps, loadKg }) => ({ reps, loadKg }));
+          return suggestNextLoad(tops, repTop);
+        })();
         return (
           <ExerciseLogger
             key={exerciseId}
             name={exName(exerciseId)}
             planned={plan ? `${plan.sets}× ${plan.repRange}` : undefined}
             logged={logged}
+            suggestedLoad={suggestedLoad}
             defaultReps={last?.reps ?? (plan ? Number(String(plan.repRange).split('-')[0]) || 8 : 8)}
             defaultLoad={last?.loadKg ?? plan?.targetLoadKg ?? 0}
             onLog={(values) => {
@@ -246,6 +267,7 @@ function ExerciseLogger({
   logged,
   defaultReps,
   defaultLoad,
+  suggestedLoad,
   onLog,
   resting,
   onDismissRest,
@@ -255,6 +277,7 @@ function ExerciseLogger({
   logged: SetRow[];
   defaultReps: number;
   defaultLoad: number;
+  suggestedLoad?: number | null;
   onLog: (values: SetLogValues) => void;
   resting: number | null;
   onDismissRest: () => void;
@@ -301,6 +324,16 @@ function ExerciseLogger({
             </li>
           ))}
         </ol>
+      )}
+      {suggestedLoad != null && (
+        <button
+          type="button"
+          className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-left text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+          onClick={() => setLoad(suggestedLoad)}
+        >
+          <Icon.ChevronUp className="h-4 w-4 shrink-0" />
+          Progressão dupla: você bateu o teto de reps nas 2 últimas sessões — toque para tentar {suggestedLoad} kg.
+        </button>
       )}
       {resting !== null && <RestTimer seconds={resting} onDismiss={onDismissRest} />}
 

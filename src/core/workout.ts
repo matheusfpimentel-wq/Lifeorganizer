@@ -81,3 +81,22 @@ export function prTimeline(sets: DatedSet[]): { date: string; est1RM: number }[]
     .map(([date, est1RM]) => ({ date, est1RM }))
     .sort((a, b) => a.date.localeCompare(b.date));
 }
+
+/**
+ * Progressão dupla: quando o teto de repetições da faixa foi atingido na
+ * MESMA carga nas duas sessões mais recentes, sugere subir a carga.
+ * `sessionTopSets` = melhor série do exercício em cada sessão, da mais
+ * recente para a mais antiga. Retorna a carga sugerida ou null.
+ */
+export function suggestNextLoad(
+  sessionTopSets: { reps: number; loadKg: number }[],
+  repRangeTop: number,
+  incrementKg = 2.5,
+): number | null {
+  if (repRangeTop <= 0 || sessionTopSets.length < 2) return null;
+  const [a, b] = sessionTopSets;
+  if (a.loadKg > 0 && a.loadKg === b.loadKg && a.reps >= repRangeTop && b.reps >= repRangeTop) {
+    return Math.round((a.loadKg + incrementKg) * 100) / 100;
+  }
+  return null;
+}

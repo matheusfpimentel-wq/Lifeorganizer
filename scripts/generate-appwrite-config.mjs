@@ -393,6 +393,7 @@ const tables = [
       int('points', { default: 1, min: 1, max: 100 }),
       bool('active', { default: true }),
       id('createdBy'), // carga mental: quem planejou/criou o modelo
+      str('anchor', 40), // âncora de rotina (ex.: 'cafe' = depois do café)
     ],
     [idx('idx_householdId', ['householdId']), idx('idx_active', ['active'])],
   ),

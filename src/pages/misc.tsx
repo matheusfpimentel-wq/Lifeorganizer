@@ -314,6 +314,7 @@ export function SettingsPage() {
       </section>
 
       <ProportionalSettings />
+      <VacationSettings />
       <NotificationsSettings />
       <DataSettings />
     </div>
@@ -535,6 +536,82 @@ function ProportionalSettings() {
       </div>
       {sum !== 100 && sum > 0 && <p className="text-sm text-amber-600">A soma precisa dar 100% (está em {sum}%).</p>}
       {save.isSuccess && <p className="text-sm text-green-600">Salvo!</p>}
+      {save.isError && <p className="text-sm text-red-600">{(save.error as Error).message}</p>}
+    </section>
+  );
+}
+
+/**
+ * Modo férias: pausa a geração de rotinas até a data escolhida e evita o
+ * acúmulo de "atrasadas" (a tick pula a materialização e arquiva pendências
+ * vencidas do período). Evita o efeito "quebrei a sequência, desisto".
+ */
+function VacationSettings() {
+  const { householdId } = useActiveHousehold();
+  const meta = useHouseholdMeta(householdId);
+  const queryClient = useQueryClient();
+  const [until, setUntil] = useState('');
+
+  const settings: Record<string, unknown> = (() => {
+    try {
+      return meta.data?.settings ? JSON.parse(meta.data.settings as string) : {};
+    } catch {
+      return {};
+    }
+  })();
+  const pausedUntil = typeof settings.pausedUntil === 'string' ? settings.pausedUntil : null;
+  const isPaused = pausedUntil ? new Date(pausedUntil) > new Date() : false;
+
+  const save = useMutation({
+    mutationFn: async (value: string | null) => {
+      if (!meta.data) throw new Error('Lar ainda não carregado.');
+      const next = { ...settings, pausedUntil: value };
+      return tablesDB.updateRow({
+        databaseId: DB_ID,
+        tableId: TABLES.households,
+        rowId: meta.data.$id,
+        data: { settings: JSON.stringify(next) },
+      });
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['householdMeta', householdId] }),
+  });
+
+  return (
+    <section className="card flex flex-col gap-3">
+      <div>
+        <h2 className="font-semibold">Modo férias</h2>
+        <p className="text-sm text-slate-500">
+          Viajando? Pause as rotinas do lar até uma data: nada de tarefa nova nem "atrasadas"
+          acumulando. Na volta, tudo recomeça limpo.
+        </p>
+      </div>
+      {isPaused ? (
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium text-brand-600">
+            Pausado até {new Date(pausedUntil!).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+          </p>
+          <button className="btn-secondary !min-h-[40px]" disabled={save.isPending} onClick={() => save.mutate(null)}>
+            Encerrar agora
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            aria-label="Pausar até"
+            className="input flex-1"
+            value={until}
+            onChange={(e) => setUntil(e.target.value)}
+          />
+          <button
+            className="btn-primary !min-h-[44px]"
+            disabled={!until || save.isPending}
+            onClick={() => save.mutate(new Date(`${until}T23:59:59-03:00`).toISOString())}
+          >
+            Pausar
+          </button>
+        </div>
+      )}
       {save.isError && <p className="text-sm text-red-600">{(save.error as Error).message}</p>}
     </section>
   );

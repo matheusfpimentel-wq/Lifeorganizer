@@ -5,6 +5,7 @@ import {
   useActiveList,
   useAddItem,
   useArchiveList,
+  useDueStaples,
   useListItems,
   useRemoveItem,
   useRestockStaples,
@@ -67,6 +68,7 @@ export default function ShoppingPage() {
   const updateItem = useUpdateItem(listId);
   const removeItem = useRemoveItem(listId);
   const restock = useRestockStaples(householdId, listId);
+  const dueStaples = useDueStaples(householdId, listId);
   const archive = useArchiveList(householdId);
   const createExpense = useCreateExpense(householdId);
   const { data: members } = useHouseholdMembers(householdId);
@@ -159,6 +161,32 @@ export default function ShoppingPage() {
         </select>
         <button type="submit" className="btn-primary !px-4" disabled={addItem.isPending}>+</button>
       </form>
+
+      {(dueStaples.data ?? []).length > 0 && (
+        <section className="card border-l-4 border-emerald-500">
+          <h2 className="mb-1 font-semibold text-emerald-600">Ciclo venceu — hora de repor</h2>
+          <p className="mb-2 text-sm text-slate-500">
+            Pelo ritmo real de compra de vocês, estes itens devem estar acabando:
+          </p>
+          <ul className="flex flex-col gap-1.5">
+            {dueStaples.data!.map((staple) => (
+              <li key={staple.$id} className="flex items-center justify-between gap-2">
+                <span>
+                  {staple.name}
+                  <span className="ml-2 text-xs text-slate-400">a cada ~{staple.intervalDays} dia{staple.intervalDays > 1 ? 's' : ''}</span>
+                </span>
+                <button
+                  className="btn-secondary !min-h-[36px] !px-3 text-sm"
+                  disabled={addItem.isPending}
+                  onClick={() => addItem.mutate({ name: staple.name, qty: staple.defaultQty ?? 1, category: staple.category ?? 'outro' })}
+                >
+                  + Lista
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <button className="btn-secondary" onClick={() => restock.mutate()} disabled={restock.isPending}>
         {restock.isPending ? 'Repondo…' : 'Repor recorrentes'}

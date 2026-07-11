@@ -20,6 +20,11 @@ export const taskCategoryLabels: Record<string, string> = {
   manutencao: 'Manutenção', admin: 'Administração', outro: 'Outro',
 };
 
+export const anchorLabels: Record<string, string> = {
+  cafe: 'Depois do café', almoco: 'Depois do almoço', jantar: 'Depois do jantar',
+  dormir: 'Antes de dormir', chegar: 'Ao chegar em casa', acordar: 'Ao acordar',
+};
+
 export const taskPriorityLabels: Record<string, string> = {
   baixa: 'Baixa', media: 'Média', alta: 'Alta',
 };

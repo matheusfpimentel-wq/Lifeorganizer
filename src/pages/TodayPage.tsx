@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
-import { useActiveHousehold, useMyProfile } from '@/features/households/hooks';
+import { useActiveHousehold, useHouseholdMeta, useMyProfile } from '@/features/households/hooks';
 import { useOccurrences, useOccurrenceAction, useTasks } from '@/features/tasks/hooks';
 import { useActiveList, useListItems } from '@/features/shopping/hooks';
 import { useBalances } from '@/features/expenses/hooks';
@@ -26,6 +26,17 @@ export default function TodayPage() {
   const events = useEvents(householdId);
   const createEvent = useCreateEvent(householdId);
   const villageProgress = useVillageProgress(householdId);
+  const meta = useHouseholdMeta(householdId);
+  const pausedUntil = (() => {
+    try {
+      const settings = meta.data?.settings ? JSON.parse(meta.data.settings as string) : {};
+      return typeof settings.pausedUntil === 'string' && new Date(settings.pausedUntil) > new Date()
+        ? settings.pausedUntil
+        : null;
+    } catch {
+      return null;
+    }
+  })();
 
   const [pickingDay, setPickingDay] = useState(false);
   const [shoppingDay, setShoppingDay] = useState('');
@@ -103,6 +114,16 @@ export default function TodayPage() {
           }).format(new Date())}
         </p>
       </div>
+
+      {pausedUntil && (
+        <section className="card border-l-4 border-sky-500">
+          <h2 className="font-semibold text-sky-600">Modo férias</h2>
+          <p className="text-sm text-slate-500">
+            Rotinas pausadas até {new Date(pausedUntil).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}.
+            Aproveitem — nada vai acumular por aqui.
+          </p>
+        </section>
+      )}
 
       {/* mapa da vila: casinha no centro, caminhos para cada módulo */}
       <VillageMap

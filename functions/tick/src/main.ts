@@ -230,6 +230,46 @@ async function sendDailySummaries(
 // ---------------------------------------------------------------------------
 // 3a. Materialização de ocorrências de tarefas (idempotente)
 // ---------------------------------------------------------------------------
+/** households com modo férias ativo (settings.pausedUntil no futuro). */
+async function pausedHouseholds(tables: TablesDB, now: Date): Promise<Set<string>> {
+  const households = await listAll(tables, 'households');
+  const paused = new Set<string>();
+  for (const h of households) {
+    try {
+      const settings = h.settings ? JSON.parse(h.settings) : {};
+      if (settings.pausedUntil && new Date(settings.pausedUntil) > now) paused.add(h.teamId);
+    } catch {
+      /* settings inválidas: considera ativo */
+    }
+  }
+  return paused;
+}
+
+/** Modo férias: pendências vencidas viram 'skipped' (sem acumular atrasadas). */
+async function skipOverdueForPaused(
+  tables: TablesDB,
+  paused: Set<string>,
+  now: Date,
+  log: (m: string) => void,
+): Promise<void> {
+  for (const householdId of paused) {
+    const overdue = await listAll(tables, 'taskOccurrences', [
+      Query.equal('householdId', householdId),
+      Query.equal('status', 'pending'),
+      Query.lessThan('dueAt', now.toISOString()),
+    ]);
+    for (const occurrence of overdue) {
+      await tables.updateRow({
+        databaseId: DB_ID,
+        tableId: 'taskOccurrences',
+        rowId: occurrence.$id,
+        data: { status: 'skipped' },
+      });
+    }
+    if (overdue.length > 0) log(`férias: ${overdue.length} pendência(s) arquivada(s) em ${householdId}`);
+  }
+}
+
 async function materializeTaskOccurrences(
   tables: TablesDB,
   teams: Teams,
@@ -241,11 +281,14 @@ async function materializeTaskOccurrences(
     Query.equal('active', true),
     Query.equal('type', 'routine'),
   ]);
+  const paused = await pausedHouseholds(tables, now);
+  await skipOverdueForPaused(tables, paused, now, log);
 
   const activeByHousehold = new Map<string, Set<string>>();
 
   for (const task of tasks) {
     if (!task.rrule) continue;
+    if (paused.has(task.householdId)) continue; // modo férias: não gera nada
 
     if (!activeByHousehold.has(task.householdId)) {
       const memberships = await teams.listMemberships({ teamId: task.householdId });

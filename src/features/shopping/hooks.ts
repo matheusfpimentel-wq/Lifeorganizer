@@ -5,6 +5,7 @@ import { client, DB_ID, TABLES, tableChannel, tablesDB } from '@/lib/appwrite';
 import { listAllRows } from '@/lib/pagination';
 import { withHouseholdPermissions } from '@/lib/permissions';
 import { shoppingTotalCents } from '@/core/shopping';
+import { medianIntervalDays, stapleDue } from '@/core/restock';
 import { useAuth } from '@/features/auth/AuthContext';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -197,6 +198,49 @@ export function useArchivedLists(householdId: string | null) {
         Query.equal('status', 'archived'),
         Query.orderDesc('$createdAt'),
       ]),
+  });
+}
+
+/**
+ * Staples com ciclo de recompra VENCIDO: aprende o intervalo real (mediana
+ * dos intervalos entre compras marcadas) e sugere repor quando vence.
+ * Sem 2+ compras no histórico, não sugere (não chuta).
+ */
+export function useDueStaples(householdId: string | null, listId: string | null) {
+  return useQuery({
+    queryKey: ['dueStaples', householdId, listId],
+    enabled: !!householdId && !!listId,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const [staples, current] = await Promise.all([
+        listAllRows<ItemRow>(TABLES.staples, [Query.equal('householdId', householdId!)]),
+        listAllRows<ItemRow>(TABLES.shoppingItems, [Query.equal('listId', listId!)]),
+      ]);
+      const inList = new Set(current.map((i) => String(i.name).toLowerCase()));
+      const due: Array<ItemRow & { intervalDays: number }> = [];
+      for (const staple of staples) {
+        if (inList.has(String(staple.name).toLowerCase())) continue;
+        try {
+          const history = await tablesDB.listRows({
+            databaseId: DB_ID,
+            tableId: TABLES.shoppingItems,
+            queries: [Query.equal('name', staple.name), Query.orderDesc('$createdAt'), Query.limit(25)],
+          });
+          const purchases = (history.rows as unknown as ItemRow[])
+            .filter((r) => r.checkedAt)
+            .map((r) => new Date(r.checkedAt as string))
+            .sort((a, b) => b.getTime() - a.getTime());
+          const interval = medianIntervalDays(purchases);
+          if (!interval) continue;
+          if (stapleDue(purchases[0], interval, new Date())) {
+            due.push({ ...(staple as ItemRow), intervalDays: interval });
+          }
+        } catch {
+          /* histórico indisponível: não sugere este item */
+        }
+      }
+      return due;
+    },
   });
 }
 

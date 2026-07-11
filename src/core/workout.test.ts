@@ -3,6 +3,7 @@ import {
   bestSetByExercise,
   estimate1RM,
   prTimeline,
+  suggestNextLoad,
   volumeKg,
   weekKeySaoPaulo,
   weeklyVolume,
@@ -76,5 +77,24 @@ describe('prTimeline', () => {
     expect(result[0].date).toBe('2026-07-01');
     expect(result[0].est1RM).toBe(estimate1RM(5, 65));
     expect(result[1].est1RM).toBe(estimate1RM(5, 70));
+  });
+});
+
+describe('suggestNextLoad', () => {
+  it('sugere +2,5kg após 2 sessões no teto com a mesma carga', () => {
+    expect(suggestNextLoad([{ reps: 12, loadKg: 40 }, { reps: 12, loadKg: 40 }], 12)).toBe(42.5);
+  });
+
+  it('não sugere se a sessão mais recente ficou abaixo do teto', () => {
+    expect(suggestNextLoad([{ reps: 10, loadKg: 40 }, { reps: 12, loadKg: 40 }], 12)).toBeNull();
+  });
+
+  it('não sugere se a carga mudou entre as sessões', () => {
+    expect(suggestNextLoad([{ reps: 12, loadKg: 42.5 }, { reps: 12, loadKg: 40 }], 12)).toBeNull();
+  });
+
+  it('exige histórico de pelo menos 2 sessões e faixa válida', () => {
+    expect(suggestNextLoad([{ reps: 12, loadKg: 40 }], 12)).toBeNull();
+    expect(suggestNextLoad([{ reps: 12, loadKg: 40 }, { reps: 12, loadKg: 40 }], 0)).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { taskCategoryLabels, taskPriorityLabels } from '@/shared/labels';
+import { anchorLabels, taskCategoryLabels, taskPriorityLabels } from '@/shared/labels';
 import { buildRrule, describeRrule, WEEKDAYS, type Frequency } from './weekdays';
 import type { TaskRow } from './hooks';
 
@@ -13,6 +13,7 @@ export interface TaskFormValues {
   assignmentMode: 'volunteer' | 'fixed' | 'rotation';
   assignedMemberId: string | null;
   rotationMemberIds: string[];
+  anchor: string | null;
   priority: 'baixa' | 'media' | 'alta';
   checklist: string;
   points: number;
@@ -64,6 +65,7 @@ export default function TaskForm({ members, initial, submitting, onSubmit, onCan
   );
   const [dueDate, setDueDate] = useState<string>(isoToDateInput(initial?.dueDate));
 
+  const [anchor, setAnchor] = useState<string>(initial?.anchor ?? '');
   const [mode, setMode] = useState<'volunteer' | 'fixed' | 'rotation'>(
     initial?.assignmentMode ?? 'volunteer',
   );
@@ -94,6 +96,7 @@ export default function TaskForm({ members, initial, submitting, onSubmit, onCan
       assignmentMode: mode,
       assignedMemberId: mode === 'fixed' ? assignee : null,
       rotationMemberIds: mode === 'rotation' ? rotationIds : [],
+      anchor: anchor || null,
       priority,
       checklist: JSON.stringify(checklist.filter((c) => c.label.trim())),
       points,
@@ -169,6 +172,19 @@ export default function TaskForm({ members, initial, submitting, onSubmit, onCan
           <p className="mt-1 text-xs text-slate-500">Sem data, a tarefa fica em "Sem data" nas pendências até alguém concluir.</p>
         </div>
       )}
+
+      <div>
+        <label className="label" htmlFor="taskAnchor">Âncora de rotina (opcional)</label>
+        <select id="taskAnchor" className="input" value={anchor} onChange={(e) => setAnchor(e.target.value)}>
+          <option value="">Sem âncora</option>
+          {Object.entries(anchorLabels).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-slate-500">
+          Ligar a tarefa a um hábito que já existe ("depois do café...") ajuda a lembrar sem esforço.
+        </p>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
