@@ -34,7 +34,7 @@ export default function LoginPage() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 px-6">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-brand-600">Morada</h1>
+        <h1 className="text-4xl font-bold text-brand-600">MinhaCasinha</h1>
         <p className="mt-2 text-slate-500">Organize a vida do seu lar, juntos.</p>
       </div>
 

@@ -71,9 +71,9 @@ function buildIcs(events: Row[], occurrences: Row[], taskTitles: Map<string, str
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Morada//Gestao do Lar//PT-BR',
+    'PRODID:-//MinhaCasinha//Gestao do Lar//PT-BR',
     'CALSCALE:GREGORIAN',
-    'X-WR-CALNAME:Morada',
+    'X-WR-CALNAME:MinhaCasinha',
   ];
 
   for (const event of events) {
@@ -166,7 +166,7 @@ async function handlePushTest(
     try {
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: JSON.parse(sub.keys) },
-        JSON.stringify({ title: 'Morada', body: 'Notificação de teste 🎉', url: '/' }),
+        JSON.stringify({ title: 'MinhaCasinha', body: 'Notificação de teste 🎉', url: '/' }),
       );
       sent += 1;
     } catch (err) {

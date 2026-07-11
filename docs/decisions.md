@@ -1,4 +1,4 @@
-# ADRs — Morada
+# ADRs — MinhaCasinha
 
 Registros curtos de decisões de arquitetura. Formato: contexto → decisão → consequências.
 

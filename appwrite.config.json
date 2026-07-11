@@ -1,10 +1,10 @@
 {
-  "projectId": "REPLACE_WITH_PROJECT_ID",
-  "projectName": "Morada",
+  "projectId": "6a51840d002b0d958cb0",
+  "projectName": "MinhaCasinha",
   "databases": [
     {
       "$id": "morada",
-      "name": "Morada",
+      "name": "MinhaCasinha",
       "enabled": true
     }
   ],

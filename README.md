@@ -1,4 +1,4 @@
-# Morada 🏠
+# MinhaCasinha 🏠
 
 App mobile-first (PWA) para organizar a vida compartilhada do lar: rotina
 semanal, calendário, treinos, lista de compras, divisão de contas e tarefas —

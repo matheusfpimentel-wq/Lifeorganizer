@@ -14,7 +14,7 @@ export default function HouseholdSetupPage() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 px-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Bem-vindo(a) ao Morada!</h1>
+        <h1 className="text-2xl font-bold">Bem-vindo(a) à MinhaCasinha!</h1>
         <p className="mt-2 text-slate-500">
           Crie o seu lar para começar. Se você foi convidado(a), abra o link do convite recebido
           por e-mail.

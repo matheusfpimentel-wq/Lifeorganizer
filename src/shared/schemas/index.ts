@@ -20,7 +20,7 @@ export const weekdaySchema = z.number().int().min(0).max(6); // 0=domingo ... 6=
 // Household / perfil
 // ---------------------------------------------------------------------------
 export const householdSettingsSchema = z.object({
-  weekStart: z.enum(['monday', 'sunday']).default('monday'),
+  weekStart: z.enum(['monday', 'sunday']).default('sunday'),
   currency: z.literal('BRL').default('BRL'),
 });
 export type HouseholdSettings = z.infer<typeof householdSettingsSchema>;

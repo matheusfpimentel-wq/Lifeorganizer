@@ -1,4 +1,4 @@
-# Morada — App de Gestão do Lar
+# MinhaCasinha — App de Gestão do Lar
 
 App mobile-first (PWA) para organizar a vida compartilhada de um lar com 2+
 pessoas: rotina semanal, calendário, treinos, lista de compras, divisão de

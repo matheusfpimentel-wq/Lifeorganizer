@@ -46,7 +46,7 @@ export default function Layout() {
             ))}
           </select>
         ) : (
-          <span className="truncate text-lg font-semibold">{household?.name ?? 'Morada'}</span>
+          <span className="truncate text-lg font-semibold">{household?.name ?? 'MinhaCasinha'}</span>
         )}
 
         <div className="relative">

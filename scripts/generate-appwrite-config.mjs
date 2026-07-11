@@ -469,8 +469,8 @@ const buckets = [
 // ---------------------------------------------------------------------------
 const config = {
   projectId: process.env.APPWRITE_PROJECT_ID ?? 'REPLACE_WITH_PROJECT_ID',
-  projectName: 'Morada',
-  databases: [{ $id: DB_ID, name: 'Morada', enabled: true }],
+  projectName: 'MinhaCasinha',
+  databases: [{ $id: DB_ID, name: 'MinhaCasinha', enabled: true }],
   tables,
   buckets,
   functions,

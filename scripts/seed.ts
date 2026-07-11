@@ -59,7 +59,7 @@ async function main() {
 
   await createRow(
     'households',
-    { teamId, name: 'Lar Demo', settings: JSON.stringify({ weekStart: 'monday', currency: 'BRL' }) },
+    { teamId, name: 'Lar Demo', settings: JSON.stringify({ weekStart: 'sunday', currency: 'BRL' }) },
     teamPerms(teamId),
   );
 

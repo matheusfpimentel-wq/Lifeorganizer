@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Morada — Gestão do Lar',
-        short_name: 'Morada',
+        name: 'MinhaCasinha — Gestão do Lar',
+        short_name: 'MinhaCasinha',
         description: 'Organize a vida compartilhada do seu lar: tarefas, compras, contas, agenda e treinos.',
         lang: 'pt-BR',
         start_url: '/',
