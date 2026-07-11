@@ -12,6 +12,7 @@ import {
 } from '@/features/households/hooks';
 import type { Models } from 'appwrite';
 import { Icon } from '@/components/icons';
+import { AVATARS, AVATAR_SLUGS, BuiltinAvatar } from '@/components/avatars';
 import { DB_ID, TABLES, tablesDB } from '@/lib/appwrite';
 import { listAllRows } from '@/lib/pagination';
 import { withPersonalPermissions } from '@/lib/permissions';
@@ -76,12 +77,16 @@ export function MembersPage() {
           const isMe = m.userId === user?.$id;
           return (
             <li key={m.$id} className="card flex items-center gap-3">
-              <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-semibold text-white"
-                style={{ backgroundColor: profile?.color ?? '#94a3b8' }}
-              >
-                {name.slice(0, 1).toUpperCase()}
-              </span>
+              {profile?.avatar && AVATARS[profile.avatar as string] ? (
+                <BuiltinAvatar slug={profile.avatar as string} className="h-10 w-10 shrink-0 rounded-full" />
+              ) : (
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-semibold text-white"
+                  style={{ backgroundColor: profile?.color ?? '#94a3b8' }}
+                >
+                  {name.slice(0, 1).toUpperCase()}
+                </span>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">
                   {name}
@@ -127,16 +132,23 @@ export function ProfilePage() {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [color, setColor] = useState<string | null>(null);
   const [pixKey, setPixKey] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string | null | undefined>(undefined);
 
   const currentName = displayName ?? profile?.displayName ?? user?.name ?? user?.email ?? '';
   const currentColor = color ?? profile?.color ?? PROFILE_COLORS[0];
   const currentPix = pixKey ?? profile?.pixKey ?? '';
+  const currentAvatar = avatar === undefined ? ((profile?.avatar as string | undefined) ?? null) : avatar;
 
   // upsert: cria a linha se o usuário ainda não tem perfil; senão, atualiza
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('Não autenticado');
-      const data = { displayName: currentName, color: currentColor, pixKey: currentPix || null };
+      const data = {
+        displayName: currentName,
+        color: currentColor,
+        pixKey: currentPix || null,
+        avatar: currentAvatar,
+      };
       if (profile) {
         return tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.profiles, rowId: profile.$id, data });
       }
@@ -186,6 +198,34 @@ export function ProfilePage() {
         <div>
           <label className="label" htmlFor="profColor">Minha cor</label>
           <input id="profColor" type="color" className="h-11 w-20 rounded-xl" value={currentColor} onChange={(e) => setColor(e.target.value)} />
+        </div>
+        <div>
+          <span className="label">Avatar</span>
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+            <button
+              type="button"
+              aria-label="Sem avatar (inicial colorida)"
+              aria-pressed={currentAvatar === null}
+              onClick={() => setAvatar(null)}
+              className={`flex aspect-square items-center justify-center rounded-2xl border-2 text-lg font-bold text-white transition-transform active:scale-90 ${currentAvatar === null ? 'border-brand-600' : 'border-transparent'}`}
+              style={{ backgroundColor: currentColor }}
+            >
+              {currentName.slice(0, 1).toUpperCase() || '?'}
+            </button>
+            {AVATAR_SLUGS.map((slug) => (
+              <button
+                key={slug}
+                type="button"
+                aria-label={AVATARS[slug].label}
+                aria-pressed={currentAvatar === slug}
+                onClick={() => setAvatar(slug)}
+                className={`aspect-square overflow-hidden rounded-2xl border-2 transition-transform active:scale-90 ${currentAvatar === slug ? 'border-brand-600 scale-105' : 'border-transparent'}`}
+                title={AVATARS[slug].label}
+              >
+                <BuiltinAvatar slug={slug} className="h-full w-full" />
+              </button>
+            ))}
+          </div>
         </div>
         <div>
           <label className="label" htmlFor="profPix">Chave Pix (para receber acertos)</label>

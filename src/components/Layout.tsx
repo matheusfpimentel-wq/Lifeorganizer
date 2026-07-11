@@ -6,6 +6,7 @@ import { useUiStore } from '@/stores/ui';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import QuickAdd from '@/components/QuickAdd';
 import { Icon } from '@/components/icons';
+import { AVATARS, BuiltinAvatar } from '@/components/avatars';
 
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -57,11 +58,15 @@ export default function Layout() {
         <div className="relative">
           <button
             aria-label="Menu"
-            className="flex h-11 w-11 items-center justify-center rounded-full font-semibold text-white shadow-sm"
-            style={{ backgroundColor: profile?.color ?? '#0ea5e9' }}
+            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full font-semibold text-white shadow-md ring-2 ring-white/70 transition-transform active:scale-90 dark:ring-slate-700"
+            style={profile?.avatar && AVATARS[profile.avatar as string] ? undefined : { backgroundColor: profile?.color ?? '#0ea5e9' }}
             onClick={() => setMenuOpen((open) => !open)}
           >
-            {(profile?.displayName ?? '?').slice(0, 1).toUpperCase()}
+            {profile?.avatar && AVATARS[profile.avatar as string] ? (
+              <BuiltinAvatar slug={profile.avatar as string} className="h-full w-full" />
+            ) : (
+              (profile?.displayName ?? '?').slice(0, 1).toUpperCase()
+            )}
           </button>
           {menuOpen && (
             <nav className="absolute right-0 top-14 z-30 w-60 rounded-2xl border border-slate-200 bg-white py-2 shadow-lg dark:border-slate-800 dark:bg-slate-900">
@@ -111,13 +116,23 @@ export default function Layout() {
                 to={item.to}
                 end={item.to === '/'}
                 className={({ isActive }) =>
-                  `flex min-h-[56px] flex-col items-center justify-center gap-1 text-[11px] ${
+                  `flex min-h-[56px] flex-col items-center justify-center gap-0.5 text-[11px] transition-colors ${
                     isActive ? 'font-semibold text-brand-600' : 'text-slate-500 dark:text-slate-400'
                   }`
                 }
               >
-                <ItemIcon className="h-5 w-5" />
-                {item.label}
+                {({ isActive }) => (
+                  <>
+                    <span
+                      className={`flex h-7 w-14 items-center justify-center rounded-full transition-colors duration-300 ${
+                        isActive ? 'bg-brand-600/10 dark:bg-brand-400/15' : ''
+                      }`}
+                    >
+                      <ItemIcon className={`h-5 w-5 ${isActive ? 'motion-safe:animate-pop' : ''}`} />
+                    </span>
+                    {item.label}
+                  </>
+                )}
               </NavLink>
             );
           })}

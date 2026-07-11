@@ -2,6 +2,24 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Avatares + vila que evolui
+
+### Added
+- **Avatares embutidos** (12 desenhos SVG originais inspirados em universos de
+  fantasia/jogos/corrida — sem personagens protegidos): seletor em Perfil e
+  Pix, avatar no header e na lista de Membros. Novo campo `profiles.avatar`
+  (slug) no schema.
+- **Vila que cresce com o uso** (`useVillageProgress`): níveis 0–3 por
+  construção calculados dos totais do lar — casinha (tarefas concluídas: caixa
+  de correio → sótão → anexo), academia (treinos: bandeirola → anexo → segundo
+  andar), banco (contas + acertos: alas laterais → moeda dourada e topiarias →
+  fonte), pracinha (eventos: bandeirinhas e balanço → patinho no lago →
+  escorregador) e natureza (soma: mais árvores + borboleta esvoaçante,
+  passarinho no telhado, gatinho e coelhinho). Plaquinha "vila nível N".
+- **Header e rodapé animados**: avatar com anel e escala no toque; item ativo
+  da navegação ganha pílula colorida e ícone com "pop" (respeita
+  prefers-reduced-motion).
+
 ## [Unreleased] — Onda 1 do plano de UX (fricção zero + vila viva)
 
 ### Added

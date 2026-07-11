@@ -28,3 +28,46 @@
     @apply mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300;
   }
 }
+
+/* Microanimações (respeitam prefers-reduced-motion via motion-safe:) */
+@keyframes pop {
+  0% { transform: scale(0.8); }
+  55% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.motion-safe\:animate-pop {
+  animation: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe\:animate-pop {
+    animation: pop 0.35s ease-out;
+  }
+  .animate-flutter {
+    animation: flutter 9s ease-in-out infinite;
+  }
+  .animate-bob {
+    animation: bob 2.6s ease-in-out infinite;
+  }
+  .animate-tail {
+    transform-origin: left center;
+    animation: tail 1.8s ease-in-out infinite;
+  }
+}
+/* borboleta passeia pela vila */
+@keyframes flutter {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(26px, -14px); }
+  45% { transform: translate(60px, 4px); }
+  70% { transform: translate(28px, 16px); }
+  100% { transform: translate(0, 0); }
+}
+/* passarinho balança de leve */
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+/* rabinho do gato */
+@keyframes tail {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(18deg); }
+}

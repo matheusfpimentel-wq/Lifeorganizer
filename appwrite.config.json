@@ -89,6 +89,14 @@
           "default": null
         },
         {
+          "key": "avatar",
+          "type": "string",
+          "size": 32,
+          "array": false,
+          "required": false,
+          "default": null
+        },
+        {
           "key": "color",
           "type": "string",
           "size": 7,

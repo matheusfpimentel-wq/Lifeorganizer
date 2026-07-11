@@ -14,6 +14,8 @@ interface VillageMapProps {
   nextEventLabel: string | null;
   /** Alguém concluiu tarefa hoje (acende a chaminé). */
   completedToday?: boolean;
+  /** Níveis de evolução (0–3) por construção; a vila cresce com o uso. */
+  progress?: { house: number; gym: number; bank: number; park: number; nature: number };
 }
 
 type SkyPhase = 'dawn' | 'day' | 'dusk' | 'night';
@@ -62,6 +64,9 @@ export default function VillageMap(props: VillageMapProps) {
   const windowGlass = phase === 'night' || phase === 'dusk' ? 'fill-amber-200' : 'fill-sky-200 dark:fill-amber-200';
   // jardim reage ao estado do lar: atrasos murcham, tudo em dia floresce
   const garden = props.overdueTasks > 0 ? 'wilted' : props.todayTasks === 0 ? 'blooming' : 'ok';
+  // evolução da vila (0–3 por construção)
+  const prog = props.progress ?? { house: 0, gym: 0, bank: 0, park: 0, nature: 0 };
+  const villageLevel = prog.house + prog.gym + prog.bank + prog.park;
 
   const go = (spot: Spot) => ({
     role: 'link' as const,
@@ -194,10 +199,14 @@ export default function VillageMap(props: VillageMapProps) {
           <rect x="159" y="187" width="2.4" height="10" rx="1" />
           <rect x="166" y="188" width="2.4" height="9" rx="1" />
           <rect x="152" y="190.5" width="17" height="1.6" rx="0.8" />
-          <rect x="232" y="188" width="2.4" height="9" rx="1" />
-          <rect x="239" y="187" width="2.4" height="10" rx="1" />
-          <rect x="246" y="188" width="2.4" height="9" rx="1" />
-          <rect x="232" y="190.5" width="17" height="1.6" rx="0.8" />
+          {prog.house < 3 && (
+            <>
+              <rect x="232" y="188" width="2.4" height="9" rx="1" />
+              <rect x="239" y="187" width="2.4" height="10" rx="1" />
+              <rect x="246" y="188" width="2.4" height="9" rx="1" />
+              <rect x="232" y="190.5" width="17" height="1.6" rx="0.8" />
+            </>
+          )}
         </g>
 
         {/* árvores: copadas e pinheirinhos, espalhadas sem simetria */}
@@ -234,6 +243,32 @@ export default function VillageMap(props: VillageMapProps) {
             <circle cx="0" cy="6" r="10" className="fill-emerald-500 dark:fill-emerald-800" />
             <circle cx="-7" cy="11" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
           </g>
+
+          {/* floresta cresce com o uso da vila */}
+          {prog.nature >= 1 && (
+            <g transform="translate(105 140) scale(0.55)">
+              <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
+              <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
+              <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
+              <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+            </g>
+          )}
+          {prog.nature >= 2 && (
+            <g transform="translate(300 130) scale(0.75)">
+              <rect x="-2" y="8" width="4" height="9" className="fill-amber-800" />
+              <circle cx="0" cy="2" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
+              <circle cx="-6" cy="7" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+              <circle cx="6" cy="6" r="5" className="fill-emerald-600 dark:fill-emerald-900" />
+            </g>
+          )}
+          {prog.nature >= 3 && (
+            <g transform="translate(14 168) scale(0.6)">
+              <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
+              <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
+              <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
+              <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+            </g>
+          )}
 
           {/* moitas e tufos de grama */}
           <circle cx="30" cy="210" r="5" className="fill-emerald-500 dark:fill-emerald-800" />
@@ -275,6 +310,33 @@ export default function VillageMap(props: VillageMapProps) {
           <rect x="-8" y="-26" width="5" height="21" className="fill-white dark:fill-slate-300" />
           <rect x="3" y="-26" width="5" height="21" className="fill-white dark:fill-slate-300" />
           <rect x="14" y="-26" width="5" height="21" className="fill-white dark:fill-slate-300" />
+          {/* nível 1: alas laterais */}
+          {prog.bank >= 1 && (
+            <>
+              <rect x="-31" y="-22" width="9" height="18" rx="1" className="fill-slate-200 dark:fill-slate-500" />
+              <rect x="22" y="-22" width="9" height="18" rx="1" className="fill-slate-200 dark:fill-slate-500" />
+              <rect x="-28.5" y="-19" width="4" height="15" className="fill-white dark:fill-slate-300" />
+              <rect x="24.5" y="-19" width="4" height="15" className="fill-white dark:fill-slate-300" />
+            </>
+          )}
+          {/* nível 2: moeda dourada em destaque + topiarias */}
+          {prog.bank >= 2 && (
+            <>
+              <circle cx="0" cy="-34" r="5.6" fill="none" strokeWidth="1.4" className="stroke-amber-500" />
+              <circle cx="-34" cy="-1" r="3" className="fill-emerald-500 dark:fill-emerald-700" />
+              <circle cx="34" cy="-1" r="3" className="fill-emerald-500 dark:fill-emerald-700" />
+            </>
+          )}
+          {/* nível 3: fonte na esquina */}
+          {prog.bank >= 3 && (
+            <g transform="translate(42 -6)">
+              <ellipse cx="0" cy="3" rx="7" ry="2.6" className="fill-sky-300 dark:fill-sky-800" />
+              <rect x="-1.2" y="-4" width="2.4" height="6" className="fill-stone-400" />
+              <circle cx="0" cy="-5" r="1.4" className="fill-sky-200 motion-safe:animate-pulse" />
+              <circle cx="-2.6" cy="-3" r="0.9" className="fill-sky-200" opacity="0.8" />
+              <circle cx="2.6" cy="-3" r="0.9" className="fill-sky-200" opacity="0.8" />
+            </g>
+          )}
           <text x="0" y="16" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Banco</text>
         </g>
 
@@ -316,6 +378,30 @@ export default function VillageMap(props: VillageMapProps) {
           <rect x="13" y="-26" width="11" height="9" rx="1" className={windowGlass} />
           <rect x="-7" y="-17" width="14" height="17" rx="2" className="fill-amber-700 dark:fill-amber-800" />
           <circle cx="3" cy="-8" r="1.2" className="fill-amber-300" />
+          {/* nível 1: caixa de correio */}
+          {prog.house >= 1 && (
+            <g transform="translate(-44 0)">
+              <rect x="-0.8" y="-8" width="1.6" height="8" className="fill-amber-900" />
+              <rect x="-4" y="-13" width="8" height="5.5" rx="1.6" className="fill-rose-500 dark:fill-rose-600" />
+              <rect x="3" y="-15" width="1" height="4" className="fill-amber-400" />
+            </g>
+          )}
+          {/* nível 2: sótão com janelinha */}
+          {prog.house >= 2 && (
+            <g transform="translate(-14 -46)">
+              <rect x="-5" y="0" width="10" height="8" className="fill-orange-50 dark:fill-slate-500" />
+              <path d="M-7 0 L0 -6 L7 0 Z" className="fill-rose-600 dark:fill-rose-700" />
+              <circle cx="0" cy="4" r="2.2" className={windowGlass} />
+            </g>
+          )}
+          {/* nível 3: anexo lateral */}
+          {prog.house >= 3 && (
+            <>
+              <rect x="30" y="-20" width="20" height="20" rx="1.5" className="fill-orange-50 dark:fill-slate-500" />
+              <path d="M28 -20 L40 -31 L52 -20 Z" className="fill-rose-400 dark:fill-rose-500" />
+              <rect x="36" y="-14" width="8" height="7" rx="1" className={windowGlass} />
+            </>
+          )}
           <text x="0" y="18" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Nossa casinha</text>
         </g>
 
@@ -329,6 +415,29 @@ export default function VillageMap(props: VillageMapProps) {
           <rect x="-19" y="-19" width="12" height="2" className="fill-slate-700 dark:fill-slate-800" />
           <rect x="8" y="-19" width="12" height="8" rx="1" className={windowGlass} />
           <rect x="-6" y="-14" width="12" height="14" rx="1" className="fill-violet-700" />
+          {/* nível 1: bandeirola no teto */}
+          {prog.gym >= 1 && (
+            <>
+              <rect x="-27" y="-40" width="1.4" height="11" className="fill-stone-500" />
+              <path d="M-25.6 -40 L-17 -37 L-25.6 -34 Z" className="fill-violet-500 dark:fill-violet-400" />
+            </>
+          )}
+          {/* nível 2: anexo com janela */}
+          {prog.gym >= 2 && (
+            <>
+              <rect x="26" y="-16" width="14" height="16" rx="1.5" className="fill-violet-200 dark:fill-slate-600" />
+              <rect x="25" y="-19" width="16" height="4" rx="1.5" className="fill-violet-500 dark:fill-violet-600" />
+              <rect x="30" y="-12" width="6" height="5" rx="1" className={windowGlass} />
+            </>
+          )}
+          {/* nível 3: segundo andar */}
+          {prog.gym >= 3 && (
+            <>
+              <rect x="-16" y="-42" width="32" height="13" rx="1.5" className="fill-violet-100 dark:fill-slate-500" />
+              <rect x="-18" y="-46" width="36" height="5" rx="2" className="fill-violet-500 dark:fill-violet-600" />
+              <rect x="-6" y="-39" width="12" height="7" rx="1" className={windowGlass} />
+            </>
+          )}
           <text x="0" y="16" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Academia</text>
         </g>
 
@@ -344,8 +453,84 @@ export default function VillageMap(props: VillageMapProps) {
           <path d="M-24 -22 L0 -38 L24 -22 Z" className="fill-violet-400 dark:fill-violet-500" />
           <rect x="-0.7" y="-47" width="1.4" height="9" className="fill-stone-500" />
           <path d="M0 -47 L10 -44 L0 -41 Z" className="fill-rose-400" />
+          {/* nível 1: bandeirinhas entre os postes */}
+          {prog.park >= 1 && (
+            <g>
+              <path d="M-16.5 -20 Q0 -13 16.5 -20" fill="none" strokeWidth="0.9" className="stroke-stone-400" />
+              <path d="M-11 -17.6 l3.2 0.4 l-1.8 3.4 Z" className="fill-rose-400" />
+              <path d="M-4 -15.6 l3.2 0.2 l-1.7 3.4 Z" className="fill-amber-400" />
+              <path d="M3 -15.5 l3.2 -0.2 l-1.5 3.5 Z" className="fill-sky-400" />
+              <path d="M10 -17 l3.2 -0.5 l-1.3 3.6 Z" className="fill-violet-400" />
+            </g>
+          )}
           <text x="0" y="16" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Pracinha</text>
         </g>
+
+        {/* pracinha nível 1+: balanço ao lado do coreto */}
+        {prog.park >= 1 && (
+          <g transform="translate(285 262)" className="stroke-amber-800 dark:stroke-amber-900">
+            <path d="M-9 0 L-5 -13 M-1 0 L-5 -13 M7 0 L11 -13 M15 0 L11 -13 M-5 -13 L11 -13" fill="none" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M1 -13 v7 M5 -13 v7" fill="none" strokeWidth="0.9" />
+            <rect x="0" y="-6" width="6" height="1.8" rx="0.6" className="fill-amber-700 dark:fill-amber-800" stroke="none" />
+          </g>
+        )}
+        {/* pracinha nível 2+: patinho no lago */}
+        {prog.park >= 2 && (
+          <g transform="translate(206 244)" className="animate-bob">
+            <ellipse cx="0" cy="0" rx="3.2" ry="2.2" className="fill-amber-300" />
+            <circle cx="2.8" cy="-2.4" r="1.7" className="fill-amber-300" />
+            <path d="M4.4 -2.4 l2 0.6 l-2 0.7 Z" className="fill-orange-500" />
+            <circle cx="3.1" cy="-2.8" r="0.4" className="fill-slate-800" />
+          </g>
+        )}
+        {/* pracinha nível 3: escorregador */}
+        {prog.park >= 3 && (
+          <g transform="translate(354 238)">
+            <rect x="-1" y="-11" width="2" height="11" className="fill-stone-400" />
+            <path d="M-4 -9 h6 M-4 -6 h6 M-4 -3 h6" fill="none" strokeWidth="0.9" className="stroke-stone-500" />
+            <path d="M0 -10 C7 -7 9 -3 14 1 L9 2 C5 -1 3 -4 -1 -7 Z" className="fill-sky-400 dark:fill-sky-600" />
+          </g>
+        )}
+
+        {/* bichinhos aparecem conforme a vila cresce */}
+        {prog.nature >= 1 && (
+          <g transform="translate(158 158)" className="animate-flutter">
+            <ellipse cx="-1.6" cy="-1" rx="2" ry="1.4" transform="rotate(-28)" className="fill-rose-400" />
+            <ellipse cx="1.6" cy="-1" rx="2" ry="1.4" transform="rotate(28)" className="fill-rose-300" />
+            <rect x="-0.4" y="-2" width="0.8" height="4" rx="0.4" className="fill-slate-700 dark:fill-slate-300" />
+          </g>
+        )}
+        {prog.nature >= 2 && (
+          <g transform="translate(191 124)" className="animate-bob">
+            <circle cx="0" cy="0" r="2.6" className="fill-sky-500" />
+            <circle cx="2" cy="-1" r="1.7" className="fill-sky-400" />
+            <path d="M3.5 -1.2 l1.8 0.5 l-1.8 0.6 Z" className="fill-amber-500" />
+            <path d="M-2.4 0.4 l-2.4 1.2 l2.2 0.6 Z" className="fill-sky-600" />
+            <circle cx="2.4" cy="-1.5" r="0.4" className="fill-slate-900" />
+          </g>
+        )}
+        {prog.nature >= 3 && (
+          <>
+            <g transform="translate(156 203)">
+              <g className="animate-tail">
+                <path d="M4.5 -1 q4.5 -1.5 3.5 -6" fill="none" strokeWidth="1.4" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+              </g>
+              <ellipse cx="0" cy="0" rx="4.6" ry="3" className="fill-slate-700 dark:fill-slate-400" />
+              <circle cx="-4.4" cy="-3" r="2.6" className="fill-slate-700 dark:fill-slate-400" />
+              <path d="M-6.4 -5 l1 -2 l1.4 1.6 Z M-3.6 -5.4 l1.2 -1.8 l1 2 Z" className="fill-slate-700 dark:fill-slate-400" />
+              <circle cx="-5.2" cy="-3.2" r="0.4" className="fill-amber-300" />
+              <circle cx="-3.4" cy="-3.2" r="0.4" className="fill-amber-300" />
+            </g>
+            <g transform="translate(345 220)">
+              <ellipse cx="0" cy="0" rx="3.2" ry="2.4" className="fill-white dark:fill-slate-200" />
+              <circle cx="-2.8" cy="-1.6" r="1.8" className="fill-white dark:fill-slate-200" />
+              <ellipse cx="-3.6" cy="-4" rx="0.8" ry="2" className="fill-white dark:fill-slate-200" />
+              <ellipse cx="-2" cy="-4.2" rx="0.8" ry="2" className="fill-white dark:fill-slate-200" />
+              <circle cx="-3.2" cy="-1.8" r="0.35" className="fill-slate-800" />
+              <circle cx="2.8" cy="0.6" r="1" className="fill-slate-100" />
+            </g>
+          </>
+        )}
       </svg>
 
       {/* plaquinhas com dados ao vivo */}
@@ -355,6 +540,11 @@ export default function VillageMap(props: VillageMapProps) {
       </span>
       <span className={`${chipClass} ${houseChip.tone}`} style={{ left: '50%', top: '39%' }}>{houseChip.text}</span>
       <span className={`${chipClass} text-slate-600 dark:text-slate-300`} style={{ left: '81.25%', top: '68%' }}>{eventText}</span>
+      {props.progress && (
+        <span className={`${chipClass} text-brand-600 dark:text-brand-400`} style={{ left: '15%', top: '13%' }}>
+          vila nível {villageLevel + 1}
+        </span>
+      )}
     </div>
   );
 }

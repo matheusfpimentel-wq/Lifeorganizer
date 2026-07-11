@@ -11,6 +11,7 @@ import { formatTime, greeting, saoPauloDayBoundsUtc } from '@/lib/format';
 import { formatDate } from '@/lib/format';
 import { Icon } from '@/components/icons';
 import VillageMap from '@/components/VillageMap';
+import { useVillageProgress } from '@/features/village/hooks';
 
 export default function TodayPage() {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ export default function TodayPage() {
   const { balances, isLoading: balancesLoading } = useBalances(householdId);
   const events = useEvents(householdId);
   const createEvent = useCreateEvent(householdId);
+  const villageProgress = useVillageProgress(householdId);
 
   const [pickingDay, setPickingDay] = useState(false);
   const [shoppingDay, setShoppingDay] = useState('');
@@ -110,6 +112,7 @@ export default function TodayPage() {
         overdueTasks={overdue.length}
         nextEventLabel={nextEventLabel}
         completedToday={completedToday}
+        progress={villageProgress.data}
       />
 
       {/* dia de compras -> agenda */}

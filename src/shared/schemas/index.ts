@@ -42,6 +42,7 @@ export const profileSchema = z.object({
   userId: idSchema,
   displayName: z.string().min(1).max(64),
   avatarFileId: idSchema.nullish(),
+  avatar: z.string().max(32).nullish(),
   color: hexColorSchema,
   pixKey: z.string().max(77).nullish(),
   notificationPrefs: notificationPrefsSchema.nullish(),

@@ -104,6 +104,7 @@ const tables = [
       id('userId', req),
       str('displayName', 64, req),
       id('avatarFileId'),
+      str('avatar', 32), // slug de avatar embutido (ex.: 'mago')
       str('color', 7, req), // hex #rrggbb
       str('pixKey', 77),
       json('notificationPrefs', 2000), // { dailySummaryTime: 'HH:mm', enabled: {...} }
