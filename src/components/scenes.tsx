@@ -47,6 +47,9 @@ export function BankScene(props: P) {
       <g transform="translate(120 64)">
         <circle cx="0" cy="-26" r="7.5" fill="#fcd9b8" />
         <path d="M-7.5 -28.5 a7.5 7.5 0 0 1 15 0 l-2 -2.4 h-11 Z" className="fill-slate-800" />
+        <circle cx="-2.4" cy="-26.4" r="0.9" className="fill-slate-900" />
+        <circle cx="2.4" cy="-26.4" r="0.9" className="fill-slate-900" />
+        <path d="M-2 -22.8 q2 1.7 4 0" fill="none" strokeWidth="0.9" strokeLinecap="round" className="stroke-amber-800" />
         <path d="M-9 -18 L9 -18 L7 -2 L-7 -2 Z" className="fill-slate-700 dark:fill-slate-600" />
         <path d="M0 -18 l-2 5 2 8 2 -8 Z" className="fill-amber-400" />
         <rect x="-34" y="-4" width="68" height="12" rx="2" className="fill-amber-700 dark:fill-amber-800" />
@@ -112,6 +115,9 @@ export function MarketScene(props: P) {
       <g className="animate-bob" style={{ animationDuration: '3.6s' }}>
         <circle cx="0" cy="-26" r="7.5" fill="#fcd9b8" />
         <path d="M-7.5 -28.5 a7.5 7.5 0 0 1 15 0 l-1.6 -2.6 h-11.8 Z" className="fill-amber-900" />
+        <circle cx="-2.4" cy="-26.4" r="0.9" className="fill-slate-900" />
+        <circle cx="2.4" cy="-26.4" r="0.9" className="fill-slate-900" />
+        <path d="M-2 -22.8 q2 1.7 4 0" fill="none" strokeWidth="0.9" strokeLinecap="round" className="stroke-amber-800" />
         <path d="M-9 -18 L9 -18 L7.4 -1 L-7.4 -1 Z" className="fill-emerald-600 dark:fill-emerald-700" />
         <rect x="-5.4" y="-14" width="10.8" height="9" rx="1.6" className="fill-emerald-100 dark:fill-emerald-200" />
         <circle cx="12" cy="-13" r="3.4" className="fill-rose-400" />
@@ -147,6 +153,9 @@ export function GymScene(props: P) {
         <path d="M-9 -25 L9 -25 L5.6 -6 L-5.6 -6 Z" className="fill-rose-600 dark:fill-rose-700" />
         <circle cx="0" cy="-31" r="6.4" fill="#fcd9b8" />
         <path d="M-6.4 -32.8 a6.4 6.4 0 0 1 12.8 0 l-1.4 -2 h-10 Z" className="fill-slate-900" />
+        <circle cx="-2" cy="-31.2" r="0.8" className="fill-slate-900" />
+        <circle cx="2" cy="-31.2" r="0.8" className="fill-slate-900" />
+        <path d="M-1.6 -28.2 q1.6 1.4 3.2 0" fill="none" strokeWidth="0.8" strokeLinecap="round" className="stroke-amber-800" />
         <g className="animate-lift">
           <path d="M-8 -27 L-13.6 -38 M8 -27 L13.6 -38" strokeWidth="3.6" strokeLinecap="round" stroke="#fcd9b8" fill="none" />
           <rect x="-22" y="-42" width="44" height="3.6" rx="1.8" className="fill-slate-700 dark:fill-slate-300" />

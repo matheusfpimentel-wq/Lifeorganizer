@@ -112,10 +112,7 @@ export default function TodayPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">
-            {greeting()}, {profile?.displayName?.split(' ')[0] ?? ''}
-          </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
             {new Intl.DateTimeFormat('pt-BR', {
               timeZone: 'America/Sao_Paulo',
               weekday: 'long',
@@ -123,6 +120,9 @@ export default function TodayPage() {
               month: 'long',
             }).format(new Date())}
           </p>
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            {greeting()}, <span className="text-brand-600 dark:text-brand-400">{profile?.displayName?.split(' ')[0] ?? ''}</span>
+          </h1>
         </div>
         {weather.data && (
           <div className="shrink-0 text-right">
@@ -148,6 +148,28 @@ export default function TodayPage() {
             </p>
           </div>
         )}
+      </div>
+
+      {/* círculos de estatísticas (estilo Vistage) */}
+      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+        {[
+          { to: '/tarefas', label: 'Tarefas', value: String(todayOccurrences.length + overdue.length), icon: Icon.CheckSquare, tint: 'bg-amber-200/80 text-amber-900 dark:bg-amber-500/25 dark:text-amber-300' },
+          { to: '/compras', label: 'Mercado', value: String(pendingItems), icon: Icon.Cart, tint: 'bg-emerald-200/80 text-emerald-900 dark:bg-emerald-500/25 dark:text-emerald-300' },
+          { to: '/contas', label: 'Saldo', value: `${myBalance > 0 ? '+' : ''}${Math.round(myBalance / 100)}`, icon: Icon.Banknote, tint: 'bg-sky-200/80 text-sky-900 dark:bg-sky-500/25 dark:text-sky-300' },
+          { to: '/agenda', label: 'Eventos', value: String(todayEvents.length), icon: Icon.Calendar, tint: 'bg-violet-200/80 text-violet-900 dark:bg-violet-500/25 dark:text-violet-300' },
+          { to: '/academia', label: 'Treino', value: 'ir', icon: Icon.Dumbbell, tint: 'bg-rose-200/80 text-rose-900 dark:bg-rose-500/25 dark:text-rose-300' },
+        ].map((stat) => {
+          const StatIcon = stat.icon;
+          return (
+            <Link key={stat.to + stat.label} to={stat.to} className="flex shrink-0 flex-col items-center gap-1">
+              <span className={`flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-full shadow-sm transition-transform active:scale-90 ${stat.tint}`}>
+                <StatIcon className="h-4 w-4 opacity-80" />
+                <span className="text-base font-bold leading-none">{stat.value}</span>
+              </span>
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{stat.label}</span>
+            </Link>
+          );
+        })}
       </div>
 
       {pausedUntil && (

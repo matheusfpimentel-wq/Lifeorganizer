@@ -35,7 +35,7 @@ import {
 } from '@/features/push/hooks';
 import { ID } from 'appwrite';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { applyTheme, useUiStore } from '@/stores/ui';
+import { ACCENTS, applyAccent, applyTheme, useUiStore, type Accent } from '@/stores/ui';
 
 const PROFILE_COLORS = ['#0ea5e9', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#eab308', '#14b8a6'];
 
@@ -246,6 +246,8 @@ export function ProfilePage() {
 export function SettingsPage() {
   const theme = useUiStore((s) => s.theme);
   const setTheme = useUiStore((s) => s.setTheme);
+  const accent = useUiStore((s) => s.accent);
+  const setAccent = useUiStore((s) => s.setAccent);
   const { householdId } = useActiveHousehold();
   const icalToken = useIcalToken(householdId);
   const createToken = useCreateIcalToken(householdId);
@@ -276,6 +278,29 @@ export function SettingsPage() {
           <option value="light">Claro</option>
           <option value="dark">Escuro</option>
         </select>
+        <div className="mt-1">
+          <span className="label">Cor do tema</span>
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(ACCENTS) as Accent[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                aria-label={`Tema ${ACCENTS[key].label}`}
+                aria-pressed={accent === key}
+                title={ACCENTS[key].label}
+                onClick={() => {
+                  setAccent(key);
+                  applyAccent(key);
+                }}
+                className={`h-11 w-11 rounded-full border-4 transition-transform active:scale-90 ${
+                  accent === key ? 'scale-110 border-slate-900/70 dark:border-white/80' : 'border-transparent'
+                }`}
+                style={{ background: `linear-gradient(135deg, ${ACCENTS[key].shades[400]}, ${ACCENTS[key].shades[700]})` }}
+              />
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-slate-500">A cor vale para botões, navegação e destaques no app inteiro.</p>
+        </div>
       </section>
 
       <section className="card flex flex-col gap-3">

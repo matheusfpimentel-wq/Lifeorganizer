@@ -37,39 +37,29 @@ export default function Layout() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
-        {myTeams && myTeams.length > 1 ? (
-          <select
-            aria-label="Lar ativo"
-            className="input max-w-[60%] !min-h-[40px] !py-1"
-            value={household?.$id ?? ''}
-            onChange={(e) => setActiveHousehold(e.target.value)}
-          >
-            {myTeams.map((team) => (
-              <option key={team.$id} value={team.$id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <span className="truncate text-lg font-semibold">{household?.name ?? 'MinhaCasinha'}</span>
-        )}
-
-        <div className="relative">
-          <button
-            aria-label="Menu"
-            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full font-semibold text-white shadow-md ring-2 ring-white/70 transition-transform active:scale-90 dark:ring-slate-700"
-            style={profile?.avatar && AVATARS[profile.avatar as string] ? undefined : { backgroundColor: profile?.color ?? '#0ea5e9' }}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {profile?.avatar && AVATARS[profile.avatar as string] ? (
-              <BuiltinAvatar slug={profile.avatar as string} className="h-full w-full" />
-            ) : (
-              (profile?.displayName ?? '?').slice(0, 1).toUpperCase()
-            )}
-          </button>
-          {menuOpen && (
-            <nav className="absolute right-0 top-14 z-30 w-60 rounded-2xl border border-slate-200 bg-white py-2 shadow-lg dark:border-slate-800 dark:bg-slate-900">
+      {/* brilho de fundo no tom do tema (estilo Vistage) */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10"
+        style={{ background: 'radial-gradient(900px 520px at 50% -140px, rgb(var(--brand-300) / 0.32), transparent 70%)' }}
+      />
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-white/70 px-4 py-3 backdrop-blur-xl dark:bg-slate-950/70">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="relative shrink-0">
+            <button
+              aria-label="Menu"
+              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full font-semibold text-white shadow-md ring-2 ring-white/70 transition-transform active:scale-90 dark:ring-slate-700"
+              style={profile?.avatar && AVATARS[profile.avatar as string] ? undefined : { backgroundColor: profile?.color ?? '#0ea5e9' }}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {profile?.avatar && AVATARS[profile.avatar as string] ? (
+                <BuiltinAvatar slug={profile.avatar as string} className="h-full w-full" />
+              ) : (
+                (profile?.displayName ?? '?').slice(0, 1).toUpperCase()
+              )}
+            </button>
+            {menuOpen && (
+              <nav className="absolute left-0 top-14 z-30 w-60 rounded-2xl border border-slate-200 bg-white py-2 shadow-lg dark:border-slate-800 dark:bg-slate-900">
               {MENU_ITEMS.map((item) => {
                 const ItemIcon = item.icon;
                 return (
@@ -91,12 +81,31 @@ export default function Layout() {
                 <Icon.LogOut className="h-5 w-5" />
                 Sair
               </button>
-            </nav>
+              </nav>
+            )}
+          </div>
+          {myTeams && myTeams.length > 1 ? (
+            <select
+              aria-label="Lar ativo"
+              className="input max-w-[56vw] !min-h-[40px] !border-0 !bg-transparent !py-1 text-lg font-bold"
+              value={household?.$id ?? ''}
+              onChange={(e) => setActiveHousehold(e.target.value)}
+            >
+              {myTeams.map((team) => (
+                <option key={team.$id} value={team.$id}>
+                  {team.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span className="truncate text-lg font-bold">{household?.name ?? 'MinhaCasinha'}</span>
           )}
         </div>
+
+        <QuickAdd />
       </header>
 
-      <main className="flex-1 px-4 pb-24 pt-4">
+      <main className="flex-1 px-4 pb-28 pt-4">
         <ErrorBoundary key={useLocation().pathname}>
           <Suspense fallback={<div className="h-40 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />}>
             <Outlet />
@@ -104,10 +113,11 @@ export default function Layout() {
         </ErrorBoundary>
       </main>
 
-      <QuickAdd />
-
-      <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-3xl border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
-        <div className="grid grid-cols-5">
+      <nav
+        className="fixed inset-x-3 z-20 mx-auto max-w-3xl rounded-3xl border border-white/50 bg-white/85 shadow-xl shadow-slate-900/10 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/85"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+      >
+        <div className="grid grid-cols-5 p-1.5">
           {NAV_ITEMS.map((item) => {
             const ItemIcon = item.icon;
             return (
@@ -116,20 +126,16 @@ export default function Layout() {
                 to={item.to}
                 end={item.to === '/'}
                 className={({ isActive }) =>
-                  `flex min-h-[56px] flex-col items-center justify-center gap-0.5 text-[11px] transition-colors ${
-                    isActive ? 'font-semibold text-brand-600' : 'text-slate-500 dark:text-slate-400'
+                  `flex min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-2xl text-[11px] transition-all duration-300 ${
+                    isActive
+                      ? 'bg-brand-600/15 font-semibold text-brand-600 dark:bg-brand-400/15 dark:text-brand-400'
+                      : 'text-slate-500 dark:text-slate-400'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <span
-                      className={`flex h-7 w-14 items-center justify-center rounded-full transition-colors duration-300 ${
-                        isActive ? 'bg-brand-600/10 dark:bg-brand-400/15' : ''
-                      }`}
-                    >
-                      <ItemIcon className={`h-5 w-5 ${isActive ? 'motion-safe:animate-pop' : ''}`} />
-                    </span>
+                    <ItemIcon className={`h-5 w-5 ${isActive ? 'motion-safe:animate-pop' : ''}`} />
                     {item.label}
                   </>
                 )}

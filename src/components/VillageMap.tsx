@@ -135,8 +135,8 @@ export default function VillageMap(props: VillageMapProps) {
     'pointer-events-none absolute -translate-x-1/2 -translate-y-full select-none whitespace-nowrap rounded-full border border-slate-200 bg-white/95 px-2 py-0.5 text-[10px] font-semibold shadow-sm dark:border-slate-700 dark:bg-slate-900/95';
 
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow-md dark:border-slate-800" style={{ aspectRatio: '4 / 3' }}>
-      <svg viewBox="0 0 400 300" className="block h-full w-full" aria-hidden="false">
+    <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow-md dark:border-slate-800" style={{ aspectRatio: '40 / 33' }}>
+      <svg viewBox="0 0 400 330" className="block h-full w-full" aria-hidden="false">
         <title>Mapa da vila: toque num lugar para abrir o módulo</title>
         <defs>
           <linearGradient id="vmRoof" x1="0" y1="0" x2="1" y2="1">
@@ -156,7 +156,7 @@ export default function VillageMap(props: VillageMapProps) {
         {/* céu segue o horário real de São Paulo (e fecha quando chove) */}
         <rect
           width="400"
-          height="300"
+          height="330"
           className={
             rainy && phase !== 'night'
               ? 'fill-slate-300 dark:fill-slate-900'
@@ -243,9 +243,25 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         )}
 
+        {/* moinho na colina de trás, pás girando */}
+        <g transform="translate(26 122)">
+          <path d="M-6 0 L-4 -22 L4 -22 L6 0 Z" className="fill-stone-300 dark:fill-stone-600" />
+          <path d="M2.5 0 L4.4 -22 L6 0 Z" className="fill-stone-400/70 dark:fill-stone-700" />
+          <path d="M-5.4 -22 L0 -28 L5.4 -22 Z" className="fill-rose-500 dark:fill-rose-700" />
+          <rect x="-1.6" y="-14" width="3.2" height="4.4" rx="1" className={windowGlass} />
+          <g
+            className="animate-mill"
+            style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+            transform="translate(0 -25)"
+          >
+            <path d="M0 0 L2 -14 L-2 -14 Z M0 0 L14 2 L14 -2 Z M0 0 L-2 14 L2 14 Z M0 0 L-14 -2 L-14 2 Z" className="fill-amber-100 stroke-amber-700" strokeWidth="0.7" />
+            <circle cx="0" cy="0" r="1.6" className="fill-amber-800" />
+          </g>
+        </g>
+
         {/* colinas */}
-        <path d="M0 130 Q100 98 200 122 T400 116 L400 300 L0 300 Z" className="fill-emerald-200 dark:fill-emerald-950" />
-        <path d="M0 200 Q200 168 400 202 L400 300 L0 300 Z" className="fill-emerald-300/60 dark:fill-emerald-900/60" />
+        <path d="M0 130 Q100 98 200 122 T400 116 L400 330 L0 330 Z" className="fill-emerald-200 dark:fill-emerald-950" />
+        <path d="M0 200 Q200 168 400 202 L400 330 L0 330 Z" className="fill-emerald-300/60 dark:fill-emerald-900/60" />
 
         {/* trilhas discretas de terra batida saindo da casinha */}
         <g fill="none" strokeLinecap="round">
@@ -272,6 +288,28 @@ export default function VillageMap(props: VillageMapProps) {
           <ellipse cx="152" cy="222" rx="1.6" ry="1" />
           <ellipse cx="258" cy="219" rx="1.4" ry="0.9" />
         </g>
+
+        {/* rio na margem de baixo, com correnteza */}
+        <g>
+          <path d="M0 306 Q100 299 200 306 T400 302 L400 330 L0 330 Z" className="fill-sky-300 dark:fill-sky-900" />
+          <path d="M0 311 Q100 305 200 311 T400 307" fill="none" strokeWidth="2" strokeDasharray="14 12" className="animate-flow stroke-sky-100/80 dark:stroke-sky-600/70" />
+          <path d="M0 320 Q120 315 240 320 T400 317" fill="none" strokeWidth="1.6" strokeDasharray="10 14" className="animate-flow stroke-sky-100/60 dark:stroke-sky-700/70" style={{ animationDuration: '4.2s' }} />
+        </g>
+        {/* doca de madeira com pescador */}
+        <g transform="translate(300 304)">
+          <path d="M-16 0 v8 M14 0 v8" strokeWidth="2.4" className="stroke-amber-900" />
+          <rect x="-22" y="-2.6" width="44" height="3.4" rx="1.4" className="fill-amber-700 dark:fill-amber-800" />
+          <g transform="translate(6 -3)">
+            <circle cx="0" cy="-10.6" r="2.6" fill="#fcd9b8" />
+            <path d="M-2.6 -11.6 a2.6 2.6 0 0 1 5.2 0 l-0.6 -0.9 h-4 Z" className="fill-emerald-800" />
+            <circle cx="1" cy="-10.8" r="0.35" className="fill-slate-900" />
+            <path d="M-2.4 -8.2 L2.4 -8.2 L1.8 -1.6 L-1.8 -1.6 Z" className="fill-orange-600" />
+            <path d="M1.8 -7 L12 -14" strokeWidth="0.9" strokeLinecap="round" className="stroke-amber-900" />
+            <path d="M12 -14 L14 4" strokeWidth="0.5" className="stroke-slate-400" />
+          </g>
+          <circle cx="320" cy="0" r="0" fill="none" />
+        </g>
+        <circle cx="314" cy="308" r="1.4" className="animate-bob fill-rose-500" />
 
         {/* laguinho com água ondulando */}
         <g>
@@ -500,6 +538,8 @@ export default function VillageMap(props: VillageMapProps) {
           <g>
             <circle cx="0" cy="-14.5" r="2" fill="#fcd9b8" />
             <path d="M-2 -15.6 a2 2 0 0 1 4 0 l-0.6 -0.4 h-2.8 Z" className="fill-slate-800" />
+            <circle cx="-0.7" cy="-14.6" r="0.28" className="fill-slate-900" />
+            <circle cx="0.7" cy="-14.6" r="0.28" className="fill-slate-900" />
             <rect x="-2.4" y="-12.6" width="4.8" height="5.4" rx="1.4" className="fill-slate-600 dark:fill-slate-700" />
             <rect x="-3.4" y="-7.6" width="6.8" height="1.4" rx="0.7" className="fill-amber-700 dark:fill-amber-800" />
           </g>
@@ -555,6 +595,8 @@ export default function VillageMap(props: VillageMapProps) {
           <g className="animate-bob" style={{ animationDuration: '3.4s' }}>
             <circle cx="-10" cy="-12.6" r="2.1" fill="#fcd9b8" />
             <path d="M-12.1 -13.4 a2.1 2.1 0 0 1 4.2 0 l-0.5 -0.6 h-3.2 Z" className="fill-amber-900" />
+            <circle cx="-10.7" cy="-12.7" r="0.28" className="fill-slate-900" />
+            <circle cx="-9.3" cy="-12.7" r="0.28" className="fill-slate-900" />
             <rect x="-12.6" y="-10.8" width="5.2" height="3.8" rx="1.3" className="fill-emerald-600 dark:fill-emerald-700" />
           </g>
           <rect x="-18" y="-7.4" width="16" height="1.2" className="fill-emerald-800/60" />
@@ -660,6 +702,8 @@ export default function VillageMap(props: VillageMapProps) {
             <path d="M-3.2 -8.8 L3.2 -8.8 L2 -2 L-2 -2 Z" className="fill-rose-600 dark:fill-rose-700" />
             <circle cx="0" cy="-10.8" r="2.2" fill="#fcd9b8" />
             <path d="M-2.2 -11.4 a2.2 2.2 0 0 1 4.4 0 l-0.5 -0.7 h-3.4 Z" className="fill-slate-900" />
+            <circle cx="-0.7" cy="-10.9" r="0.28" className="fill-slate-900" />
+            <circle cx="0.7" cy="-10.9" r="0.28" className="fill-slate-900" />
             <g className="animate-lift">
               <path d="M-2.8 -9.4 L-4.8 -13.2 M2.8 -9.4 L4.8 -13.2" strokeWidth="1.3" strokeLinecap="round" stroke="#fcd9b8" fill="none" />
               <rect x="-7.6" y="-14.6" width="15.2" height="1.3" rx="0.65" className="fill-slate-700 dark:fill-slate-300" />
@@ -920,14 +964,14 @@ export default function VillageMap(props: VillageMapProps) {
       </svg>
 
       {/* plaquinhas com dados ao vivo */}
-      <span className={`${chipClass} ${balanceTone}`} style={{ left: '17.5%', top: '33%' }}>{balanceText}</span>
-      <span className={`${chipClass} text-slate-600 dark:text-slate-300`} style={{ left: '82.5%', top: '35%' }}>
+      <span className={`${chipClass} ${balanceTone}`} style={{ left: '17.5%', top: '30%' }}>{balanceText}</span>
+      <span className={`${chipClass} text-slate-600 dark:text-slate-300`} style={{ left: '82.5%', top: '32%' }}>
         {props.marketCount} {props.marketCount === 1 ? 'item' : 'itens'}
       </span>
-      <span className={`${chipClass} ${houseChip.tone}`} style={{ left: '50%', top: '39%' }}>{houseChip.text}</span>
-      <span className={`${chipClass} text-slate-600 dark:text-slate-300`} style={{ left: '81.25%', top: '68%' }}>{eventText}</span>
+      <span className={`${chipClass} ${houseChip.tone}`} style={{ left: '50%', top: '35.5%' }}>{houseChip.text}</span>
+      <span className={`${chipClass} text-slate-600 dark:text-slate-300`} style={{ left: '81.25%', top: '62%' }}>{eventText}</span>
       {props.progress && (
-        <span className={`${chipClass} text-brand-600 dark:text-brand-400`} style={{ left: '15%', top: '13%' }}>
+        <span className={`${chipClass} text-brand-600 dark:text-brand-400`} style={{ left: '15%', top: '11%' }}>
           vila nível {villageLevel + 1}
         </span>
       )}

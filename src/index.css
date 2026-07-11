@@ -3,6 +3,19 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* acento padrão: Céu (sky). Trocado via applyAccent(). */
+    --brand-50: 240 249 255;
+    --brand-100: 224 242 254;
+    --brand-200: 186 230 253;
+    --brand-300: 125 211 252;
+    --brand-400: 56 189 248;
+    --brand-500: 14 165 233;
+    --brand-600: 2 132 199;
+    --brand-700: 3 105 161;
+    --brand-800: 7 89 133;
+    --brand-900: 12 74 110;
+  }
   html {
     -webkit-tap-highlight-color: transparent;
   }
@@ -99,6 +112,14 @@
   /* peixinho salta do lago de tempos em tempos */
   .animate-fish {
     animation: fishJump 9s ease-in-out infinite;
+  }
+  /* correnteza do rio */
+  .animate-flow {
+    animation: flow 3.2s linear infinite;
+  }
+  /* pás do moinho */
+  .animate-mill {
+    animation: millspin 11s linear infinite;
   }
 }
 /* fora do media: com movimento reduzido a chuva fica invisível (opacity 0) */
@@ -198,6 +219,14 @@
   91% { opacity: 0; }
   93%, 94% { opacity: 0.8; }
   96% { opacity: 0; }
+}
+/* água corrente: os traços deslizam rio abaixo */
+@keyframes flow {
+  to { stroke-dashoffset: -48; }
+}
+/* moinho girando devagar */
+@keyframes millspin {
+  to { transform: rotate(360deg); }
 }
 /* peixinho: some, salta em arco com giro e mergulha de volta */
 @keyframes fishJump {

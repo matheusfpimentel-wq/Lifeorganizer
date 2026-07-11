@@ -168,10 +168,10 @@ export default function QuickAdd() {
     <>
       <button
         aria-label="Adicionar rapidamente"
-        className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg transition-transform active:scale-95"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-600/30 transition-transform active:scale-90"
         onClick={() => setOpen(true)}
       >
-        <Icon.Plus className="h-7 w-7" />
+        <Icon.Plus className="h-6 w-6" />
       </button>
 
       {open && (

@@ -6,7 +6,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import App from './App';
 import { AuthProvider } from '@/features/auth/AuthContext';
-import { applyTheme, useUiStore } from '@/stores/ui';
+import { applyAccent, applyTheme, useUiStore } from '@/stores/ui';
 import './index.css';
 
 // leitura offline: cache do TanStack Query persistido (ADR-005)
@@ -23,6 +23,7 @@ const queryClient = new QueryClient({
 const persister = createSyncStoragePersister({ storage: window.localStorage });
 
 applyTheme(useUiStore.getState().theme);
+applyAccent(useUiStore.getState().accent);
 window
   .matchMedia('(prefers-color-scheme: dark)')
   .addEventListener('change', () => applyTheme(useUiStore.getState().theme));

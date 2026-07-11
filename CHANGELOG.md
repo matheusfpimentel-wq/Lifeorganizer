@@ -2,6 +2,24 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Visual moderno (modelo Vistage) + cor de tema
+
+### Added
+- **Cor do tema configurável**: 6 paletas (Céu, Uva, Rosa, Mata, Pôr do sol,
+  Oceano) em Configurações > Aparência; a paleta `brand` inteira virou
+  variáveis CSS trocadas em tempo real e persistidas.
+- **Layout modernizado no estilo do modelo**: brilho radial de fundo no tom
+  do tema, header com avatar + nome do lar à esquerda e botão "+" redondo em
+  gradiente à direita (registro rápido saiu do canto flutuante), navegação
+  inferior **flutuante em cartão arredondado** com item ativo em pílula
+  colorida, saudação grande com data em caixa alta e **fileira de círculos
+  coloridos de estatísticas** (tarefas, mercado, saldo, eventos, treino).
+- **Mapa maior e mais complexo** (viewBox 400×330): **rio na margem de baixo
+  com correnteza animada**, doca de madeira com **pescador** (bóia
+  balançando) e **moinho de vento com pás girando** na colina.
+- **Identidade dos personagens**: todos ganharam o mesmo estilo de rosto
+  (olhinhos + sorriso) — bancário, atendente, maromba, caixa e vendedora.
+
 ## [Unreleased] — A vila é o tema do app inteiro
 
 ### Added
