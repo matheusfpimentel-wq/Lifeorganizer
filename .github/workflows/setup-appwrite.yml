@@ -40,9 +40,11 @@ jobs:
       # — avatars/receipts entram na F5/F6). O primeiro push de tables é
       # tolerante ao aviso "re-run to continue" que ocorre quando o CLI remove
       # um database remoto divergente; o segundo conclui as criações.
-      - name: Push database + tables
-        run: |
-          npx appwrite push tables --all --force || true
-          npx appwrite push tables --all --force
+      # 'push tables' cria as tabelas mas NÃO o database; garantimos o database
+      # 'morada' antes (idempotente — ignora erro se já existir).
+      - name: Ensure database exists
+        run: npx appwrite tables-db create --database-id morada --name MinhaCasinha || true
+      - name: Push tables
+        run: npx appwrite push tables --all --force
       - name: Push functions
         run: npx appwrite push functions --all --force
