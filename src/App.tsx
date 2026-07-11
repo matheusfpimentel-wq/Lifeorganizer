@@ -8,6 +8,7 @@ import Layout from '@/components/Layout';
 import TodayPage from '@/pages/TodayPage';
 import TasksPage from '@/pages/TasksPage';
 import ShoppingPage from '@/pages/ShoppingPage';
+import StaplesPage from '@/pages/StaplesPage';
 import ExpensesPage from '@/pages/ExpensesPage';
 import {
   AgendaPage,
@@ -16,7 +17,6 @@ import {
   ProfilePage,
   RoutinePage,
   SettingsPage,
-  StaplesPage,
 } from '@/pages/misc';
 
 function FullScreenSpinner() {

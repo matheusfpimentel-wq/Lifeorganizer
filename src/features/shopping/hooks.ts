@@ -4,6 +4,7 @@ import { ID, Query } from 'appwrite';
 import { client, DB_ID, TABLES, tableChannel, tablesDB } from '@/lib/appwrite';
 import { listAllRows } from '@/lib/pagination';
 import { withHouseholdPermissions } from '@/lib/permissions';
+import { shoppingTotalCents } from '@/core/shopping';
 import { useAuth } from '@/features/auth/AuthContext';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,6 +112,77 @@ export function useToggleItem(listId: string | null) {
       if (context?.previous) queryClient.setQueryData(['shoppingItems', listId], context.previous);
     },
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['shoppingItems', listId] }),
+  });
+}
+
+/** Editar item (qty, preço, categoria, nome). */
+export function useUpdateItem(listId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mutationFn: async ({ itemId, data }: { itemId: string; data: Record<string, any> }) =>
+      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.shoppingItems, rowId: itemId, data }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['shoppingItems', listId] }),
+  });
+}
+
+export function useRemoveItem(listId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (itemId: string) =>
+      tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.shoppingItems, rowId: itemId }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['shoppingItems', listId] }),
+  });
+}
+
+/**
+ * Arquiva a lista ativa: calcula o total (itens comprados), grava em
+ * `totalCents`, marca como archived e cria uma nova lista ativa padrão.
+ * Retorna { archivedListId, totalCents } — a ponte "criar despesa" (F3)
+ * consome esse total.
+ */
+export function useArchiveList(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (list: ListRow) => {
+      if (!householdId) throw new Error('Nenhum lar ativo');
+      const items = await listAllRows<ItemRow>(TABLES.shoppingItems, [
+        Query.equal('listId', list.$id),
+      ]);
+      const totalCents = shoppingTotalCents(items);
+
+      await tablesDB.updateRow({
+        databaseId: DB_ID,
+        tableId: TABLES.shoppingLists,
+        rowId: list.$id,
+        data: { status: 'archived', totalCents },
+      });
+      const newList = await tablesDB.createRow({
+        databaseId: DB_ID,
+        tableId: TABLES.shoppingLists,
+        rowId: ID.unique(),
+        data: { householdId, name: list.name, status: 'active', isDefault: true },
+        permissions: withHouseholdPermissions(householdId),
+      });
+      return { archivedListId: list.$id, totalCents, newListId: newList.$id };
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['shoppingList', householdId] });
+      void queryClient.invalidateQueries({ queryKey: ['archivedLists', householdId] });
+    },
+  });
+}
+
+export function useArchivedLists(householdId: string | null) {
+  return useQuery({
+    queryKey: ['archivedLists', householdId],
+    enabled: !!householdId,
+    queryFn: () =>
+      listAllRows<ListRow>(TABLES.shoppingLists, [
+        Query.equal('householdId', householdId!),
+        Query.equal('status', 'archived'),
+        Query.orderDesc('$createdAt'),
+      ]),
   });
 }
 

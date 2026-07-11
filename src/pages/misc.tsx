@@ -33,9 +33,6 @@ export function GymPage() {
 export function RoutinePage() {
   return <Placeholder title="Rotina semanal" phase="Fase 4 (grade semanal por membro)" />;
 }
-export function StaplesPage() {
-  return <Placeholder title="Itens recorrentes" phase="Fase 2 (staples da lista de compras)" />;
-}
 
 export function MembersPage() {
   const { householdId } = useActiveHousehold();

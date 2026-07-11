@@ -2,6 +2,26 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — F2 Compras
+
+### Added
+- **Preços por item + total ao arquivar** (`src/core/shopping.ts`, núcleo puro,
+  6 testes): `shoppingTotalCents` soma os itens comprados (marcados; fallback
+  para todos com preço). `ShoppingPage` ganhou input de preço por item, stepper
+  de quantidade e remover item.
+- **Arquivar lista** (`useArchiveList`): grava `totalCents`, marca `archived` e
+  cria uma nova lista ativa. Retorna `{ archivedListId, totalCents }` — ponte
+  "lista arquivada → despesa" pronta para ativar na F3. `useArchivedLists` para
+  histórico.
+- **CRUD de itens recorrentes** (`staples.ts` + `StaplesPage` real, substituindo
+  o placeholder): adicionar/remover staples por categoria, alimentando o botão
+  "Repor recorrentes".
+
+### Notes
+- Realtime dos itens (assinatura só do canal de `shoppingItems`, desconexão ao
+  sair, UI otimista com rollback) já vinha da F0 — DoD "realtime com 2 sessões"
+  depende do backend no ar. Total: 67 testes.
+
 ## [Unreleased] — F1 Tarefas
 
 ### Added

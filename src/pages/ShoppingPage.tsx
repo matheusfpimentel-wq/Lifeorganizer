@@ -1,7 +1,56 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useActiveHousehold } from '@/features/households/hooks';
-import { useActiveList, useAddItem, useListItems, useRestockStaples, useToggleItem } from '@/features/shopping/hooks';
+import {
+  useActiveList,
+  useAddItem,
+  useArchiveList,
+  useListItems,
+  useRemoveItem,
+  useRestockStaples,
+  useToggleItem,
+  useUpdateItem,
+  type ItemRow,
+} from '@/features/shopping/hooks';
 import { shoppingCategoryLabels } from '@/shared/labels';
+import { formatCentsBRL, parseBRLToCents } from '@/lib/format';
+import { shoppingTotalCents } from '@/core/shopping';
+
+function PriceInput({
+  item,
+  onCommit,
+}: {
+  item: ItemRow;
+  onCommit: (cents: number | null) => void;
+}) {
+  const [value, setValue] = useState(
+    typeof item.priceCents === 'number' ? (item.priceCents / 100).toFixed(2).replace('.', ',') : '',
+  );
+  function commit() {
+    const trimmed = value.trim();
+    if (!trimmed) return onCommit(null);
+    try {
+      onCommit(parseBRLToCents(trimmed));
+    } catch {
+      /* mantém valor anterior em entrada inválida */
+    }
+  }
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-sm text-slate-400">R$</span>
+      <input
+        aria-label={`Preço de ${item.name}`}
+        className="input !min-h-[36px] w-20 !py-1 text-right text-sm"
+        inputMode="decimal"
+        placeholder="0,00"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+      />
+    </div>
+  );
+}
 
 export default function ShoppingPage() {
   const { householdId } = useActiveHousehold();
@@ -10,7 +59,10 @@ export default function ShoppingPage() {
   const items = useListItems(listId);
   const addItem = useAddItem(householdId, listId);
   const toggle = useToggleItem(listId);
+  const updateItem = useUpdateItem(listId);
+  const removeItem = useRemoveItem(listId);
   const restock = useRestockStaples(householdId, listId);
+  const archive = useArchiveList(householdId);
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('mercearia');
@@ -32,21 +84,33 @@ export default function ShoppingPage() {
     else void navigator.clipboard.writeText(text);
   }
 
-  const grouped = new Map<string, NonNullable<typeof items.data>>();
+  function handleArchive() {
+    if (!list.data) return;
+    const total = shoppingTotalCents(items.data ?? []);
+    const msg =
+      total > 0
+        ? `Arquivar a lista com total de ${formatCentsBRL(total)}? Uma nova lista vazia será criada.`
+        : 'Arquivar a lista e começar uma nova? (sem preços lançados)';
+    if (confirm(msg)) archive.mutate(list.data);
+  }
+
+  const grouped = new Map<string, ItemRow[]>();
   for (const item of items.data ?? []) {
     const key = item.category ?? 'outro';
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(item);
   }
 
+  const runningTotal = shoppingTotalCents(items.data ?? []);
+  const itemCount = (items.data ?? []).length;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{list.data?.name ?? 'Compras'}</h1>
         <div className="flex gap-2">
-          <button className="btn-secondary !px-3" onClick={handleShare} aria-label="Compartilhar lista">
-            Compartilhar
-          </button>
+          <Link to="/staples" className="btn-secondary !px-3">Recorrentes</Link>
+          <button className="btn-secondary !px-3" onClick={handleShare}>Compartilhar</button>
         </div>
       </div>
 
@@ -72,34 +136,77 @@ export default function ShoppingPage() {
 
       {items.isLoading ? (
         <div className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
-      ) : (items.data ?? []).length === 0 ? (
+      ) : itemCount === 0 ? (
         <div className="card text-center text-slate-500">Lista vazia. Adicione o primeiro item!</div>
       ) : (
-        [...grouped.entries()].map(([cat, catItems]) => (
-          <section key={cat} className="card">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              {shoppingCategoryLabels[cat] ?? cat}
-            </h2>
-            <ul className="flex flex-col gap-1">
-              {catItems.map((item) => (
-                <li key={item.$id}>
-                  <label className="flex min-h-[44px] cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      className="h-5 w-5 rounded accent-brand-600"
-                      checked={item.checked}
-                      onChange={(e) => toggle.mutate({ item, checked: e.target.checked })}
-                    />
-                    <span className={item.checked ? 'text-slate-400 line-through' : ''}>
-                      {item.name}
-                      {item.qty > 1 && <span className="ml-1 text-sm text-slate-500">×{item.qty}</span>}
-                    </span>
-                  </label>
-                </li>
-              ))}
-            </ul>
+        <>
+          {[...grouped.entries()].map(([cat, catItems]) => (
+            <section key={cat} className="card">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                {shoppingCategoryLabels[cat] ?? cat}
+              </h2>
+              <ul className="flex flex-col gap-3">
+                {catItems.map((item) => (
+                  <li key={item.$id} className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5 rounded accent-brand-600"
+                        checked={item.checked}
+                        onChange={(e) => toggle.mutate({ item, checked: e.target.checked })}
+                        aria-label={`Marcar ${item.name}`}
+                      />
+                      <span className={`flex-1 ${item.checked ? 'text-slate-400 line-through' : ''}`}>
+                        {item.name}
+                      </span>
+                      <button
+                        className="text-slate-400 hover:text-red-600"
+                        aria-label={`Remover ${item.name}`}
+                        onClick={() => removeItem.mutate(item.$id)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 pl-8">
+                      <div className="flex items-center gap-1">
+                        <button
+                          className="h-8 w-8 rounded-lg bg-slate-100 text-lg leading-none dark:bg-slate-800"
+                          aria-label="Diminuir quantidade"
+                          onClick={() => updateItem.mutate({ itemId: item.$id, data: { qty: Math.max(1, (item.qty ?? 1) - 1) } })}
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center text-sm">{item.qty ?? 1}</span>
+                        <button
+                          className="h-8 w-8 rounded-lg bg-slate-100 text-lg leading-none dark:bg-slate-800"
+                          aria-label="Aumentar quantidade"
+                          onClick={() => updateItem.mutate({ itemId: item.$id, data: { qty: (item.qty ?? 1) + 1 } })}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="flex-1" />
+                      <PriceInput
+                        item={item}
+                        onCommit={(cents) => updateItem.mutate({ itemId: item.$id, data: { priceCents: cents } })}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+
+          <section className="card flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Total lançado</p>
+              <p className="text-xl font-bold">{formatCentsBRL(runningTotal)}</p>
+            </div>
+            <button className="btn-primary" onClick={handleArchive} disabled={archive.isPending}>
+              {archive.isPending ? 'Arquivando…' : 'Arquivar lista'}
+            </button>
           </section>
-        ))
+        </>
       )}
     </div>
   );
