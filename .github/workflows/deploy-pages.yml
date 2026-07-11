@@ -29,11 +29,12 @@ jobs:
         env:
           # projeto Pages serve em https://<user>.github.io/<repo>/
           VITE_BASE: /${{ github.event.repository.name }}/
-          # config pública (segura no bundle) — defina em Settings > Secrets and variables > Actions > Variables
-          VITE_APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
-          VITE_APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
-          VITE_APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID }}
-          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
+          # config pública (segura no bundle). Defina em Settings > Secrets and
+          # variables > Actions. Aceita a aba Variables OU Secrets.
+          VITE_APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT || secrets.VITE_APPWRITE_ENDPOINT }}
+          VITE_APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID || secrets.VITE_APPWRITE_PROJECT_ID }}
+          VITE_APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || secrets.VITE_APPWRITE_DATABASE_ID || 'morada' }}
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY || secrets.VITE_VAPID_PUBLIC_KEY }}
         run: npm run build
       - name: SPA fallback (deep links do react-router)
         run: cp dist/index.html dist/404.html
