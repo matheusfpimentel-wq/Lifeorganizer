@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { NavLink, Outlet, Link } from 'react-router-dom';
+import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useActiveHousehold, useMyTeams, useMyProfile } from '@/features/households/hooks';
 import { useUiStore } from '@/stores/ui';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Hoje', icon: '🏠' },
@@ -82,7 +83,9 @@ export default function Layout() {
       </header>
 
       <main className="flex-1 px-4 pb-24 pt-4">
-        <Outlet />
+        <ErrorBoundary key={useLocation().pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-3xl border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] dark:border-slate-800 dark:bg-slate-950">
