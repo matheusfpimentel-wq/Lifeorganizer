@@ -1,3 +1,4 @@
+import { useMemo, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCentsBRL } from '@/lib/format';
 
@@ -16,7 +17,14 @@ interface VillageMapProps {
   completedToday?: boolean;
   /** Níveis de evolução (0–3) por construção; a vila cresce com o uso. */
   progress?: { house: number; gym: number; bank: number; park: number; nature: number };
+  /** Força um easter egg específico (testes/demonstração). */
+  eggOverride?: Egg;
 }
+
+type Egg = 'ufo' | 'monster' | 'alien' | 'walker' | null;
+
+/** vento: gira em torno da base do elemento */
+const SWAY: CSSProperties = { transformBox: 'fill-box', transformOrigin: '50% 100%' };
 
 type SkyPhase = 'dawn' | 'day' | 'dusk' | 'night';
 
@@ -67,6 +75,18 @@ export default function VillageMap(props: VillageMapProps) {
   // evolução da vila (0–3 por construção)
   const prog = props.progress ?? { house: 0, gym: 0, bank: 0, park: 0, nature: 0 };
   const villageLevel = prog.house + prog.gym + prog.bank + prog.park;
+
+  // easter egg sorteado a cada visita à home (às vezes ninguém aparece)
+  const egg = useMemo<Egg>(() => {
+    if (props.eggOverride !== undefined) return props.eggOverride;
+    const roll = Math.random();
+    if (roll < 0.1) return 'ufo';
+    if (roll < 0.2) return 'monster';
+    if (roll < 0.3) return 'alien';
+    if (roll < 0.55) return 'walker';
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.eggOverride]);
 
   const go = (spot: Spot) => ({
     role: 'link' as const,
@@ -161,12 +181,33 @@ export default function VillageMap(props: VillageMapProps) {
           <circle cx="30" cy="80" r="1.2" className="fill-white" opacity="0.8" />
         </g>
 
-        {/* nuvens (somem à noite) */}
+        {/* nuvens à deriva (somem à noite) */}
         {phase !== 'night' && (
-          <g className="fill-white dark:opacity-10" opacity="0.9">
+          <g className="animate-drift fill-white dark:opacity-10" opacity="0.9">
             <ellipse cx="90" cy="46" rx="26" ry="10" />
             <ellipse cx="112" cy="40" rx="18" ry="8" />
             <ellipse cx="235" cy="66" rx="22" ry="8" opacity="0.7" />
+          </g>
+        )}
+
+        {/* passarinhos cruzando o céu */}
+        {phase !== 'night' && (
+          <g className="animate-fly" fill="none" strokeWidth="1.2" strokeLinecap="round">
+            <path d="M0 56 q3 -3.2 6 0 q3 -3.2 6 0" className="stroke-slate-500/70 dark:stroke-slate-300/50" />
+            <path d="M16 49 q2.6 -2.8 5.2 0 q2.6 -2.8 5.2 0" className="stroke-slate-500/60 dark:stroke-slate-300/40" />
+          </g>
+        )}
+
+        {/* easter egg: disco voador */}
+        {egg === 'ufo' && (
+          <g className="animate-ufo">
+            <g transform="translate(0 46)">
+              <path d="M-5 -2.5 a5 4.6 0 0 1 10 0 Z" className="fill-sky-300/90" />
+              <ellipse cx="0" cy="0" rx="11" ry="3.6" className="fill-slate-400 dark:fill-slate-500" />
+              <circle cx="-6" cy="0.6" r="1" className="fill-amber-300 motion-safe:animate-pulse" />
+              <circle cx="0" cy="1.4" r="1" className="fill-rose-300 motion-safe:animate-pulse" />
+              <circle cx="6" cy="0.6" r="1" className="fill-emerald-300 motion-safe:animate-pulse" />
+            </g>
           </g>
         )}
 
@@ -221,39 +262,66 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         )}
 
-        {/* árvores: copadas e pinheirinhos, espalhadas sem simetria */}
+        {/* árvores: copadas e pinheirinhos balançando ao vento */}
         <g>
-          <rect x="138" y="128" width="4" height="10" className="fill-amber-800" />
-          <circle cx="140" cy="121" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
-          <circle cx="134" cy="127" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
-          <circle cx="146" cy="126" r="5" className="fill-emerald-600 dark:fill-emerald-900" />
+          <g className="animate-sway" style={SWAY}>
+            <rect x="138" y="128" width="4" height="10" className="fill-amber-800" />
+            <circle cx="140" cy="121" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
+            <circle cx="134" cy="127" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+            <circle cx="146" cy="126" r="5" className="fill-emerald-600 dark:fill-emerald-900" />
+          </g>
 
-          <rect x="262" y="126" width="4" height="10" className="fill-amber-800" />
-          <circle cx="264" cy="119" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
-          <circle cx="270" cy="125" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+          <g className="animate-sway" style={{ ...SWAY, animationDelay: '1.4s' }}>
+            <rect x="262" y="126" width="4" height="10" className="fill-amber-800" />
+            <circle cx="264" cy="119" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
+            <circle cx="270" cy="125" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+          </g>
+
+          {/* easter egg: monstrinho espiando atrás do pinheiro grande */}
+          {egg === 'monster' && (
+            <g transform="translate(24 128)">
+              <g className="animate-peek">
+                <circle cx="0" cy="0" r="5.2" className="fill-violet-500" />
+                <path d="M-3.4 -3.8 l-1.6 -3 l3 0.8 Z M3.4 -3.8 l1.6 -3 l-3 0.8 Z" className="fill-violet-700" />
+                <circle cx="-1.9" cy="-0.8" r="1.7" fill="#fff" />
+                <circle cx="1.9" cy="-0.8" r="1.7" fill="#fff" />
+                <circle cx="-1.9" cy="-0.6" r="0.8" className="fill-slate-900" />
+                <circle cx="1.9" cy="-0.6" r="0.8" className="fill-slate-900" />
+                <path d="M-1.6 2.2 q1.6 1.4 3.2 0" fill="none" strokeWidth="0.8" strokeLinecap="round" className="stroke-violet-900" />
+              </g>
+            </g>
+          )}
 
           <g transform="translate(34 118)">
-            <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
-            <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
-            <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
-            <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+            <g className="animate-sway" style={{ ...SWAY, animationDelay: '0.7s' }}>
+              <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
+              <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
+              <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
+              <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+            </g>
           </g>
           <g transform="translate(370 122) scale(0.8)">
-            <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
-            <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
-            <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
-            <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+            <g className="animate-sway" style={{ ...SWAY, animationDelay: '2.1s' }}>
+              <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
+              <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
+              <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
+              <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+            </g>
           </g>
           <g transform="translate(148 246) scale(0.7)">
-            <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
-            <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
-            <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
-            <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+            <g className="animate-sway" style={{ ...SWAY, animationDelay: '1s' }}>
+              <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
+              <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
+              <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
+              <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+            </g>
           </g>
           <g transform="translate(252 258) scale(0.6)">
-            <rect x="-2" y="14" width="4" height="8" className="fill-amber-800" />
-            <circle cx="0" cy="6" r="10" className="fill-emerald-500 dark:fill-emerald-800" />
-            <circle cx="-7" cy="11" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+            <g className="animate-sway" style={{ ...SWAY, animationDelay: '2.8s' }}>
+              <rect x="-2" y="14" width="4" height="8" className="fill-amber-800" />
+              <circle cx="0" cy="6" r="10" className="fill-emerald-500 dark:fill-emerald-800" />
+              <circle cx="-7" cy="11" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+            </g>
           </g>
 
           {/* floresta cresce com o uso da vila */}
@@ -289,7 +357,7 @@ export default function VillageMap(props: VillageMapProps) {
           <circle cx="360" cy="209" r="4" className="fill-emerald-400 dark:fill-emerald-700" />
           <circle cx="120" cy="158" r="3.4" className="fill-emerald-500/80 dark:fill-emerald-800" />
           <circle cx="286" cy="156" r="3.4" className="fill-emerald-500/80 dark:fill-emerald-800" />
-          <g fill="none" strokeWidth="1.2" strokeLinecap="round" className="stroke-emerald-600/70 dark:stroke-emerald-700">
+          <g fill="none" strokeWidth="1.2" strokeLinecap="round" className="animate-sway stroke-emerald-600/70 dark:stroke-emerald-700" style={{ ...SWAY, animationDelay: '0.4s', animationDuration: '3.2s' }}>
             <path d="M96 200 q1 -4 0 -6 M99 200 q2 -3 4 -4 M93 200 q-2 -3 -4 -4" />
             <path d="M304 196 q1 -4 0 -6 M307 196 q2 -3 4 -4 M301 196 q-2 -3 -4 -4" />
             <path d="M178 154 q1 -3.4 0 -5 M181 154 q1.8 -2.6 3.4 -3.4" />
@@ -608,6 +676,31 @@ export default function VillageMap(props: VillageMapProps) {
               <circle cx="2.8" cy="0.6" r="1" className="fill-slate-100" />
             </g>
           </>
+        )}
+        {/* easter egg: alienzinho visitando */}
+        {egg === 'alien' && (
+          <g transform="translate(38 264)" className="animate-bob">
+            <rect x="-2.6" y="1" width="5.2" height="6" rx="2" className="fill-lime-500" />
+            <ellipse cx="0" cy="-3" rx="4" ry="4.4" className="fill-lime-400" />
+            <ellipse cx="-1.7" cy="-3.4" rx="1.3" ry="1.8" className="fill-slate-900" />
+            <ellipse cx="1.7" cy="-3.4" rx="1.3" ry="1.8" className="fill-slate-900" />
+            <path d="M0 -7.4 v-2.4" strokeWidth="0.8" className="stroke-lime-600" />
+            <circle cx="0" cy="-10.4" r="1" className="fill-rose-400 motion-safe:animate-pulse" />
+            <path d="M-2.6 3 l-2.6 -1.6 M2.6 3 l2.6 -1.6" strokeWidth="1" strokeLinecap="round" className="stroke-lime-500" />
+          </g>
+        )}
+
+        {/* easter egg: alguém passando pela vila */}
+        {egg === 'walker' && (
+          <g className="animate-walk">
+            <g transform="translate(0 282)">
+              <circle cx="0" cy="0" r="2.6" fill="#fcd9b8" />
+              <path d="M-1.6 -1 a2.6 2.6 0 0 1 3.2 -1.4 l-0.4 1.2 Z" className="fill-amber-900" />
+              <rect x="-2.2" y="2.4" width="4.4" height="7" rx="2" className="fill-sky-600" />
+              <path d="M-1.2 9.4 l-1 4.4 M1.2 9.4 l1 4.4" strokeWidth="1.6" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+              <path d="M2.2 4.4 l2.6 2" strokeWidth="1.3" strokeLinecap="round" className="stroke-sky-600" />
+            </g>
+          </g>
         )}
       </svg>
 

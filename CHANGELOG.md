@@ -2,6 +2,18 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Vila viva de verdade
+
+### Added
+- **Vento**: árvores, pinheiros e tufos de grama balançam em ritmos
+  dessincronizados; nuvens vagam pelo céu.
+- **Vida passando**: passarinhos cruzam o céu de tempos em tempos (somem à
+  noite).
+- **Easter eggs sorteados a cada visita** (~55% de chance de alguém aparecer):
+  disco voador com luzinhas piscando cruzando o céu, monstrinho roxo espiando
+  atrás do pinheiro, alienzinho verde de visita e uma pessoa atravessando a
+  vila a pé. Tudo respeita prefers-reduced-motion.
+
 ## [Unreleased] — Onda 3 (hábitos + inteligência leve)
 
 ### Added
