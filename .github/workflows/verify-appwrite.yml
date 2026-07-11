@@ -1,0 +1,26 @@
+name: Verify Appwrite schema
+
+# Diagnóstico: lista os databases e as tabelas do database 'morada'.
+on:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Configure Appwrite CLI
+        env:
+          ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT || secrets.VITE_APPWRITE_ENDPOINT }}
+          PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID || secrets.VITE_APPWRITE_PROJECT_ID }}
+          API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: npx appwrite client --endpoint "$ENDPOINT" --project-id "$PROJECT_ID" --key "$API_KEY"
+      - name: List databases
+        run: npx appwrite tables-db list || true
+      - name: List tables in 'morada'
+        run: npx appwrite tables-db list-tables --database-id morada || true
