@@ -34,7 +34,7 @@ createRoot(document.getElementById('root')!).render(
       persistOptions={{ persister, maxAge: 24 * 60 * 60 * 1000 }}
     >
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <App />
         </BrowserRouter>
       </AuthProvider>
