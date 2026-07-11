@@ -111,13 +111,22 @@ export function ProfilePage() {
         return tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.profiles, rowId: profile.$id, data });
       }
       const teamIds = (myTeams ?? []).map((t) => t.$id);
-      return tablesDB.createRow({
-        databaseId: DB_ID,
-        tableId: TABLES.profiles,
-        rowId: ID.unique(),
-        data: { userId: user.$id, ...data },
-        permissions: withPersonalPermissions(user.$id, teamIds),
-      });
+      try {
+        return await tablesDB.createRow({
+          databaseId: DB_ID,
+          tableId: TABLES.profiles,
+          rowId: ID.unique(),
+          data: { userId: user.$id, ...data },
+          permissions: withPersonalPermissions(user.$id, teamIds),
+        });
+      } catch (err) {
+        // índice único de userId: já existe um perfil (possivelmente sem permissão
+        // de leitura). Mensagem amigável em vez de erro cru.
+        if ((err as { code?: number }).code === 409) {
+          throw new Error('Você já tem um perfil neste projeto. Recarregue a página para editá-lo.');
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['myProfile', user?.$id] });
