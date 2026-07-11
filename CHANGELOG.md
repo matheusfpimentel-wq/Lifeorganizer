@@ -12,6 +12,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/A
   itens na lista, tarefas de hoje/atrasadas e próximo evento. No modo escuro a
   vila anoitece: lua, estrelas e janelas acesas.
 
+### Fixed
+- **Auto-recuperação após deploy**: se o app estava aberto durante uma
+  publicação e tenta carregar um chunk antigo ("Importing a module script
+  failed"), o ErrorBoundary agora recarrega a página sozinho (uma vez, com
+  trava anti-loop) em vez de mostrar o erro técnico.
+
 ### Changed
 - Navegação inferior volta a chamar o módulo financeiro de **"Contas"** (o
   nome "Banco" fica só na metáfora do mapa).
