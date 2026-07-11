@@ -493,7 +493,10 @@ const buckets = [
 const config = {
   projectId: process.env.APPWRITE_PROJECT_ID ?? 'REPLACE_WITH_PROJECT_ID',
   projectName: 'MinhaCasinha',
-  databases: [{ $id: DB_ID, name: 'MinhaCasinha', enabled: true }],
+  // TablesDB usa a chave `tablesDB` (não `databases`, que é a API legada de
+  // Collections). `push tables` lê os databases daqui; se ausente, ele apaga o
+  // database remoto por achá-lo "deleted locally".
+  tablesDB: [{ $id: DB_ID, name: 'MinhaCasinha', enabled: true }],
   tables,
   buckets,
   functions,

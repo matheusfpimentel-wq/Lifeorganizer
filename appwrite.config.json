@@ -1,7 +1,7 @@
 {
   "projectId": "REPLACE_WITH_PROJECT_ID",
   "projectName": "MinhaCasinha",
-  "databases": [
+  "tablesDB": [
     {
       "$id": "morada",
       "name": "MinhaCasinha",
