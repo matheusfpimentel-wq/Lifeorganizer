@@ -2,6 +2,25 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — F6 PWA / Polish
+
+### Added
+- **Web Push completo:** service worker com handlers `push`/`notificationclick`
+  (`public/push-sw.js` via Workbox `importScripts`); hook `features/push` para
+  pedir permissão (após gesto), assinar e persistir em `pushSubscriptions`;
+  seção em Configurações com **onboarding iOS** ("Adicionar à Tela de Início"
+  quando fora do modo standalone) e **"Testar notificação"** (chama `api`
+  `/push/test` via `functions.createExecution`, autenticado pela sessão).
+- **Code-splitting por rota** (`React.lazy` + `Suspense` no Layout): bundle
+  inicial caiu ~936→424 kB; Academia/Recharts vira chunk sob demanda.
+- **Exportar dados** do lar (JSON) e **apagar dados pessoais** (perfil, push,
+  tokens iCal) com logout, em Configurações.
+
+### Notes
+- Push no iPhone exige PWA instalada (iOS 16.4+) e as chaves VAPID configuradas
+  nas variáveis das functions. Lighthouse/ícones finais dependem do deploy.
+  Total: 90 testes.
+
 ## [Unreleased] — F5 Academia
 
 ### Added

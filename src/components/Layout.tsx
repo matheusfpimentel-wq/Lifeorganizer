@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useActiveHousehold, useMyTeams, useMyProfile } from '@/features/households/hooks';
@@ -84,7 +84,9 @@ export default function Layout() {
 
       <main className="flex-1 px-4 pb-24 pt-4">
         <ErrorBoundary key={useLocation().pathname}>
-          <Outlet />
+          <Suspense fallback={<div className="h-40 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />}>
+            <Outlet />
+          </Suspense>
         </ErrorBoundary>
       </main>
 

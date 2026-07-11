@@ -1,3 +1,4 @@
+import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useMyTeams } from '@/features/households/hooks';
@@ -6,14 +7,18 @@ import HouseholdSetupPage from '@/features/households/HouseholdSetupPage';
 import InviteAcceptPage from '@/features/households/InviteAcceptPage';
 import Layout from '@/components/Layout';
 import TodayPage from '@/pages/TodayPage';
-import TasksPage from '@/pages/TasksPage';
-import ShoppingPage from '@/pages/ShoppingPage';
-import StaplesPage from '@/pages/StaplesPage';
-import ExpensesPage from '@/pages/ExpensesPage';
-import AgendaPage from '@/pages/AgendaPage';
-import RoutinePage from '@/pages/RoutinePage';
-import GymPage from '@/pages/GymPage';
-import { MembersPage, ProfilePage, SettingsPage } from '@/pages/misc';
+
+// carregamento sob demanda por rota (reduz o bundle inicial; ex.: Academia/Recharts)
+const TasksPage = lazy(() => import('@/pages/TasksPage'));
+const ShoppingPage = lazy(() => import('@/pages/ShoppingPage'));
+const StaplesPage = lazy(() => import('@/pages/StaplesPage'));
+const ExpensesPage = lazy(() => import('@/pages/ExpensesPage'));
+const AgendaPage = lazy(() => import('@/pages/AgendaPage'));
+const RoutinePage = lazy(() => import('@/pages/RoutinePage'));
+const GymPage = lazy(() => import('@/pages/GymPage'));
+const MembersPage = lazy(() => import('@/pages/misc').then((m) => ({ default: m.MembersPage })));
+const ProfilePage = lazy(() => import('@/pages/misc').then((m) => ({ default: m.ProfilePage })));
+const SettingsPage = lazy(() => import('@/pages/misc').then((m) => ({ default: m.SettingsPage })));
 
 function FullScreenSpinner() {
   return (

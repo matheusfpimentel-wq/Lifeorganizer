@@ -10,13 +10,23 @@ import {
   useProfiles,
 } from '@/features/households/hooks';
 import { DB_ID, TABLES, tablesDB } from '@/lib/appwrite';
+import { listAllRows } from '@/lib/pagination';
 import { withPersonalPermissions } from '@/lib/permissions';
+import { Query } from 'appwrite';
 import {
   API_FUNCTION_URL,
   useCreateIcalToken,
   useIcalToken,
   useRevokeIcalToken,
 } from '@/features/ical/hooks';
+import {
+  isIOS,
+  isStandalone,
+  PUSH_SUPPORTED,
+  useEnablePush,
+  usePushState,
+  useTestPush,
+} from '@/features/push/hooks';
 import { ID } from 'appwrite';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { applyTheme, useUiStore } from '@/stores/ui';
@@ -225,13 +235,121 @@ export function SettingsPage() {
         )}
       </section>
 
-      <section className="card flex flex-col gap-3">
-        <h2 className="font-semibold">Notificações</h2>
-        <p className="text-sm text-slate-500">
-          Onboarding de push (iOS/Android) e teste de notificação chegam na Fase 6.
-        </p>
-        <button className="btn-secondary" disabled>Testar notificação</button>
-      </section>
+      <NotificationsSettings />
+      <DataSettings />
     </div>
+  );
+}
+
+function DataSettings() {
+  const { user, logout } = useAuth();
+  const { householdId } = useActiveHousehold();
+  const [busy, setBusy] = useState(false);
+
+  const EXPORT_TABLES: (keyof typeof TABLES)[] = [
+    'events', 'routineBlocks', 'tasks', 'taskOccurrences', 'shoppingLists', 'shoppingItems',
+    'staples', 'expenses', 'settlements', 'workoutPlans', 'workoutSessions', 'workoutSessionSets',
+  ];
+
+  async function handleExport() {
+    if (!householdId) return;
+    setBusy(true);
+    try {
+      const dump: Record<string, unknown> = { exportedAt: new Date().toISOString(), householdId };
+      for (const key of EXPORT_TABLES) {
+        dump[key] = await listAllRows(TABLES[key], [Query.equal('householdId', householdId)]);
+      }
+      const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `minhacasinha-dados-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDeletePersonal() {
+    if (!user) return;
+    if (!confirm('Apagar seus dados pessoais (perfil, notificações e links de calendário) e sair? Os dados compartilhados do lar não são afetados.')) return;
+    setBusy(true);
+    try {
+      for (const table of [TABLES.profiles, TABLES.pushSubscriptions, TABLES.icalTokens]) {
+        const rows = await listAllRows<{ $id: string }>(table, [Query.equal('userId', user.$id)]);
+        for (const row of rows) {
+          await tablesDB.deleteRow({ databaseId: DB_ID, tableId: table, rowId: row.$id });
+        }
+      }
+      await logout();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="card flex flex-col gap-3">
+      <h2 className="font-semibold">Meus dados</h2>
+      <button className="btn-secondary" onClick={handleExport} disabled={busy || !householdId}>
+        {busy ? 'Processando…' : 'Exportar dados do lar (JSON)'}
+      </button>
+      <button className="btn-secondary text-red-600" onClick={handleDeletePersonal} disabled={busy}>
+        Apagar meus dados pessoais
+      </button>
+      <p className="text-xs text-slate-400">
+        Apagar remove seu perfil, assinaturas de notificação e links de calendário, e encerra a sessão.
+        A exclusão da conta de login em si é feita pelo suporte.
+      </p>
+    </section>
+  );
+}
+
+function NotificationsSettings() {
+  const state = usePushState();
+  const enable = useEnablePush();
+  const test = useTestPush();
+
+  const needsInstall = PUSH_SUPPORTED && isIOS() && !isStandalone();
+  const granted = state.data?.permission === 'granted' && state.data?.subscribed;
+
+  return (
+    <section className="card flex flex-col gap-3">
+      <h2 className="font-semibold">Notificações</h2>
+
+      {!PUSH_SUPPORTED ? (
+        <p className="text-sm text-slate-500">
+          Este navegador não suporta notificações push.
+        </p>
+      ) : needsInstall ? (
+        <div className="text-sm text-slate-600 dark:text-slate-300">
+          <p>Para receber notificações no iPhone/iPad, instale o app primeiro:</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-5">
+            <li>Toque no botão <strong>Compartilhar</strong> (□↑) do Safari;</li>
+            <li>Escolha <strong>Adicionar à Tela de Início</strong>;</li>
+            <li>Abra o MinhaCasinha pelo ícone instalado e volte aqui.</li>
+          </ol>
+        </div>
+      ) : granted ? (
+        <>
+          <p className="text-sm text-green-600">Notificações ativadas ✓</p>
+          <button className="btn-secondary" onClick={() => test.mutate()} disabled={test.isPending}>
+            {test.isPending ? 'Enviando…' : 'Testar notificação'}
+          </button>
+          {test.isSuccess && <p className="text-sm text-green-600">Enviada! Deve chegar em instantes.</p>}
+          {test.isError && <p className="text-sm text-red-600">{(test.error as Error).message}</p>}
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-slate-500">
+            Receba lembretes de eventos, tarefas do dia e contas fixas.
+          </p>
+          <button className="btn-primary" onClick={() => enable.mutate()} disabled={enable.isPending}>
+            {enable.isPending ? 'Ativando…' : 'Ativar notificações'}
+          </button>
+          {enable.isError && <p className="text-sm text-red-600">{(enable.error as Error).message}</p>}
+        </>
+      )}
+    </section>
   );
 }
