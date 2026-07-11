@@ -6,11 +6,16 @@ import {
   useHouseholdMembers,
   useInviteMember,
   useMyProfile,
+  useMyTeams,
   useProfiles,
 } from '@/features/households/hooks';
 import { DB_ID, TABLES, tablesDB } from '@/lib/appwrite';
+import { withPersonalPermissions } from '@/lib/permissions';
+import { ID } from 'appwrite';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { applyTheme, useUiStore } from '@/stores/ui';
+
+const PROFILE_COLORS = ['#0ea5e9', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#eab308', '#14b8a6'];
 
 function Placeholder({ title, phase }: { title: string; phase: string }) {
   return (
@@ -84,34 +89,50 @@ export function MembersPage() {
 
 export function ProfilePage() {
   const { user } = useAuth();
-  const { data: profile } = useMyProfile();
+  const { data: profile, isLoading } = useMyProfile();
+  const { data: myTeams } = useMyTeams();
   const queryClient = useQueryClient();
+
+  // controlado; inicia vazio e cai para os valores do perfil (ou defaults)
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [color, setColor] = useState<string | null>(null);
   const [pixKey, setPixKey] = useState<string | null>(null);
 
+  const currentName = displayName ?? profile?.displayName ?? user?.name ?? user?.email ?? '';
+  const currentColor = color ?? profile?.color ?? PROFILE_COLORS[0];
+  const currentPix = pixKey ?? profile?.pixKey ?? '';
+
+  // upsert: cria a linha se o usuário ainda não tem perfil; senão, atualiza
   const save = useMutation({
     mutationFn: async () => {
-      if (!profile) throw new Error('Perfil não carregado');
-      return tablesDB.updateRow({
+      if (!user) throw new Error('Não autenticado');
+      const data = { displayName: currentName, color: currentColor, pixKey: currentPix || null };
+      if (profile) {
+        return tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.profiles, rowId: profile.$id, data });
+      }
+      const teamIds = (myTeams ?? []).map((t) => t.$id);
+      return tablesDB.createRow({
         databaseId: DB_ID,
         tableId: TABLES.profiles,
-        rowId: profile.$id,
-        data: {
-          displayName: displayName ?? profile.displayName,
-          color: color ?? profile.color,
-          pixKey: pixKey ?? profile.pixKey ?? null,
-        },
+        rowId: ID.unique(),
+        data: { userId: user.$id, ...data },
+        permissions: withPersonalPermissions(user.$id, teamIds),
       });
     },
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['myProfile', user?.$id] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['myProfile', user?.$id] });
+      void queryClient.invalidateQueries({ queryKey: ['profiles'] });
+    },
   });
 
-  if (!profile) return <div className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />;
+  if (isLoading) return <div className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />;
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">Perfil e Pix</h1>
+      {!profile && (
+        <p className="text-sm text-slate-500">Complete seu perfil para aparecer com nome e cor no lar.</p>
+      )}
       <form
         className="card flex flex-col gap-3"
         onSubmit={(e) => {
@@ -121,17 +142,19 @@ export function ProfilePage() {
       >
         <div>
           <label className="label" htmlFor="profName">Nome de exibição</label>
-          <input id="profName" className="input" value={displayName ?? profile.displayName} onChange={(e) => setDisplayName(e.target.value)} required maxLength={64} />
+          <input id="profName" className="input" value={currentName} onChange={(e) => setDisplayName(e.target.value)} required maxLength={64} />
         </div>
         <div>
           <label className="label" htmlFor="profColor">Minha cor</label>
-          <input id="profColor" type="color" className="h-11 w-20 rounded-xl" value={color ?? profile.color} onChange={(e) => setColor(e.target.value)} />
+          <input id="profColor" type="color" className="h-11 w-20 rounded-xl" value={currentColor} onChange={(e) => setColor(e.target.value)} />
         </div>
         <div>
           <label className="label" htmlFor="profPix">Chave Pix (para receber acertos)</label>
-          <input id="profPix" className="input" placeholder="e-mail, CPF, telefone ou chave aleatória" value={pixKey ?? profile.pixKey ?? ''} onChange={(e) => setPixKey(e.target.value)} maxLength={77} />
+          <input id="profPix" className="input" placeholder="e-mail, CPF, telefone ou chave aleatória" value={currentPix} onChange={(e) => setPixKey(e.target.value)} maxLength={77} />
         </div>
-        <button type="submit" className="btn-primary" disabled={save.isPending}>Salvar</button>
+        <button type="submit" className="btn-primary" disabled={save.isPending}>
+          {profile ? 'Salvar' : 'Criar perfil'}
+        </button>
         {save.isSuccess && <p className="text-sm text-green-600">Salvo!</p>}
         {save.isError && <p className="text-sm text-red-600">{(save.error as Error).message}</p>}
       </form>
