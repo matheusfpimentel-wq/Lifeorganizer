@@ -1,0 +1,39 @@
+name: Setup Appwrite schema
+
+# Cria/atualiza banco, 19 tabelas, buckets e as 2 functions no Appwrite Cloud
+# a partir do appwrite.config.json. Rode manualmente: Actions > Setup Appwrite
+# schema > Run workflow. O runner do GitHub tem acesso ao Appwrite Cloud.
+#
+# Pré-requisitos (Settings > Secrets and variables > Actions):
+#   - Secret  APPWRITE_API_KEY          (chave server-side; NÃO usar Variables)
+#   - Variable/Secret VITE_APPWRITE_ENDPOINT   (ex.: https://nyc.cloud.appwrite.io/v1)
+#   - Variable/Secret VITE_APPWRITE_PROJECT_ID
+
+on:
+  workflow_dispatch:
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build functions bundle
+        run: npm run functions:build
+      - name: Configure Appwrite CLI
+        env:
+          ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT || secrets.VITE_APPWRITE_ENDPOINT }}
+          PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID || secrets.VITE_APPWRITE_PROJECT_ID }}
+          API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: |
+          if [ -z "$API_KEY" ]; then
+            echo "::error::Falta o Secret APPWRITE_API_KEY (Settings > Secrets and variables > Actions > Secrets)."
+            exit 1
+          fi
+          npx appwrite client --endpoint "$ENDPOINT" --project-id "$PROJECT_ID" --key "$API_KEY"
+      - name: Push schema (database, tables, buckets, functions)
+        run: npx appwrite push all --force

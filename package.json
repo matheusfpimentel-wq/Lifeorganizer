@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "functions:build": "node scripts/build-functions.mjs",
     "aw:config": "node scripts/generate-appwrite-config.mjs",
-    "aw:push": "npm run functions:build && appwrite push",
+    "aw:push": "npm run functions:build && appwrite push all --force",
     "aw:pull": "appwrite pull",
     "seed": "node --env-file=.env --import tsx scripts/seed.ts",
     "test:isolation": "node --env-file=.env --import tsx scripts/isolation-test.ts"
