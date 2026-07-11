@@ -103,15 +103,15 @@ export default function VillageMap(props: VillageMapProps) {
         <path d="M0 130 Q100 98 200 122 T400 116 L400 300 L0 300 Z" className="fill-emerald-200 dark:fill-emerald-950" />
         <path d="M0 200 Q200 168 400 202 L400 300 L0 300 Z" className="fill-emerald-300/60 dark:fill-emerald-900/60" />
 
-        {/* caminhos de terra sinuosos saindo da casinha */}
+        {/* trilhas discretas de terra batida saindo da casinha */}
         <g fill="none" strokeLinecap="round">
-          <g strokeWidth="10" className="stroke-amber-700/35 dark:stroke-amber-950/60">
+          <g strokeWidth="5.5" className="stroke-amber-800/15 dark:stroke-amber-950/30">
             <path d="M197 196 C 168 208, 158 174, 128 182 C 102 189, 98 160, 74 151" />
             <path d="M203 196 C 238 210, 244 172, 276 180 C 302 186, 304 158, 326 151" />
             <path d="M196 198 C 178 228, 138 216, 120 236 C 106 251, 96 244, 82 253" />
             <path d="M204 198 C 228 226, 264 212, 282 232 C 296 247, 306 242, 318 253" />
           </g>
-          <g strokeWidth="6" className="stroke-amber-200 dark:stroke-amber-900/70">
+          <g strokeWidth="3" className="stroke-amber-200/60 dark:stroke-amber-900/40">
             <path d="M197 196 C 168 208, 158 174, 128 182 C 102 189, 98 160, 74 151" />
             <path d="M203 196 C 238 210, 244 172, 276 180 C 302 186, 304 158, 326 151" />
             <path d="M196 198 C 178 228, 138 216, 120 236 C 106 251, 96 244, 82 253" />
@@ -119,14 +119,14 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         </g>
 
-        {/* pedrinhas ao longo dos caminhos */}
-        <g className="fill-amber-700/45 dark:fill-amber-950">
-          <ellipse cx="160" cy="188" rx="2" ry="1.3" />
-          <ellipse cx="112" cy="176" rx="1.7" ry="1.1" />
-          <ellipse cx="246" cy="186" rx="2" ry="1.3" />
-          <ellipse cx="292" cy="172" rx="1.7" ry="1.1" />
-          <ellipse cx="152" cy="222" rx="2" ry="1.3" />
-          <ellipse cx="258" cy="219" rx="1.8" ry="1.2" />
+        {/* pedrinhas ao longo das trilhas */}
+        <g className="fill-amber-800/25 dark:fill-amber-950/60">
+          <ellipse cx="160" cy="188" rx="1.6" ry="1" />
+          <ellipse cx="112" cy="176" rx="1.3" ry="0.9" />
+          <ellipse cx="246" cy="186" rx="1.6" ry="1" />
+          <ellipse cx="292" cy="172" rx="1.3" ry="0.9" />
+          <ellipse cx="152" cy="222" rx="1.6" ry="1" />
+          <ellipse cx="258" cy="219" rx="1.4" ry="0.9" />
         </g>
 
         {/* laguinho */}
