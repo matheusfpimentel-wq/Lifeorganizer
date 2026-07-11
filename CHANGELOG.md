@@ -5,6 +5,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/A
 ## [Unreleased] — Clima real, vagalumes e decoração de época
 
 ### Added
+- **Mais moradores**: peixinho que salta do lago em arco a cada ~9s, esquilo
+  de rabo enrolado na copa da árvore do mercado, abelhinha rondando as
+  flores, caracol atravessando a vila em ~40s (a cada 2,5 min) e um
+  **cachorrinho na coleira** acompanhando a pessoa que passa (rabinho
+  abanando).
 - **Previsão do tempo na Home** (Open-Meteo, sem chave): temperatura atual,
   mínima/máxima e probabilidade de chuva ao lado da saudação. Usa a
   localização do aparelho apenas se a permissão já foi dada; senão assume

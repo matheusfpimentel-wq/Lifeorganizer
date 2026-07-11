@@ -313,6 +313,45 @@ export default function VillageMap(props: VillageMapProps) {
           <circle cx="2.2" cy="1" r="0.6" className="fill-orange-100" opacity="0.7" />
         </g>
 
+        {/* peixinho saltando do lago */}
+        <g transform="translate(193 243)">
+          {/* opacity 0 na base: sem animação (movimento reduzido) o peixe fica submerso */}
+          <g className="animate-fish" style={{ transformBox: 'fill-box', transformOrigin: 'center', opacity: 0 }}>
+            <ellipse cx="0" cy="0" rx="2.6" ry="1.4" className="fill-orange-400" />
+            <path d="M-2.2 0 l-2 -1.4 v2.8 Z" className="fill-orange-500" />
+            <circle cx="1.4" cy="-0.4" r="0.35" className="fill-slate-900" />
+          </g>
+        </g>
+
+        {/* esquilo na copa da árvore do mercado */}
+        <g transform="translate(268 109)" className="animate-bob" style={{ animationDuration: '3.8s' }}>
+          <path d="M2.2 -0.6 q3 -3.4 1 -5.6 q3.4 0.6 2.4 4.4 q-0.6 2 -2.6 2.4 Z" className="fill-amber-700 dark:fill-amber-800" />
+          <ellipse cx="0" cy="0" rx="2.4" ry="2" className="fill-amber-600 dark:fill-amber-700" />
+          <circle cx="-2" cy="-1.4" r="1.5" className="fill-amber-600 dark:fill-amber-700" />
+          <path d="M-2.8 -2.6 l-0.4 -1.4 l1.2 0.8 Z" className="fill-amber-700" />
+          <circle cx="-2.5" cy="-1.6" r="0.35" className="fill-slate-900" />
+        </g>
+
+        {/* abelhinha rondando as flores */}
+        <g transform="translate(172 260) scale(0.65)">
+          <g className="animate-flutter" style={{ animationDelay: '3s', animationDuration: '7s' }}>
+            <ellipse cx="0" cy="0" rx="2" ry="1.4" className="fill-amber-400" />
+            <path d="M-0.7 -1.3 v2.6 M0.7 -1.3 v2.6" strokeWidth="0.6" className="stroke-slate-900" />
+            <ellipse cx="-0.4" cy="-1.8" rx="1.3" ry="0.8" className="fill-white/80" />
+            <circle cx="1.7" cy="-0.3" r="0.3" className="fill-slate-900" />
+          </g>
+        </g>
+
+        {/* caracol atravessando sem pressa nenhuma */}
+        <g className="animate-walk" style={{ animationDuration: '160s' }}>
+          <g transform="translate(0 291)">
+            <path d="M-2.6 0 q2.6 1.4 6 0 l1.6 -1 q0.6 -0.8 0 -1.2 q-0.8 -0.4 -1.2 0.4 l-0.6 0.8" className="fill-stone-400 dark:fill-stone-500" />
+            <path d="M3.6 -2.6 v-1.2 M4.8 -2.4 v-1.2" strokeWidth="0.5" strokeLinecap="round" className="stroke-stone-500" />
+            <circle cx="0" cy="-1.6" r="2.2" className="fill-amber-600 dark:fill-amber-700" />
+            <path d="M0 -1.6 a1.4 1.4 0 0 1 1.4 1.2 a0.8 0.8 0 0 1 -1.5 0.2" fill="none" strokeWidth="0.5" className="stroke-amber-900" />
+          </g>
+        </g>
+
         {/* cerquinha da casinha (o palácio dispensa cerca) */}
         {prog.house < 3 && (
           <g className="fill-amber-600/80 dark:fill-amber-950">
@@ -836,6 +875,18 @@ export default function VillageMap(props: VillageMapProps) {
               <rect x="-2.2" y="2.4" width="4.4" height="7" rx="2" className="fill-sky-600" />
               <path d="M-1.2 9.4 l-1 4.4 M1.2 9.4 l1 4.4" strokeWidth="1.6" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
               <path d="M2.2 4.4 l2.6 2" strokeWidth="1.3" strokeLinecap="round" className="stroke-sky-600" />
+              {/* cachorrinho na coleira */}
+              <path d="M4.8 6.4 L9 10.2" strokeWidth="0.6" className="stroke-slate-500" fill="none" />
+              <g transform="translate(11 11.2)">
+                <g className="animate-tail">
+                  <path d="M-3 -0.6 q-2 -1 -1.6 -3" fill="none" strokeWidth="1" strokeLinecap="round" className="stroke-amber-800" />
+                </g>
+                <ellipse cx="0" cy="0" rx="3" ry="1.8" className="fill-amber-700" />
+                <circle cx="3" cy="-1.4" r="1.6" className="fill-amber-700" />
+                <path d="M2.2 -2.8 l-0.3 -1.3 l1.2 0.7 Z M4 -2.7 l0.5 -1.3 l0.7 1.1 Z" className="fill-amber-900" />
+                <circle cx="3.5" cy="-1.6" r="0.32" className="fill-slate-900" />
+                <path d="M-1.6 1.6 v1.6 M1.6 1.6 v1.6" strokeWidth="1" strokeLinecap="round" className="stroke-amber-800" />
+              </g>
             </g>
           </g>
         )}

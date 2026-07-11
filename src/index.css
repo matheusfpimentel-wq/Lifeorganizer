@@ -96,6 +96,10 @@
   .animate-firefly {
     animation: firefly 8s ease-in-out infinite;
   }
+  /* peixinho salta do lago de tempos em tempos */
+  .animate-fish {
+    animation: fishJump 9s ease-in-out infinite;
+  }
 }
 /* fora do media: com movimento reduzido a chuva fica invisível (opacity 0) */
 .rain-drop {
@@ -194,6 +198,14 @@
   91% { opacity: 0; }
   93%, 94% { opacity: 0.8; }
   96% { opacity: 0; }
+}
+/* peixinho: some, salta em arco com giro e mergulha de volta */
+@keyframes fishJump {
+  0%, 76%, 100% { transform: translateY(10px) rotate(-10deg); opacity: 0; }
+  79% { transform: translateY(1px) rotate(-24deg); opacity: 1; }
+  83% { transform: translateY(-7px) rotate(0deg); opacity: 1; }
+  87% { transform: translateY(1px) rotate(26deg); opacity: 1; }
+  89% { transform: translateY(10px) rotate(38deg); opacity: 0; }
 }
 /* vagalume: pisca enquanto vaga */
 @keyframes firefly {
