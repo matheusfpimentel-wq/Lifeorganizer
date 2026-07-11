@@ -23,19 +23,22 @@
           "key": "teamId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "name",
           "type": "string",
           "size": 128,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "settings",
           "type": "string",
           "size": 2000,
-          "required": true
+          "required": true,
+          "default": null
         }
       ],
       "indexes": [
@@ -62,13 +65,15 @@
           "key": "userId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "displayName",
           "type": "string",
           "size": 64,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "avatarFileId",
@@ -79,7 +84,8 @@
           "key": "color",
           "type": "string",
           "size": 7,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "pixKey",
@@ -116,19 +122,22 @@
           "key": "userId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "endpoint",
           "type": "string",
           "size": 1024,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "keys",
           "type": "string",
           "size": 512,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "lastSeenAt",
@@ -159,19 +168,22 @@
           "key": "userId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "token",
           "type": "string",
           "size": 64,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "revoked",
@@ -211,7 +223,8 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "memberId",
@@ -222,7 +235,8 @@
           "key": "title",
           "type": "string",
           "size": 128,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "category",
@@ -238,12 +252,12 @@
             "outro"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "weekdays",
           "type": "integer",
-          "required": true,
           "array": true,
           "min": 0,
           "max": 6
@@ -252,13 +266,15 @@
           "key": "startTime",
           "type": "string",
           "size": 5,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "endTime",
           "type": "string",
           "size": 5,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "color",
@@ -301,13 +317,15 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "title",
           "type": "string",
           "size": 200,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "description",
@@ -322,12 +340,14 @@
         {
           "key": "startAt",
           "type": "datetime",
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "endAt",
           "type": "datetime",
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "allDay",
@@ -361,7 +381,8 @@
           "key": "createdBy",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         }
       ],
       "indexes": [
@@ -408,7 +429,8 @@
           "key": "name",
           "type": "string",
           "size": 128,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "muscleGroup",
@@ -427,7 +449,8 @@
             "outro"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "equipment",
@@ -444,7 +467,8 @@
             "outro"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "instructions",
@@ -488,19 +512,22 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "memberId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "name",
           "type": "string",
           "size": 128,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "goal",
@@ -545,19 +572,22 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "planId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "label",
           "type": "string",
           "size": 64,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "weekday",
@@ -568,7 +598,8 @@
         {
           "key": "order",
           "type": "integer",
-          "required": true
+          "required": true,
+          "default": null
         }
       ],
       "indexes": [
@@ -595,32 +626,37 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "planDayId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "exerciseId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "sets",
           "type": "integer",
           "required": true,
           "min": 1,
-          "max": 20
+          "max": 20,
+          "default": null
         },
         {
           "key": "repRange",
           "type": "string",
           "size": 20,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "targetLoadKg",
@@ -635,7 +671,8 @@
         {
           "key": "order",
           "type": "integer",
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "notes",
@@ -667,13 +704,15 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "memberId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "planDayId",
@@ -683,7 +722,8 @@
         {
           "key": "startedAt",
           "type": "datetime",
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "finishedAt",
@@ -733,37 +773,43 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "sessionId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "exerciseId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "setNumber",
           "type": "integer",
           "required": true,
-          "min": 1
+          "min": 1,
+          "default": null
         },
         {
           "key": "reps",
           "type": "integer",
           "required": true,
-          "min": 0
+          "min": 0,
+          "default": null
         },
         {
           "key": "loadKg",
           "type": "double",
           "required": true,
-          "min": 0
+          "min": 0,
+          "default": null
         },
         {
           "key": "rpe",
@@ -804,13 +850,15 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "name",
           "type": "string",
           "size": 128,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "status",
@@ -867,19 +915,22 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "listId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "name",
           "type": "string",
           "size": 128,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "qty",
@@ -918,7 +969,8 @@
           "key": "addedBy",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "checked",
@@ -972,13 +1024,15 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "name",
           "type": "string",
           "size": 128,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "defaultQty",
@@ -1033,19 +1087,22 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "description",
           "type": "string",
           "size": 200,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "amountCents",
           "type": "integer",
           "required": true,
-          "min": 1
+          "min": 1,
+          "default": null
         },
         {
           "key": "category",
@@ -1062,18 +1119,21 @@
             "outro"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "paidBy",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "date",
           "type": "datetime",
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "splitType",
@@ -1086,13 +1146,15 @@
             "exact"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "splits",
           "type": "string",
           "size": 4000,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "status",
@@ -1125,7 +1187,8 @@
           "key": "createdBy",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         }
       ],
       "indexes": [
@@ -1173,25 +1236,29 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "fromMember",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "toMember",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "amountCents",
           "type": "integer",
           "required": true,
-          "min": 1
+          "min": 1,
+          "default": null
         },
         {
           "key": "method",
@@ -1203,12 +1270,14 @@
             "outro"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "settledAt",
           "type": "datetime",
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "note",
@@ -1247,13 +1316,15 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "title",
           "type": "string",
           "size": 200,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "description",
@@ -1269,7 +1340,8 @@
             "specific"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "category",
@@ -1285,7 +1357,8 @@
             "outro"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "rrule",
@@ -1306,7 +1379,8 @@
             "volunteer"
           ],
           "size": 255,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "assignedMemberId",
@@ -1389,18 +1463,21 @@
           "key": "householdId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "taskId",
           "type": "string",
           "size": 36,
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "dueAt",
           "type": "datetime",
-          "required": true
+          "required": true,
+          "default": null
         },
         {
           "key": "assignedMemberId",

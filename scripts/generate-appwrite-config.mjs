@@ -41,16 +41,22 @@ const arr = { array: true };
 const idx = (key, columns, type = 'key') => ({ key, type, columns });
 
 /**
- * Normaliza uma coluna para o schema do Appwrite:
- * - a CLI trata `required` ausente como true; então toda coluna com `default`
- *   precisa de `required: false` explícito (required + default é proibido);
- * - colunas array não podem ter default (removido se presente).
+ * Normaliza uma coluna para o schema do Appwrite (regra da CLI:
+ * `required === true && default !== null` é inválido):
+ * - coluna required → `default: null` explícito (ausente/undefined falha);
+ * - coluna opcional com default → `required: false`;
+ * - coluna array não aceita default e fica opcional (evita o conflito acima).
  */
 function normalizeColumn(col) {
   const out = { ...col };
   const hasDefault = out.default !== undefined && out.default !== null;
-  if (out.array && hasDefault) {
+  if (out.array) {
     delete out.default;
+    delete out.required; // arrays opcionais no DB; Zod valida no client
+    return out;
+  }
+  if (out.required === true) {
+    out.default = null;
   } else if (hasDefault) {
     out.required = false;
   }
