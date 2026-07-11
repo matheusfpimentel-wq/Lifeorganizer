@@ -5,6 +5,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/A
 ## [Unreleased] — Vila viva de verdade
 
 ### Added
+- **Moradores fixos desde o nível zero**: borboleta, patinho no lago e um
+  **cervo que abaixa a cabeça para beber água** (animação de 6s); no parque
+  nível 2 chega um patinho filhote.
+- **Água viva**: círculos de ondulação se expandindo e sumindo no lago.
+- **Gente trabalhando**: caixa atendendo no balcão entre as colunas do banco,
+  atendente de avental na janela do mercado e um **maromba levantando barra**
+  (sobe e desce a cada 2s) ao lado da porta da academia.
 - **Vento**: árvores, pinheiros e tufos de grama balançam em ritmos
   dessincronizados; nuvens vagam pelo céu.
 - **Vida passando**: passarinhos cruzam o céu de tempos em tempos (somem à
