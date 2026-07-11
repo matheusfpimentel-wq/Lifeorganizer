@@ -78,7 +78,8 @@
         {
           "key": "avatarFileId",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "color",
@@ -90,12 +91,14 @@
         {
           "key": "pixKey",
           "type": "string",
-          "size": 77
+          "size": 77,
+          "required": false
         },
         {
           "key": "notificationPrefs",
           "type": "string",
-          "size": 2000
+          "size": 2000,
+          "required": false
         }
       ],
       "indexes": [
@@ -141,7 +144,8 @@
         },
         {
           "key": "lastSeenAt",
-          "type": "datetime"
+          "type": "datetime",
+          "required": false
         }
       ],
       "indexes": [
@@ -229,7 +233,8 @@
         {
           "key": "memberId",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "title",
@@ -258,6 +263,7 @@
         {
           "key": "weekdays",
           "type": "integer",
+          "required": false,
           "array": true,
           "min": 0,
           "max": 6
@@ -279,12 +285,14 @@
         {
           "key": "color",
           "type": "string",
-          "size": 7
+          "size": 7,
+          "required": false
         },
         {
           "key": "notes",
           "type": "string",
-          "size": 500
+          "size": 500,
+          "required": false
         },
         {
           "key": "active",
@@ -330,12 +338,14 @@
         {
           "key": "description",
           "type": "string",
-          "size": 2000
+          "size": 2000,
+          "required": false
         },
         {
           "key": "location",
           "type": "string",
-          "size": 200
+          "size": 200,
+          "required": false
         },
         {
           "key": "startAt",
@@ -359,23 +369,27 @@
           "key": "memberIds",
           "type": "string",
           "size": 36,
-          "array": true
+          "array": true,
+          "required": false
         },
         {
           "key": "rrule",
           "type": "string",
-          "size": 500
+          "size": 500,
+          "required": false
         },
         {
           "key": "exdates",
           "type": "string",
           "size": 36,
-          "array": true
+          "array": true,
+          "required": false
         },
         {
           "key": "reminderMinutes",
           "type": "integer",
-          "array": true
+          "array": true,
+          "required": false
         },
         {
           "key": "createdBy",
@@ -423,7 +437,8 @@
         {
           "key": "householdId",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "name",
@@ -473,12 +488,14 @@
         {
           "key": "instructions",
           "type": "string",
-          "size": 2000
+          "size": 2000,
+          "required": false
         },
         {
           "key": "videoUrl",
           "type": "string",
-          "size": 500
+          "size": 500,
+          "required": false
         }
       ],
       "indexes": [
@@ -532,7 +549,8 @@
         {
           "key": "goal",
           "type": "string",
-          "size": 200
+          "size": 200,
+          "required": false
         },
         {
           "key": "active",
@@ -593,7 +611,8 @@
           "key": "weekday",
           "type": "integer",
           "min": 0,
-          "max": 6
+          "max": 6,
+          "required": false
         },
         {
           "key": "order",
@@ -660,7 +679,8 @@
         },
         {
           "key": "targetLoadKg",
-          "type": "double"
+          "type": "double",
+          "required": false
         },
         {
           "key": "restSeconds",
@@ -677,7 +697,8 @@
         {
           "key": "notes",
           "type": "string",
-          "size": 200
+          "size": 200,
+          "required": false
         }
       ],
       "indexes": [
@@ -717,7 +738,8 @@
         {
           "key": "planDayId",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "startedAt",
@@ -727,12 +749,14 @@
         },
         {
           "key": "finishedAt",
-          "type": "datetime"
+          "type": "datetime",
+          "required": false
         },
         {
           "key": "notes",
           "type": "string",
-          "size": 500
+          "size": 500,
+          "required": false
         }
       ],
       "indexes": [
@@ -815,7 +839,8 @@
           "key": "rpe",
           "type": "double",
           "min": 0,
-          "max": 10
+          "max": 10,
+          "required": false
         }
       ],
       "indexes": [
@@ -881,7 +906,8 @@
         {
           "key": "totalCents",
           "type": "integer",
-          "min": 0
+          "min": 0,
+          "required": false
         }
       ],
       "indexes": [
@@ -941,7 +967,8 @@
         {
           "key": "unit",
           "type": "string",
-          "size": 20
+          "size": 20,
+          "required": false
         },
         {
           "key": "category",
@@ -963,7 +990,8 @@
         {
           "key": "note",
           "type": "string",
-          "size": 200
+          "size": 200,
+          "required": false
         },
         {
           "key": "addedBy",
@@ -981,16 +1009,19 @@
         {
           "key": "checkedBy",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "checkedAt",
-          "type": "datetime"
+          "type": "datetime",
+          "required": false
         },
         {
           "key": "priceCents",
           "type": "integer",
-          "min": 0
+          "min": 0,
+          "required": false
         }
       ],
       "indexes": [
@@ -1043,7 +1074,8 @@
         {
           "key": "unit",
           "type": "string",
-          "size": 20
+          "size": 20,
+          "required": false
         },
         {
           "key": "category",
@@ -1171,17 +1203,20 @@
         {
           "key": "rrule",
           "type": "string",
-          "size": 500
+          "size": 500,
+          "required": false
         },
         {
           "key": "recurrenceKey",
           "type": "string",
-          "size": 100
+          "size": 100,
+          "required": false
         },
         {
           "key": "receiptFileId",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "createdBy",
@@ -1282,7 +1317,8 @@
         {
           "key": "note",
           "type": "string",
-          "size": 200
+          "size": 200,
+          "required": false
         }
       ],
       "indexes": [
@@ -1329,7 +1365,8 @@
         {
           "key": "description",
           "type": "string",
-          "size": 2000
+          "size": 2000,
+          "required": false
         },
         {
           "key": "type",
@@ -1363,11 +1400,13 @@
         {
           "key": "rrule",
           "type": "string",
-          "size": 500
+          "size": 500,
+          "required": false
         },
         {
           "key": "dueDate",
-          "type": "datetime"
+          "type": "datetime",
+          "required": false
         },
         {
           "key": "assignmentMode",
@@ -1385,13 +1424,15 @@
         {
           "key": "assignedMemberId",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "rotationMemberIds",
           "type": "string",
           "size": 36,
-          "array": true
+          "array": true,
+          "required": false
         },
         {
           "key": "rotationIndex",
@@ -1415,7 +1456,8 @@
         {
           "key": "checklist",
           "type": "string",
-          "size": 4000
+          "size": 4000,
+          "required": false
         },
         {
           "key": "points",
@@ -1482,7 +1524,8 @@
         {
           "key": "assignedMemberId",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "status",
@@ -1500,11 +1543,13 @@
         {
           "key": "completedBy",
           "type": "string",
-          "size": 36
+          "size": 36,
+          "required": false
         },
         {
           "key": "completedAt",
-          "type": "datetime"
+          "type": "datetime",
+          "required": false
         }
       ],
       "indexes": [
