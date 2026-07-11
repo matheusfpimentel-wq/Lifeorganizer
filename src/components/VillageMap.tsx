@@ -291,11 +291,13 @@ export default function VillageMap(props: VillageMapProps) {
         </g>
 
         {/* patinho no lago (morador fixo) */}
-        <g transform="translate(206 244)" className="animate-bob">
-          <ellipse cx="0" cy="0" rx="3.2" ry="2.2" className="fill-amber-300" />
-          <circle cx="2.8" cy="-2.4" r="1.7" className="fill-amber-300" />
-          <path d="M4.4 -2.4 l2 0.6 l-2 0.7 Z" className="fill-orange-500" />
-          <circle cx="3.1" cy="-2.8" r="0.4" className="fill-slate-800" />
+        <g transform="translate(206 244)">
+          <g className="animate-bob">
+            <ellipse cx="0" cy="0" rx="3.2" ry="2.2" className="fill-amber-300" />
+            <circle cx="2.8" cy="-2.4" r="1.7" className="fill-amber-300" />
+            <path d="M4.4 -2.4 l2 0.6 l-2 0.7 Z" className="fill-orange-500" />
+            <circle cx="3.1" cy="-2.8" r="0.4" className="fill-slate-800" />
+          </g>
         </g>
 
         {/* cervo bebendo na beira do lago */}
@@ -324,12 +326,14 @@ export default function VillageMap(props: VillageMapProps) {
         </g>
 
         {/* esquilo na copa da árvore do mercado */}
-        <g transform="translate(268 109)" className="animate-bob" style={{ animationDuration: '3.8s' }}>
+        <g transform="translate(268 109)">
+        <g className="animate-bob" style={{ animationDuration: '3.8s' }}>
           <path d="M2.2 -0.6 q3 -3.4 1 -5.6 q3.4 0.6 2.4 4.4 q-0.6 2 -2.6 2.4 Z" className="fill-amber-700 dark:fill-amber-800" />
           <ellipse cx="0" cy="0" rx="2.4" ry="2" className="fill-amber-600 dark:fill-amber-700" />
           <circle cx="-2" cy="-1.4" r="1.5" className="fill-amber-600 dark:fill-amber-700" />
           <path d="M-2.8 -2.6 l-0.4 -1.4 l1.2 0.8 Z" className="fill-amber-700" />
           <circle cx="-2.5" cy="-1.6" r="0.35" className="fill-slate-900" />
+        </g>
         </g>
 
         {/* abelhinha rondando as flores */}
@@ -726,11 +730,13 @@ export default function VillageMap(props: VillageMapProps) {
         )}
         {/* pracinha nível 2+: mais um patinho (filhote) */}
         {prog.park >= 2 && (
-          <g transform="translate(196 249) scale(0.7)" className="animate-bob" style={{ animationDelay: '1.2s' }}>
+          <g transform="translate(196 249) scale(0.7)">
+          <g className="animate-bob" style={{ animationDelay: '1.2s' }}>
             <ellipse cx="0" cy="0" rx="3.2" ry="2.2" className="fill-amber-200" />
             <circle cx="-2.8" cy="-2.4" r="1.7" className="fill-amber-200" />
             <path d="M-4.4 -2.4 l-2 0.6 l2 0.7 Z" className="fill-orange-500" />
             <circle cx="-3.1" cy="-2.8" r="0.4" className="fill-slate-800" />
+          </g>
           </g>
         )}
         {/* pracinha nível 3: vira GRANDE PARQUE — escorregador, carrossel e roda-gigante */}
@@ -770,18 +776,22 @@ export default function VillageMap(props: VillageMapProps) {
         )}
 
         {/* borboleta: moradora fixa; mais bichinhos chegam com a vila */}
-        <g transform="translate(158 158)" className="animate-flutter">
-          <ellipse cx="-1.6" cy="-1" rx="2" ry="1.4" transform="rotate(-28)" className="fill-rose-400" />
-          <ellipse cx="1.6" cy="-1" rx="2" ry="1.4" transform="rotate(28)" className="fill-rose-300" />
-          <rect x="-0.4" y="-2" width="0.8" height="4" rx="0.4" className="fill-slate-700 dark:fill-slate-300" />
+        <g transform="translate(158 158)">
+          <g className="animate-flutter">
+            <ellipse cx="-1.6" cy="-1" rx="2" ry="1.4" transform="rotate(-28)" className="fill-rose-400" />
+            <ellipse cx="1.6" cy="-1" rx="2" ry="1.4" transform="rotate(28)" className="fill-rose-300" />
+            <rect x="-0.4" y="-2" width="0.8" height="4" rx="0.4" className="fill-slate-700 dark:fill-slate-300" />
+          </g>
         </g>
         {prog.nature >= 2 && (
-          <g transform="translate(191 124)" className="animate-bob">
+          <g transform="translate(191 124)">
+          <g className="animate-bob">
             <circle cx="0" cy="0" r="2.6" className="fill-sky-500" />
             <circle cx="2" cy="-1" r="1.7" className="fill-sky-400" />
             <path d="M3.5 -1.2 l1.8 0.5 l-1.8 0.6 Z" className="fill-amber-500" />
             <path d="M-2.4 0.4 l-2.4 1.2 l2.2 0.6 Z" className="fill-sky-600" />
             <circle cx="2.4" cy="-1.5" r="0.4" className="fill-slate-900" />
+          </g>
           </g>
         )}
         {prog.nature >= 3 && (
@@ -855,7 +865,8 @@ export default function VillageMap(props: VillageMapProps) {
 
         {/* easter egg: alienzinho visitando */}
         {egg === 'alien' && (
-          <g transform="translate(38 264)" className="animate-bob">
+          <g transform="translate(38 264)">
+          <g className="animate-bob">
             <rect x="-2.6" y="1" width="5.2" height="6" rx="2" className="fill-lime-500" />
             <ellipse cx="0" cy="-3" rx="4" ry="4.4" className="fill-lime-400" />
             <ellipse cx="-1.7" cy="-3.4" rx="1.3" ry="1.8" className="fill-slate-900" />
@@ -863,6 +874,7 @@ export default function VillageMap(props: VillageMapProps) {
             <path d="M0 -7.4 v-2.4" strokeWidth="0.8" className="stroke-lime-600" />
             <circle cx="0" cy="-10.4" r="1" className="fill-rose-400 motion-safe:animate-pulse" />
             <path d="M-2.6 3 l-2.6 -1.6 M2.6 3 l2.6 -1.6" strokeWidth="1" strokeLinecap="round" className="stroke-lime-500" />
+          </g>
           </g>
         )}
 

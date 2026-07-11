@@ -18,6 +18,7 @@ import { formatDate } from '@/lib/format';
 import { spDateKey } from '@/lib/dates';
 import { Icon } from '@/components/icons';
 import SwipeRow from '@/components/SwipeRow';
+import { HouseScene, ModuleHero } from '@/components/scenes';
 
 type Tab = 'pending' | 'models' | 'balance';
 
@@ -95,18 +96,21 @@ export default function TasksPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Tarefas</h1>
-        <button
-          className="btn-primary"
-          onClick={() => {
-            setEditing(null);
-            setShowForm((s) => !s);
-          }}
-        >
-          {showForm && !editing ? 'Fechar' : '+ Nova'}
-        </button>
-      </div>
+      <ModuleHero
+        scene={<HouseScene className="h-24 w-full" />}
+        title="Tarefas"
+        action={
+          <button
+            className="btn-primary !min-h-[40px]"
+            onClick={() => {
+              setEditing(null);
+              setShowForm((s) => !s);
+            }}
+          >
+            {showForm && !editing ? 'Fechar' : '+ Nova'}
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
         {tabs.map((t) => (

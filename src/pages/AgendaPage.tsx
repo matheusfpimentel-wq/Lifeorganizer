@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useActiveHousehold, useHouseholdPeople } from '@/features/households/hooks';
 import { BuiltinAvatar } from '@/components/avatars';
+import { ModuleHero, ParkScene } from '@/components/scenes';
 import {
   useCancelOccurrence,
   useCreateEvent,
@@ -61,12 +62,15 @@ export default function AgendaPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Agenda</h1>
-        <button className="btn-primary" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? 'Fechar' : '+ Evento'}
-        </button>
-      </div>
+      <ModuleHero
+        scene={<ParkScene className="h-24 w-full" />}
+        title="Agenda"
+        action={
+          <button className="btn-primary !min-h-[40px]" onClick={() => setShowForm((s) => !s)}>
+            {showForm ? 'Fechar' : '+ Evento'}
+          </button>
+        }
+      />
 
       {showForm && (
         <EventForm

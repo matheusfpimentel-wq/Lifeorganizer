@@ -2,6 +2,24 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — A vila é o tema do app inteiro
+
+### Added
+- **Cenários ilustrados nos módulos** (`src/components/scenes.tsx` +
+  `ModuleHero`): cada tela principal abre com seu canto da vila —
+  **Contas**: bancário no balcão com pilhas de moedas e a fachada de colunas;
+  **Mercado**: toldo listrado, caixotes de frutas e a atendente de avental;
+  **Academia**: maromba levantando barra, rack de halteres e kettlebell;
+  **Agenda**: coreto, bandeirinhas e balões; **Tarefas**: casinha com varal
+  de roupas balançando ao vento e vassoura. Título e botão de ação sobrepostos
+  com véu de legibilidade.
+
+### Fixed
+- **Animação CSS engolia o transform de posição** em grupos SVG (pato,
+  filhote, esquilo, borboleta, alien, passarinho, atendente e balões
+  renderizavam no canto do mapa com animações ativas): grupos animados agora
+  são aninhados dentro do grupo de posição.
+
 ## [Unreleased] — Clima real, vagalumes e decoração de época
 
 ### Added

@@ -29,6 +29,7 @@ import {
   type SetRow,
 } from '@/features/gym/hooks';
 import RestTimer from '@/features/gym/RestTimer';
+import { GymScene, ModuleHero } from '@/components/scenes';
 import { bestSetByExercise, estimate1RM, prTimeline, suggestNextLoad, volumeKg, weeklyVolume } from '@/core/workout';
 import { techniqueLabels } from '@/shared/labels';
 import { formatDate } from '@/lib/format';
@@ -64,7 +65,7 @@ export default function GymPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold">Academia</h1>
+      <ModuleHero scene={<GymScene className="h-24 w-full" />} title="Academia" />
       <div className="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
         {tabs.map((t) => (
           <button

@@ -17,6 +17,7 @@ import { expenseCategoryLabels } from '@/shared/labels';
 import { formatCentsBRL, formatDate, parseBRLToCents } from '@/lib/format';
 import { buildPixPayload } from '@/core/pix';
 import { Icon } from '@/components/icons';
+import { BankScene, ModuleHero } from '@/components/scenes';
 
 type Tab = 'summary' | 'closing';
 
@@ -83,12 +84,15 @@ export default function ExpensesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Contas</h1>
-        <button className="btn-primary" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? 'Fechar' : '+ Despesa'}
-        </button>
-      </div>
+      <ModuleHero
+        scene={<BankScene className="h-24 w-full" />}
+        title="Contas"
+        action={
+          <button className="btn-primary !min-h-[40px]" onClick={() => setShowForm((s) => !s)}>
+            {showForm ? 'Fechar' : '+ Despesa'}
+          </button>
+        }
+      />
 
       {showForm && user && (
         <ExpenseForm

@@ -20,6 +20,7 @@ import { formatCentsBRL, parseBRLToCents } from '@/lib/format';
 import { estimatedTotalCents, shoppingTotalCents } from '@/core/shopping';
 import { Icon } from '@/components/icons';
 import SwipeRow from '@/components/SwipeRow';
+import { MarketScene, ModuleHero } from '@/components/scenes';
 
 function PriceInput({
   item,
@@ -138,13 +139,16 @@ export default function ShoppingPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{list.data?.name ?? 'Compras'}</h1>
-        <div className="flex gap-2">
-          <Link to="/staples" className="btn-secondary !px-3">Recorrentes</Link>
-          <button className="btn-secondary !px-3" onClick={handleShare}>Compartilhar</button>
-        </div>
-      </div>
+      <ModuleHero
+        scene={<MarketScene className="h-24 w-full" />}
+        title={list.data?.name ?? 'Compras'}
+        action={
+          <>
+            <Link to="/staples" className="btn-secondary !min-h-[38px] !border-0 !bg-white/90 !px-3 text-sm dark:!bg-slate-900/85">Recorrentes</Link>
+            <button className="btn-secondary !min-h-[38px] !border-0 !bg-white/90 !px-3 text-sm dark:!bg-slate-900/85" onClick={handleShare}>Compartilhar</button>
+          </>
+        }
+      />
 
       <form className="flex gap-2" onSubmit={handleAdd}>
         <input
