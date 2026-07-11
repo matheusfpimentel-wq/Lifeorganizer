@@ -11,6 +11,12 @@ import {
 } from '@/features/households/hooks';
 import { DB_ID, TABLES, tablesDB } from '@/lib/appwrite';
 import { withPersonalPermissions } from '@/lib/permissions';
+import {
+  API_FUNCTION_URL,
+  useCreateIcalToken,
+  useIcalToken,
+  useRevokeIcalToken,
+} from '@/features/ical/hooks';
 import { ID } from 'appwrite';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { applyTheme, useUiStore } from '@/stores/ui';
@@ -29,14 +35,8 @@ function Placeholder({ title, phase }: { title: string; phase: string }) {
   );
 }
 
-export function AgendaPage() {
-  return <Placeholder title="Agenda" phase="Fase 4 (eventos, recorrência e feed iCal)" />;
-}
 export function GymPage() {
   return <Placeholder title="Academia" phase="Fase 5 (planos, logger e métricas)" />;
-}
-export function RoutinePage() {
-  return <Placeholder title="Rotina semanal" phase="Fase 4 (grade semanal por membro)" />;
 }
 
 export function MembersPage() {
@@ -174,6 +174,15 @@ export function ProfilePage() {
 export function SettingsPage() {
   const theme = useUiStore((s) => s.theme);
   const setTheme = useUiStore((s) => s.setTheme);
+  const { householdId } = useActiveHousehold();
+  const icalToken = useIcalToken(householdId);
+  const createToken = useCreateIcalToken(householdId);
+  const revokeToken = useRevokeIcalToken(householdId);
+
+  const feedUrl =
+    API_FUNCTION_URL && icalToken.data
+      ? `${API_FUNCTION_URL.replace(/\/$/, '')}/ical/${icalToken.data.token}`
+      : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -196,6 +205,42 @@ export function SettingsPage() {
           <option value="dark">Escuro</option>
         </select>
       </section>
+
+      <section className="card flex flex-col gap-3">
+        <h2 className="font-semibold">Sincronizar com o Google Agenda</h2>
+        <p className="text-sm text-slate-500">
+          Gere um link privado (iCal) com seus eventos e tarefas e adicione no Google Agenda em
+          "Adicionar agenda → Por URL".
+        </p>
+        {!API_FUNCTION_URL ? (
+          <p className="text-sm text-amber-600">
+            Configure <code>VITE_API_FUNCTION_URL</code> (URL pública da function <code>api</code>) para
+            habilitar o feed.
+          </p>
+        ) : icalToken.isLoading ? (
+          <div className="h-10 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
+        ) : feedUrl ? (
+          <div className="flex flex-col gap-2">
+            <input className="input text-xs" readOnly value={feedUrl} onFocus={(e) => e.currentTarget.select()} />
+            <div className="flex gap-2">
+              <button className="btn-secondary flex-1" onClick={() => navigator.clipboard.writeText(feedUrl)}>
+                Copiar link
+              </button>
+              <button
+                className="btn-secondary text-red-600"
+                onClick={() => icalToken.data && revokeToken.mutate(icalToken.data.$id)}
+              >
+                Revogar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button className="btn-primary" onClick={() => createToken.mutate()} disabled={createToken.isPending}>
+            Gerar link do calendário
+          </button>
+        )}
+      </section>
+
       <section className="card flex flex-col gap-3">
         <h2 className="font-semibold">Notificações</h2>
         <p className="text-sm text-slate-500">

@@ -10,14 +10,9 @@ import TasksPage from '@/pages/TasksPage';
 import ShoppingPage from '@/pages/ShoppingPage';
 import StaplesPage from '@/pages/StaplesPage';
 import ExpensesPage from '@/pages/ExpensesPage';
-import {
-  AgendaPage,
-  GymPage,
-  MembersPage,
-  ProfilePage,
-  RoutinePage,
-  SettingsPage,
-} from '@/pages/misc';
+import AgendaPage from '@/pages/AgendaPage';
+import RoutinePage from '@/pages/RoutinePage';
+import { GymPage, MembersPage, ProfilePage, SettingsPage } from '@/pages/misc';
 
 function FullScreenSpinner() {
   return (
