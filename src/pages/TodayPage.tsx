@@ -12,6 +12,7 @@ import { formatDate } from '@/lib/format';
 import { Icon } from '@/components/icons';
 import VillageMap from '@/components/VillageMap';
 import { useVillageProgress } from '@/features/village/hooks';
+import { useWeather } from '@/features/weather/hooks';
 
 export default function TodayPage() {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ export default function TodayPage() {
   const createEvent = useCreateEvent(householdId);
   const villageProgress = useVillageProgress(householdId);
   const meta = useHouseholdMeta(householdId);
+  const weather = useWeather();
   const pausedUntil = (() => {
     try {
       const settings = meta.data?.settings ? JSON.parse(meta.data.settings as string) : {};
@@ -99,20 +101,53 @@ export default function TodayPage() {
     );
   }
 
+  const WeatherIcon =
+    weather.data?.kind === 'rain' || weather.data?.kind === 'storm'
+      ? Icon.CloudRain
+      : weather.data?.kind === 'clear'
+        ? Icon.Sun
+        : Icon.Cloud;
+
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-2xl font-bold">
-          {greeting()}, {profile?.displayName?.split(' ')[0] ?? ''}
-        </h1>
-        <p className="text-sm text-slate-500">
-          {new Intl.DateTimeFormat('pt-BR', {
-            timeZone: 'America/Sao_Paulo',
-            weekday: 'long',
-            day: '2-digit',
-            month: 'long',
-          }).format(new Date())}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">
+            {greeting()}, {profile?.displayName?.split(' ')[0] ?? ''}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {new Intl.DateTimeFormat('pt-BR', {
+              timeZone: 'America/Sao_Paulo',
+              weekday: 'long',
+              day: '2-digit',
+              month: 'long',
+            }).format(new Date())}
+          </p>
+        </div>
+        {weather.data && (
+          <div className="shrink-0 text-right">
+            <div className="flex items-center justify-end gap-1.5">
+              <WeatherIcon
+                className={`h-5 w-5 ${
+                  weather.data.kind === 'clear'
+                    ? 'text-amber-500'
+                    : weather.data.kind === 'rain' || weather.data.kind === 'storm'
+                      ? 'text-sky-600'
+                      : 'text-slate-400'
+                }`}
+              />
+              <span className="text-xl font-bold">{Math.round(weather.data.tempC)}°</span>
+            </div>
+            <p className="text-xs text-slate-500">
+              {weather.data.tminC !== null && weather.data.tmaxC !== null
+                ? `${Math.round(weather.data.tminC)}° / ${Math.round(weather.data.tmaxC)}°`
+                : ''}
+              {weather.data.rainProb !== null && weather.data.rainProb >= 30
+                ? ` · chuva ${weather.data.rainProb}%`
+                : ''}
+            </p>
+          </div>
+        )}
       </div>
 
       {pausedUntil && (
@@ -134,6 +169,7 @@ export default function TodayPage() {
         nextEventLabel={nextEventLabel}
         completedToday={completedToday}
         progress={villageProgress.data}
+        weather={weather.data?.kind ?? null}
       />
 
       {/* dia de compras -> agenda */}

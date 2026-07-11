@@ -2,6 +2,23 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Clima real, vagalumes e decoração de época
+
+### Added
+- **Previsão do tempo na Home** (Open-Meteo, sem chave): temperatura atual,
+  mínima/máxima e probabilidade de chuva ao lado da saudação. Usa a
+  localização do aparelho apenas se a permissão já foi dada; senão assume
+  São Paulo.
+- **A vila obedece à previsão**: chuva de verdade caindo (16 gotas em ritmos
+  diferentes), céu acinzentado e nuvens carregadas em dia de chuva,
+  relâmpago ocasional na tempestade, sol encoberto no nublado; pássaros se
+  recolhem na chuva.
+- **Vagalumes**: 6 pontinhos âmbar piscando e vagando pela grama nas noites
+  sem chuva.
+- **Decoração sazonal automática**: bandeirinhas juninas (junho/julho),
+  estrela dourada + luzes piscantes no pinheiro e guirlanda na porta
+  (dezembro), abóbora na frente da casinha (outubro).
+
 ## [Unreleased] — Vila viva de verdade
 
 ### Added

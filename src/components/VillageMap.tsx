@@ -19,6 +19,8 @@ interface VillageMapProps {
   progress?: { house: number; gym: number; bank: number; park: number; nature: number };
   /** Força um easter egg específico (testes/demonstração). */
   eggOverride?: Egg;
+  /** Clima real (Open-Meteo): a vila obedece à previsão. */
+  weather?: 'clear' | 'cloudy' | 'rain' | 'storm' | 'fog' | null;
 }
 
 type Egg = 'ufo' | 'monster' | 'alien' | 'walker' | null;
@@ -75,6 +77,11 @@ export default function VillageMap(props: VillageMapProps) {
   // evolução da vila (0–3 por construção)
   const prog = props.progress ?? { house: 0, gym: 0, bank: 0, park: 0, nature: 0 };
   const villageLevel = prog.house + prog.gym + prog.bank + prog.park;
+
+  const rainy = props.weather === 'rain' || props.weather === 'storm';
+  // decoração sazonal pelo mês em São Paulo
+  const spMonth = new Date(Date.now() - 3 * 60 * 60 * 1000).getUTCMonth(); // 0=jan
+  const season = spMonth === 5 || spMonth === 6 ? 'junina' : spMonth === 11 ? 'natal' : spMonth === 9 ? 'halloween' : null;
 
   // easter egg sorteado a cada visita à home (às vezes ninguém aparece)
   const egg = useMemo<Egg>(() => {
@@ -146,23 +153,33 @@ export default function VillageMap(props: VillageMapProps) {
           </linearGradient>
         </defs>
 
-        {/* céu segue o horário real de São Paulo */}
-        <rect width="400" height="300" className={SKY_BY_PHASE[phase]} />
+        {/* céu segue o horário real de São Paulo (e fecha quando chove) */}
+        <rect
+          width="400"
+          height="300"
+          className={
+            rainy && phase !== 'night'
+              ? 'fill-slate-300 dark:fill-slate-900'
+              : props.weather === 'fog' && phase !== 'night'
+                ? 'fill-slate-200 dark:fill-slate-900'
+                : SKY_BY_PHASE[phase]
+          }
+        />
 
         {/* sol (amanhecer baixo, dia alto, entardecer se pondo) */}
-        {phase === 'dawn' && (
+        {phase === 'dawn' && !rainy && props.weather !== 'fog' && (
           <g className="dark:hidden">
             <circle cx="72" cy="80" r="22" className="fill-rose-200" opacity="0.7" />
             <circle cx="72" cy="80" r="13" className="fill-amber-300" />
           </g>
         )}
-        {phase === 'day' && (
+        {phase === 'day' && !rainy && props.weather !== 'fog' && (
           <g className="dark:hidden">
             <circle cx="346" cy="44" r="24" className="fill-amber-200" opacity="0.6" />
             <circle cx="346" cy="44" r="15" className="fill-amber-300" />
           </g>
         )}
-        {phase === 'dusk' && (
+        {phase === 'dusk' && !rainy && props.weather !== 'fog' && (
           <g className="dark:hidden">
             <circle cx="330" cy="86" r="22" className="fill-orange-200" opacity="0.8" />
             <circle cx="330" cy="86" r="13" className="fill-orange-400" />
@@ -190,8 +207,23 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         )}
 
-        {/* passarinhos cruzando o céu */}
-        {phase !== 'night' && (
+        {/* nuvens carregadas quando o tempo fecha */}
+        {(rainy || props.weather === 'cloudy') && (
+          <g className={rainy ? 'fill-slate-400 dark:fill-slate-700' : 'fill-slate-300/90 dark:fill-slate-700/80'}>
+            <ellipse cx="150" cy="38" rx="34" ry="11" />
+            <ellipse cx="182" cy="32" rx="22" ry="9" />
+            <ellipse cx="300" cy="52" rx="30" ry="10" />
+            <ellipse cx="60" cy="60" rx="26" ry="9" />
+          </g>
+        )}
+
+        {/* relâmpago na tempestade */}
+        {props.weather === 'storm' && (
+          <path d="M162 44 l-10 18 h7 l-9 17 16 -13 h-6 l9 -14 Z" className="animate-flash fill-amber-200" />
+        )}
+
+        {/* passarinhos cruzando o céu (se recolhem na chuva) */}
+        {phase !== 'night' && !rainy && (
           <g className="animate-fly" fill="none" strokeWidth="1.2" strokeLinecap="round">
             <path d="M0 56 q3 -3.2 6 0 q3 -3.2 6 0" className="stroke-slate-500/70 dark:stroke-slate-300/50" />
             <path d="M16 49 q2.6 -2.8 5.2 0 q2.6 -2.8 5.2 0" className="stroke-slate-500/60 dark:stroke-slate-300/40" />
@@ -735,6 +767,53 @@ export default function VillageMap(props: VillageMapProps) {
             </g>
           </>
         )}
+        {/* vagalumes nas noites secas */}
+        {phase === 'night' && !rainy &&
+          [
+            [120, 202, '0s'], [252, 192, '1.6s'], [178, 232, '3.1s'], [312, 212, '4.4s'], [84, 178, '5.7s'], [356, 188, '2.4s'],
+          ].map(([x, y, delay], i) => (
+            <circle
+              key={`ff${i}`}
+              cx={x as number}
+              cy={y as number}
+              r="1.3"
+              className="animate-firefly fill-amber-300"
+              style={{ animationDelay: delay as string }}
+            />
+          ))}
+
+        {/* decoração sazonal */}
+        {season === 'junina' && (
+          <g>
+            <path d="M70 104 Q135 136 200 126" fill="none" strokeWidth="0.9" className="stroke-stone-500/80" />
+            <path d="M200 126 Q265 136 330 116" fill="none" strokeWidth="0.9" className="stroke-stone-500/80" />
+            {[
+              [92, 113, 'fill-rose-400'], [116, 120, 'fill-amber-400'], [140, 124, 'fill-sky-400'], [166, 126, 'fill-violet-400'],
+              [232, 130, 'fill-amber-400'], [258, 130, 'fill-rose-400'], [284, 127, 'fill-emerald-400'], [308, 122, 'fill-sky-400'],
+            ].map(([x, y, color], i) => (
+              <path key={`jn${i}`} d={`M${x} ${y} l6.4 0 l-3.2 7 Z`} className={color as string} />
+            ))}
+          </g>
+        )}
+        {season === 'natal' && (
+          <g>
+            <path d="M34 103 l1.8 3.6 4 .6 -2.9 2.8 .7 4 -3.6 -1.9 -3.6 1.9 .7 -4 -2.9 -2.8 4 -.6 Z" fill="url(#vmGold)" />
+            <circle cx="28" cy="118" r="1.3" className="fill-rose-400 motion-safe:animate-pulse" />
+            <circle cx="40" cy="122" r="1.3" className="fill-sky-400 motion-safe:animate-pulse" style={{ animationDelay: '0.5s' }} />
+            <circle cx="30" cy="128" r="1.3" className="fill-amber-300 motion-safe:animate-pulse" style={{ animationDelay: '1s' }} />
+            <circle cx="42" cy="132" r="1.3" className="fill-emerald-300 motion-safe:animate-pulse" style={{ animationDelay: '1.5s' }} />
+            <circle cx="200" cy="170.5" r="2.8" fill="none" strokeWidth="1.5" className="stroke-emerald-600" />
+            <circle cx="200" cy="173.6" r="0.9" className="fill-rose-500" />
+          </g>
+        )}
+        {season === 'halloween' && (
+          <g transform="translate(212 183)">
+            <ellipse cx="0" cy="0" rx="3.4" ry="2.8" className="fill-orange-500" />
+            <rect x="-0.7" y="-4" width="1.4" height="1.6" rx="0.5" className="fill-emerald-700" />
+            <path d="M-1.6 -0.8 l1 1 l-2 0 Z M1.6 -0.8 l-1 1 l2 0 Z M-1.4 1.2 q1.4 1 2.8 0" className="fill-slate-900" />
+          </g>
+        )}
+
         {/* easter egg: alienzinho visitando */}
         {egg === 'alien' && (
           <g transform="translate(38 264)" className="animate-bob">
@@ -760,6 +839,21 @@ export default function VillageMap(props: VillageMapProps) {
             </g>
           </g>
         )}
+        {/* chuva obedecendo à previsão */}
+        {rainy &&
+          Array.from({ length: 16 }, (_, i) => {
+            const x = 12 + i * 25 + (i % 3) * 6;
+            return (
+              <path
+                key={`rd${i}`}
+                d={`M${x} 0 l-3 11`}
+                strokeWidth="1.1"
+                strokeLinecap="round"
+                className="rain-drop animate-rain stroke-sky-500/70 dark:stroke-sky-300/50"
+                style={{ animationDelay: `${(i % 8) * 0.14}s`, animationDuration: `${1 + (i % 4) * 0.15}s` }}
+              />
+            );
+          })}
       </svg>
 
       {/* plaquinhas com dados ao vivo */}
