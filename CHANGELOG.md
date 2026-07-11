@@ -2,6 +2,26 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — F5 Academia
+
+### Added
+- **Métricas de treino** (`src/core/workout.ts`, núcleo puro, 9 testes): 1RM
+  estimado (Epley), recordes por exercício, volume total e semanal (semana em
+  SP), evolução do 1RM. O app registra e acompanha — não prescreve.
+- **Biblioteca de exercícios**: catálogo embutido pt-BR (~40, `catalog.ts`) +
+  exercícios personalizados do lar, mesclados.
+- **Planos** (`GymPage`): criar plano, dias (A/B/C…) e exercícios do dia
+  (séries, faixa de reps, descanso).
+- **Logger** com **timer de descanso** (`RestTimer`): iniciar do dia do plano
+  (ou treino livre), séries pré-preenchidas pelo último treino, registrar
+  reps/carga, cronômetro de descanso, finalizar.
+- **Histórico** de sessões (duração, séries, volume) e **Progresso**: tabela de
+  recordes + gráficos Recharts (volume semanal, evolução do 1RM por exercício).
+
+### Notes
+- Bundle cresceu com Recharts (~262 kB gzip); code-splitting por rota fica para
+  a F6. Total: 90 testes.
+
 ## [Unreleased] — F4 Agenda + Rotina
 
 ### Added

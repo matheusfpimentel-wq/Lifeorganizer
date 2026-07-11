@@ -12,7 +12,8 @@ import StaplesPage from '@/pages/StaplesPage';
 import ExpensesPage from '@/pages/ExpensesPage';
 import AgendaPage from '@/pages/AgendaPage';
 import RoutinePage from '@/pages/RoutinePage';
-import { GymPage, MembersPage, ProfilePage, SettingsPage } from '@/pages/misc';
+import GymPage from '@/pages/GymPage';
+import { MembersPage, ProfilePage, SettingsPage } from '@/pages/misc';
 
 function FullScreenSpinner() {
   return (

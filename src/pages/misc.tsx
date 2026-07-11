@@ -23,22 +23,6 @@ import { applyTheme, useUiStore } from '@/stores/ui';
 
 const PROFILE_COLORS = ['#0ea5e9', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#eab308', '#14b8a6'];
 
-function Placeholder({ title, phase }: { title: string; phase: string }) {
-  return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold">{title}</h1>
-      <div className="card text-center text-slate-500">
-        <p className="text-4xl">🚧</p>
-        <p className="mt-2">Este módulo chega na {phase}.</p>
-      </div>
-    </div>
-  );
-}
-
-export function GymPage() {
-  return <Placeholder title="Academia" phase="Fase 5 (planos, logger e métricas)" />;
-}
-
 export function MembersPage() {
   const { householdId } = useActiveHousehold();
   const { data: members } = useHouseholdMembers(householdId);
