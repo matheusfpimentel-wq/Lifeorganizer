@@ -47,4 +47,4 @@ jobs:
       - name: Push tables
         run: npx appwrite push tables --all --force
       - name: Push functions
-        run: npx appwrite push functions --all --force
+        run: npx appwrite push functions --all --force --activate true --no-logs
