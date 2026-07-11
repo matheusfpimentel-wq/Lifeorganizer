@@ -1,0 +1,34 @@
+name: Consolidate household
+
+# Junta os lares duplicados num único time. Rode primeiro com apply=false
+# (simulação), confira o log e então rode com apply=true.
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Aplicar de verdade (false = simulação)'
+        required: true
+        default: 'false'
+      canonical_team_id:
+        description: 'Team canônico (vazio = o com mais dados)'
+        required: false
+        default: ''
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run consolidation
+        env:
+          APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT || secrets.VITE_APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID || secrets.VITE_APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          APPLY: ${{ inputs.apply == 'true' && '1' || '' }}
+          CANONICAL_TEAM_ID: ${{ inputs.canonical_team_id }}
+        run: node scripts/consolidate-household.mjs
