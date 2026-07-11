@@ -12,7 +12,38 @@ interface VillageMapProps {
   overdueTasks: number;
   /** Próximo evento de hoje, ex.: "14:00 Dentista" (null = agenda livre). */
   nextEventLabel: string | null;
+  /** Alguém concluiu tarefa hoje (acende a chaminé). */
+  completedToday?: boolean;
 }
+
+type SkyPhase = 'dawn' | 'day' | 'dusk' | 'night';
+
+/** Fase do céu pelo horário REAL de São Paulo (UTC−3 fixo), não pelo tema. */
+function skyPhase(): SkyPhase {
+  const hour = new Date(Date.now() - 3 * 60 * 60 * 1000).getUTCHours();
+  if (hour >= 5 && hour < 8) return 'dawn';
+  if (hour >= 8 && hour < 17) return 'day';
+  if (hour >= 17 && hour < 19) return 'dusk';
+  return 'night';
+}
+
+const SKY_BY_PHASE: Record<SkyPhase, string> = {
+  dawn: 'fill-rose-100 dark:fill-slate-900',
+  day: 'fill-sky-100 dark:fill-slate-950',
+  dusk: 'fill-orange-100 dark:fill-indigo-950',
+  night: 'fill-indigo-950 dark:fill-slate-950',
+};
+
+/** [cx, cy, cor] das florzinhas base e das extras de jardim florido. */
+const BASE_FLOWERS: Array<[number, number, string]> = [
+  [162, 266, 'fill-rose-400'], [171, 271, 'fill-amber-400'], [236, 268, 'fill-rose-400'],
+  [228, 273, 'fill-violet-400'], [58, 182, 'fill-rose-400'], [64, 186, 'fill-amber-400'],
+  [342, 186, 'fill-violet-400'], [348, 182, 'fill-rose-400'],
+];
+const EXTRA_FLOWERS: Array<[number, number, string]> = [
+  [188, 262, 'fill-rose-300'], [212, 266, 'fill-violet-300'], [122, 248, 'fill-amber-300'],
+  [278, 246, 'fill-rose-300'], [96, 210, 'fill-violet-300'], [306, 206, 'fill-amber-300'],
+];
 
 interface Spot {
   route: string;
@@ -26,6 +57,11 @@ interface Spot {
  */
 export default function VillageMap(props: VillageMapProps) {
   const navigate = useNavigate();
+  const phase = skyPhase();
+  // janelas acesas quando anoitece de verdade (ou no tema escuro)
+  const windowGlass = phase === 'night' || phase === 'dusk' ? 'fill-amber-200' : 'fill-sky-200 dark:fill-amber-200';
+  // jardim reage ao estado do lar: atrasos murcham, tudo em dia floresce
+  const garden = props.overdueTasks > 0 ? 'wilted' : props.todayTasks === 0 ? 'blooming' : 'ok';
 
   const go = (spot: Spot) => ({
     role: 'link' as const,
@@ -71,17 +107,31 @@ export default function VillageMap(props: VillageMapProps) {
       <svg viewBox="0 0 400 300" className="block h-full w-full" aria-hidden="false">
         <title>Mapa da vila: toque num lugar para abrir o módulo</title>
 
-        {/* céu */}
-        <rect width="400" height="300" className="fill-sky-100 dark:fill-slate-950" />
+        {/* céu segue o horário real de São Paulo */}
+        <rect width="400" height="300" className={SKY_BY_PHASE[phase]} />
 
-        {/* sol (dia) */}
-        <g className="dark:hidden">
-          <circle cx="346" cy="44" r="24" className="fill-amber-200" opacity="0.6" />
-          <circle cx="346" cy="44" r="15" className="fill-amber-300" />
-        </g>
+        {/* sol (amanhecer baixo, dia alto, entardecer se pondo) */}
+        {phase === 'dawn' && (
+          <g className="dark:hidden">
+            <circle cx="72" cy="80" r="22" className="fill-rose-200" opacity="0.7" />
+            <circle cx="72" cy="80" r="13" className="fill-amber-300" />
+          </g>
+        )}
+        {phase === 'day' && (
+          <g className="dark:hidden">
+            <circle cx="346" cy="44" r="24" className="fill-amber-200" opacity="0.6" />
+            <circle cx="346" cy="44" r="15" className="fill-amber-300" />
+          </g>
+        )}
+        {phase === 'dusk' && (
+          <g className="dark:hidden">
+            <circle cx="330" cy="86" r="22" className="fill-orange-200" opacity="0.8" />
+            <circle cx="330" cy="86" r="13" className="fill-orange-400" />
+          </g>
+        )}
 
-        {/* lua e estrelas (noite) */}
-        <g className="hidden dark:inline">
+        {/* lua e estrelas: à noite de verdade, ou sempre no tema escuro */}
+        <g className={phase === 'night' ? '' : 'hidden dark:inline'}>
           <circle cx="346" cy="44" r="14" className="fill-amber-100" />
           <circle cx="341" cy="40" r="3" className="fill-amber-200" opacity="0.7" />
           <circle cx="350" cy="49" r="2" className="fill-amber-200" opacity="0.7" />
@@ -92,12 +142,14 @@ export default function VillageMap(props: VillageMapProps) {
           <circle cx="30" cy="80" r="1.2" className="fill-white" opacity="0.8" />
         </g>
 
-        {/* nuvens */}
-        <g className="fill-white dark:opacity-10" opacity="0.9">
-          <ellipse cx="90" cy="46" rx="26" ry="10" />
-          <ellipse cx="112" cy="40" rx="18" ry="8" />
-          <ellipse cx="235" cy="66" rx="22" ry="8" opacity="0.7" />
-        </g>
+        {/* nuvens (somem à noite) */}
+        {phase !== 'night' && (
+          <g className="fill-white dark:opacity-10" opacity="0.9">
+            <ellipse cx="90" cy="46" rx="26" ry="10" />
+            <ellipse cx="112" cy="40" rx="18" ry="8" />
+            <ellipse cx="235" cy="66" rx="22" ry="8" opacity="0.7" />
+          </g>
+        )}
 
         {/* colinas */}
         <path d="M0 130 Q100 98 200 122 T400 116 L400 300 L0 300 Z" className="fill-emerald-200 dark:fill-emerald-950" />
@@ -196,15 +248,20 @@ export default function VillageMap(props: VillageMapProps) {
             <path d="M178 154 q1 -3.4 0 -5 M181 154 q1.8 -2.6 3.4 -3.4" />
           </g>
 
-          {/* florzinhas */}
-          <circle cx="162" cy="266" r="2" className="fill-rose-400" />
-          <circle cx="171" cy="271" r="2" className="fill-amber-400" />
-          <circle cx="236" cy="268" r="2" className="fill-rose-400" />
-          <circle cx="228" cy="273" r="2" className="fill-violet-400" />
-          <circle cx="58" cy="182" r="1.8" className="fill-rose-400" />
-          <circle cx="64" cy="186" r="1.8" className="fill-amber-400" />
-          <circle cx="342" cy="186" r="1.8" className="fill-violet-400" />
-          <circle cx="348" cy="182" r="1.8" className="fill-rose-400" />
+          {/* jardim vivo: murcha com atrasos, floresce com tudo em dia */}
+          {BASE_FLOWERS.map(([cx, cy, color], i) => (
+            <circle
+              key={`f${i}`}
+              cx={cx}
+              cy={cy}
+              r={garden === 'wilted' ? 1.4 : 2}
+              className={garden === 'wilted' ? 'fill-slate-400/60' : color}
+            />
+          ))}
+          {garden === 'blooming' &&
+            EXTRA_FLOWERS.map(([cx, cy, color], i) => (
+              <circle key={`x${i}`} cx={cx} cy={cy} r="2" className={color} />
+            ))}
         </g>
 
         {/* Banco -> Contas */}
@@ -233,7 +290,7 @@ export default function VillageMap(props: VillageMapProps) {
             <rect x="8" y="-32" width="8" height="10" rx="2" className="fill-emerald-500 dark:fill-emerald-600" />
             <rect x="16" y="-32" width="8" height="10" rx="2" className="fill-white dark:fill-slate-300" />
           </g>
-          <rect x="-18" y="-17" width="16" height="10" rx="1" className="fill-sky-200 dark:fill-amber-200" />
+          <rect x="-18" y="-17" width="16" height="10" rx="1" className={windowGlass} />
           <rect x="5" y="-15" width="12" height="15" rx="1" className="fill-emerald-700" />
           <circle cx="-14" cy="-4" r="2.5" className="fill-orange-400" />
           <circle cx="-9" cy="-3" r="2.5" className="fill-rose-400" />
@@ -244,14 +301,19 @@ export default function VillageMap(props: VillageMapProps) {
         {/* Casinha -> Tarefas do lar */}
         <g transform="translate(200 185)" {...go({ route: '/tarefas', aria: 'Nossa casinha: abrir tarefas do lar' })}>
           <ellipse cx="0" cy="2" rx="38" ry="6" className="fill-emerald-700/15 dark:fill-black/30" />
-          <circle cx="20" cy="-58" r="3" className="fill-slate-300/80 motion-safe:animate-pulse" />
-          <circle cx="24" cy="-65" r="2.4" className="fill-slate-300/60 motion-safe:animate-pulse" />
+          {props.completedToday && (
+            <g>
+              <circle cx="20" cy="-58" r="3" className="fill-slate-300/80 motion-safe:animate-pulse" />
+              <circle cx="24" cy="-65" r="2.4" className="fill-slate-300/60 motion-safe:animate-pulse" />
+              <circle cx="27" cy="-71" r="1.8" className="fill-slate-300/40 motion-safe:animate-pulse" />
+            </g>
+          )}
           <rect x="16" y="-52" width="8" height="12" className="fill-rose-700 dark:fill-rose-800" />
           <rect x="-30" y="-34" width="60" height="34" rx="2" className="fill-orange-50 dark:fill-slate-500" />
           <path d="M-36 -34 L0 -58 L36 -34 Z" className="fill-rose-500 dark:fill-rose-600" />
           <path d="M0 -40 c-1.6 -3 -6 -2.4 -6 0.6 c0 2.4 3.8 4.4 6 6 c2.2 -1.6 6 -3.6 6 -6 c0 -3 -4.4 -3.6 -6 -0.6 Z" className="fill-rose-300 dark:fill-rose-400" />
-          <rect x="-24" y="-26" width="11" height="9" rx="1" className="fill-sky-200 dark:fill-amber-200" />
-          <rect x="13" y="-26" width="11" height="9" rx="1" className="fill-sky-200 dark:fill-amber-200" />
+          <rect x="-24" y="-26" width="11" height="9" rx="1" className={windowGlass} />
+          <rect x="13" y="-26" width="11" height="9" rx="1" className={windowGlass} />
           <rect x="-7" y="-17" width="14" height="17" rx="2" className="fill-amber-700 dark:fill-amber-800" />
           <circle cx="3" cy="-8" r="1.2" className="fill-amber-300" />
           <text x="0" y="18" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Nossa casinha</text>
@@ -265,7 +327,7 @@ export default function VillageMap(props: VillageMapProps) {
           <rect x="-21" y="-22" width="3" height="8" rx="1" className="fill-slate-700 dark:fill-slate-800" />
           <rect x="-8" y="-22" width="3" height="8" rx="1" className="fill-slate-700 dark:fill-slate-800" />
           <rect x="-19" y="-19" width="12" height="2" className="fill-slate-700 dark:fill-slate-800" />
-          <rect x="8" y="-19" width="12" height="8" rx="1" className="fill-sky-200 dark:fill-amber-200" />
+          <rect x="8" y="-19" width="12" height="8" rx="1" className={windowGlass} />
           <rect x="-6" y="-14" width="12" height="14" rx="1" className="fill-violet-700" />
           <text x="0" y="16" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Academia</text>
         </g>

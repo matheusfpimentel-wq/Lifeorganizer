@@ -4,6 +4,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { useActiveHousehold, useMyTeams, useMyProfile } from '@/features/households/hooks';
 import { useUiStore } from '@/stores/ui';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import QuickAdd from '@/components/QuickAdd';
 import { Icon } from '@/components/icons';
 
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
@@ -97,6 +98,8 @@ export default function Layout() {
           </Suspense>
         </ErrorBoundary>
       </main>
+
+      <QuickAdd />
 
       <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-3xl border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <div className="grid grid-cols-5">

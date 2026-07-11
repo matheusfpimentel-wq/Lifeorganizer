@@ -17,6 +17,7 @@ import { taskCategoryLabels } from '@/shared/labels';
 import { formatDate } from '@/lib/format';
 import { spDateKey } from '@/lib/dates';
 import { Icon } from '@/components/icons';
+import SwipeRow from '@/components/SwipeRow';
 
 type Tab = 'pending' | 'models' | 'balance';
 
@@ -162,10 +163,14 @@ export default function TasksPage() {
                   {occs.map((o) => {
                     const task = taskById.get(o.taskId);
                     return (
-                      <li
-                        key={o.$id}
-                        className={`card flex items-center justify-between gap-2 ${label === 'Atrasadas' ? 'border-l-4 border-amber-500' : ''}`}
-                      >
+                      <li key={o.$id}>
+                        <SwipeRow
+                          label={`Deslize para concluir ${task?.title ?? 'tarefa'}`}
+                          onSwipe={() => action.mutate({ occurrenceId: o.$id, action: 'done' })}
+                        >
+                        <div
+                          className={`card flex items-center justify-between gap-2 ${label === 'Atrasadas' ? 'border-l-4 border-amber-500' : ''}`}
+                        >
                         <div className="min-w-0">
                           <p className="truncate font-medium">{task?.title ?? 'Tarefa'}</p>
                           <p className="truncate text-sm text-slate-500">
@@ -197,6 +202,8 @@ export default function TasksPage() {
                             Pular
                           </button>
                         </div>
+                        </div>
+                        </SwipeRow>
                       </li>
                     );
                   })}
@@ -211,7 +218,12 @@ export default function TasksPage() {
                 </h2>
                 <ul className="flex flex-col gap-2">
                   {datelessTasks.map((task) => (
-                    <li key={task.$id} className="card flex items-center justify-between gap-2">
+                    <li key={task.$id}>
+                      <SwipeRow
+                        label={`Deslize para concluir ${task.title}`}
+                        onSwipe={() => completeDateless.mutate(task.$id)}
+                      >
+                      <div className="card flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate font-medium">{task.title}</p>
                         <p className="truncate text-sm text-slate-500">
@@ -236,6 +248,8 @@ export default function TasksPage() {
                           Editar
                         </button>
                       </div>
+                      </div>
+                      </SwipeRow>
                     </li>
                   ))}
                 </ul>

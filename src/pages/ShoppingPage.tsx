@@ -18,6 +18,7 @@ import { shoppingCategoryLabels } from '@/shared/labels';
 import { formatCentsBRL, parseBRLToCents } from '@/lib/format';
 import { shoppingTotalCents } from '@/core/shopping';
 import { Icon } from '@/components/icons';
+import SwipeRow from '@/components/SwipeRow';
 
 function PriceInput({
   item,
@@ -176,7 +177,11 @@ export default function ShoppingPage() {
               <ul className="flex flex-col gap-3">
                 {catItems.map((item) => (
                   <li key={item.$id} className="flex flex-col gap-2">
-                    <div className="flex items-center gap-3">
+                    <SwipeRow
+                      label={`Deslize para ${item.checked ? 'desmarcar' : 'marcar'} ${item.name}`}
+                      onSwipe={() => toggle.mutate({ item, checked: !item.checked })}
+                    >
+                    <div className="flex min-h-[44px] items-center gap-3 bg-white dark:bg-slate-900">
                       <input
                         type="checkbox"
                         className="h-5 w-5 rounded accent-brand-600"
@@ -195,6 +200,7 @@ export default function ShoppingPage() {
                         <Icon.X className="h-4 w-4" />
                       </button>
                     </div>
+                    </SwipeRow>
                     <div className="flex items-center gap-2 pl-8">
                       <div className="flex items-center gap-1">
                         <button

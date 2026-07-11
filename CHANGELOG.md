@@ -2,6 +2,26 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Onda 1 do plano de UX (fricção zero + vila viva)
+
+### Added
+- **Registro rápido universal** (`QuickAdd`): botão "+" flutuante em todas as
+  telas abre folha com 4 ações — despesa (categoria sugerida pelo histórico,
+  divisão igual, pagador=eu), item de mercado, tarefa (data opcional) e evento
+  (1h de duração, lembrete 1h antes). Qualquer registro em ≤ 2 toques.
+- **Vila viva**: o céu do mapa segue o horário real de São Paulo (amanhecer /
+  dia / entardecer / noite, com sol se movendo e janelas acesas à noite); o
+  jardim floresce quando as tarefas estão em dia e murcha com atrasos; a
+  chaminé só solta fumaça quando alguém concluiu tarefa hoje.
+- **Deslizar para concluir** (`SwipeRow`): arrastar para a direita conclui
+  tarefa (pendências e sem-data) e marca item do mercado; gesto só horizontal,
+  rolagem vertical intacta.
+- **Resumo diário configurável**: seção em Configurações > Notificações para
+  ativar/desativar e escolher o horário (BRT); o push da `tick` agora inclui
+  tarefas, eventos do dia e alerta de dia de compras.
+- Workflow **Deploy functions** (só as 2 functions; schema continua no
+  hotfix seguro).
+
 ## [Unreleased] — UX vila
 
 ### Added

@@ -48,6 +48,15 @@ export default function TodayPage() {
   const pendingItems = (items.data ?? []).filter((i) => !i.checked).length;
   const myBalance = user ? (balances.get(user.$id) ?? 0) : 0;
 
+  // fumaça na chaminé: alguém concluiu tarefa hoje
+  const completedToday = (occurrences.data ?? []).some(
+    (o) =>
+      o.status === 'done' &&
+      o.completedAt &&
+      new Date(o.completedAt) >= start &&
+      new Date(o.completedAt) <= end,
+  );
+
   // próximo evento de hoje ainda por vir (para a plaquinha da pracinha)
   const now = new Date();
   const upcomingEvent = todayEvents.find((o) => new Date(o.startAt) >= now);
@@ -100,6 +109,7 @@ export default function TodayPage() {
         todayTasks={todayOccurrences.length}
         overdueTasks={overdue.length}
         nextEventLabel={nextEventLabel}
+        completedToday={completedToday}
       />
 
       {/* dia de compras -> agenda */}

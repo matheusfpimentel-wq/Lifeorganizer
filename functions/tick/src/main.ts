@@ -151,44 +151,78 @@ async function sendEventReminders(
 // ---------------------------------------------------------------------------
 async function sendDailySummaries(
   tables: TablesDB,
+  teams: Teams,
   windowStart: Date,
   windowEnd: Date,
   log: (m: string) => void,
 ): Promise<void> {
   const profiles = await listAll(tables, 'profiles');
-  for (const profile of profiles) {
-    if (!profile.notificationPrefs) continue;
+  const wall = new Date(windowStart.getTime() - SAO_PAULO_OFFSET_MS);
+
+  // perfis cujo horário configurado (BRT) cai nesta janela de tick
+  const due = profiles.filter((profile) => {
+    if (!profile.notificationPrefs) return false;
     let prefs: { dailySummaryTime?: string | null };
     try {
       prefs = JSON.parse(profile.notificationPrefs);
     } catch {
-      continue;
+      return false;
     }
-    if (!prefs.dailySummaryTime) continue;
-
+    if (!prefs.dailySummaryTime) return false;
     const [hour, minute] = prefs.dailySummaryTime.split(':').map(Number);
-    // horário configurado é BRT -> converter para UTC (+3h)
-    const wall = new Date(windowStart.getTime() - SAO_PAULO_OFFSET_MS);
     const scheduledUtc =
       Date.UTC(wall.getUTCFullYear(), wall.getUTCMonth(), wall.getUTCDate(), hour, minute) +
       SAO_PAULO_OFFSET_MS;
-    if (scheduledUtc < windowStart.getTime() || scheduledUtc >= windowEnd.getTime()) continue;
+    return scheduledUtc >= windowStart.getTime() && scheduledUtc < windowEnd.getTime();
+  });
+  if (due.length === 0) return;
 
-    const dayStart = new Date(
-      Date.UTC(wall.getUTCFullYear(), wall.getUTCMonth(), wall.getUTCDate()) + SAO_PAULO_OFFSET_MS,
-    );
-    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+  const dayStart = new Date(
+    Date.UTC(wall.getUTCFullYear(), wall.getUTCMonth(), wall.getUTCDate()) + SAO_PAULO_OFFSET_MS,
+  );
+  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+
+  // dados compartilhados do dia (uma consulta, todos os perfis)
+  const todaysEvents = await listAll(tables, 'events', [
+    Query.greaterThanEqual('startAt', dayStart.toISOString()),
+    Query.lessThanEqual('startAt', dayEnd.toISOString()),
+  ]);
+  const teamIdsByUser = new Map<string, Set<string>>();
+  for (const team of (await teams.list()).teams) {
+    const memberships = await teams.listMemberships({ teamId: team.$id });
+    for (const m of memberships.memberships) {
+      if (!m.confirm || !m.userId) continue;
+      if (!teamIdsByUser.has(m.userId)) teamIdsByUser.set(m.userId, new Set());
+      teamIdsByUser.get(m.userId)!.add(team.$id);
+    }
+  }
+
+  for (const profile of due) {
     const occurrences = await listAll(tables, 'taskOccurrences', [
       Query.equal('assignedMemberId', profile.userId),
       Query.equal('status', 'pending'),
       Query.greaterThanEqual('dueAt', dayStart.toISOString()),
       Query.lessThanEqual('dueAt', dayEnd.toISOString()),
     ]);
-    const count = occurrences.length;
+    const myTeams = teamIdsByUser.get(profile.userId) ?? new Set();
+    const myEvents = todaysEvents.filter(
+      (e) =>
+        myTeams.has(e.householdId) &&
+        ((e.memberIds ?? []).length === 0 || (e.memberIds ?? []).includes(profile.userId)),
+    );
+    const shoppingDay = myEvents.some((e) => String(e.title).toLowerCase().startsWith('compras'));
+
+    const parts: string[] = [];
+    if (occurrences.length > 0) {
+      parts.push(`${occurrences.length} tarefa${occurrences.length > 1 ? 's' : ''}`);
+    }
+    if (myEvents.length > 0) {
+      parts.push(`${myEvents.length} evento${myEvents.length > 1 ? 's' : ''}`);
+    }
+    if (shoppingDay) parts.push('dia de compras');
+
     const body =
-      count === 0
-        ? 'Nenhuma tarefa sua para hoje. Aproveite o dia!'
-        : `Você tem ${count} tarefa${count > 1 ? 's' : ''} para hoje.`;
+      parts.length === 0 ? 'Dia livre no lar. Aproveitem!' : `Hoje: ${parts.join(' · ')}.`;
     await pushToUser(tables, profile.userId, { title: 'Resumo do dia', body, url: '/' }, log);
   }
 }
@@ -355,7 +389,7 @@ export default async ({ req, res, log, error }: AppwriteContext) => {
       results.reminders = 'error';
     }
     try {
-      await sendDailySummaries(tables, windowStart, windowEnd, log);
+      await sendDailySummaries(tables, teams, windowStart, windowEnd, log);
       results.summaries = 'ok';
     } catch (err) {
       error(`resumos: ${String(err)}`);

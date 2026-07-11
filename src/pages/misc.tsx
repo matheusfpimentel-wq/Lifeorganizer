@@ -341,6 +341,77 @@ function DataSettings() {
   );
 }
 
+/**
+ * Resumo diário único: horário (BRT) guardado em profile.notificationPrefs.
+ * Um push por dia com tarefas, eventos e dia de compras — enviado pela `tick`.
+ */
+function DailySummarySettings() {
+  const { user } = useAuth();
+  const { data: profile } = useMyProfile();
+  const queryClient = useQueryClient();
+
+  const currentPrefs = (() => {
+    try {
+      return profile?.notificationPrefs ? JSON.parse(profile.notificationPrefs as unknown as string) : {};
+    } catch {
+      return {};
+    }
+  })();
+  const currentTime: string | null = currentPrefs.dailySummaryTime ?? null;
+  const [time, setTime] = useState(currentTime ?? '07:30');
+
+  const save = useMutation({
+    mutationFn: async (dailySummaryTime: string | null) => {
+      if (!profile) throw new Error('Crie seu perfil em "Perfil e Pix" primeiro.');
+      return tablesDB.updateRow({
+        databaseId: DB_ID,
+        tableId: TABLES.profiles,
+        rowId: profile.$id,
+        data: { notificationPrefs: JSON.stringify({ ...currentPrefs, dailySummaryTime }) },
+      });
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['myProfile', user?.$id] }),
+  });
+
+  return (
+    <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
+      <p className="font-medium">Resumo do dia</p>
+      <p className="mt-0.5 text-sm text-slate-500">
+        Uma única notificação por dia com suas tarefas, eventos e o dia de compras.
+      </p>
+      {currentTime ? (
+        <div className="mt-2 flex items-center gap-2">
+          <input
+            type="time"
+            aria-label="Horário do resumo"
+            className="input !min-h-[40px] max-w-[120px]"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            onBlur={() => time && time !== currentTime && save.mutate(time)}
+          />
+          <button className="btn-secondary !min-h-[40px]" onClick={() => save.mutate(null)} disabled={save.isPending}>
+            Desativar
+          </button>
+        </div>
+      ) : (
+        <div className="mt-2 flex items-center gap-2">
+          <input
+            type="time"
+            aria-label="Horário do resumo"
+            className="input !min-h-[40px] max-w-[120px]"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+          />
+          <button className="btn-primary !min-h-[40px]" onClick={() => save.mutate(time)} disabled={save.isPending}>
+            Ativar
+          </button>
+        </div>
+      )}
+      {save.isError && <p className="mt-1 text-sm text-red-600">{(save.error as Error).message}</p>}
+    </div>
+  );
+}
+
 function NotificationsSettings() {
   const state = usePushState();
   const enable = useEnablePush();
@@ -352,6 +423,8 @@ function NotificationsSettings() {
   return (
     <section className="card flex flex-col gap-3">
       <h2 className="font-semibold">Notificações</h2>
+
+      {granted && <DailySummarySettings />}
 
       {!PUSH_SUPPORTED ? (
         <p className="text-sm text-slate-500">
