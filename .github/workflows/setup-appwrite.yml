@@ -42,7 +42,7 @@ jobs:
       # um database remoto divergente; o segundo conclui as criações.
       - name: Push database + tables
         run: |
-          npx appwrite push tables --force || true
-          npx appwrite push tables --force
+          npx appwrite push tables --all --force || true
+          npx appwrite push tables --all --force
       - name: Push functions
-        run: npx appwrite push functions --force
+        run: npx appwrite push functions --all --force
