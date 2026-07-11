@@ -2,6 +2,19 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Tocar na tarefa abre a edição
+
+### Added
+- **Tocar em qualquer tarefa abre o formulário de edição**: nas Pendências
+  (com ou sem data), nos Modelos e nas listas da tela Hoje (Atrasadas e
+  Tarefas de hoje — estas navegam para Tarefas já com a edição aberta).
+  A página rola para o topo, onde o formulário aparece; os botões de ação
+  (Pegar, Concluir, Pular) e o deslizar para concluir seguem funcionando.
+
+### Fixed
+- Trocar de tarefa com o formulário já aberto agora recarrega os valores
+  corretamente (o formulário é remontado por tarefa).
+
 ## [Unreleased] — Visual moderno (modelo Vistage) + cor de tema
 
 ### Added

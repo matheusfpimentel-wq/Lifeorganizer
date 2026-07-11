@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useActiveHousehold, useHouseholdMeta, useMyProfile } from '@/features/households/hooks';
 import { useOccurrences, useOccurrenceAction, useTasks } from '@/features/tasks/hooks';
@@ -16,6 +16,7 @@ import { useWeather } from '@/features/weather/hooks';
 
 export default function TodayPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { householdId } = useActiveHousehold();
   const { data: profile } = useMyProfile();
   const occurrences = useOccurrences(householdId);
@@ -241,7 +242,14 @@ export default function TodayPage() {
           <ul className="flex flex-col gap-2">
             {overdue.slice(0, 5).map((o) => (
               <li key={o.$id} className="flex items-center justify-between gap-2">
-                <span>{taskTitle(o.taskId)}</span>
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 truncate text-left"
+                  aria-label={`Editar ${taskTitle(o.taskId)}`}
+                  onClick={() => navigate('/tarefas', { state: { editTaskId: o.taskId } })}
+                >
+                  {taskTitle(o.taskId)}
+                </button>
                 <span className="flex gap-1">
                   <button
                     className="btn-secondary !min-h-[36px] !px-2 text-sm"
@@ -280,10 +288,15 @@ export default function TodayPage() {
           <ul className="flex flex-col gap-2">
             {todayOccurrences.map((o) => (
               <li key={o.$id} className="flex items-center justify-between gap-2">
-                <span>
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 truncate text-left"
+                  aria-label={`Editar ${taskTitle(o.taskId)}`}
+                  onClick={() => navigate('/tarefas', { state: { editTaskId: o.taskId } })}
+                >
                   {taskTitle(o.taskId)}
                   <span className="ml-2 text-sm text-slate-500">{formatTime(o.dueAt)}</span>
-                </span>
+                </button>
                 <button
                   className="btn-secondary !min-h-[36px] !px-2 text-sm"
                   aria-label="Concluir"

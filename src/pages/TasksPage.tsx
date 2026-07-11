@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useActiveHousehold, useHouseholdPeople } from '@/features/households/hooks';
 import {
   useCompleteDatelessTask,
@@ -64,6 +65,28 @@ export default function TasksPage() {
   const [tab, setTab] = useState<Tab>('pending');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<TaskRow | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  function openEditor(task: TaskRow) {
+    setEditing(task);
+    setShowForm(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // outras telas podem navegar para cá com { editTaskId } para abrir a edição
+  const editTaskId = (location.state as { editTaskId?: string } | null)?.editTaskId;
+  useEffect(() => {
+    if (!editTaskId || !tasks.data) return;
+    const task = tasks.data.find((t) => t.$id === editTaskId);
+    if (task) {
+      setEditing(task);
+      setShowForm(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editTaskId, tasks.data]);
 
   const memberName = (id?: string | null) =>
     id ? (people.find((p) => p.id === id)?.name ?? 'Membro') : 'Sem dono';
@@ -128,6 +151,7 @@ export default function TasksPage() {
 
       {(showForm || editing) && (
         <TaskForm
+          key={editing?.$id ?? 'new'}
           members={memberOptions}
           initial={editing ?? undefined}
           submitting={createTask.isPending || updateTask.isPending}
@@ -175,15 +199,20 @@ export default function TasksPage() {
                         <div
                           className={`card flex items-center justify-between gap-2 ${label === 'Atrasadas' ? 'border-l-4 border-amber-500' : ''}`}
                         >
-                        <div className="min-w-0">
-                          <p className="truncate font-medium">{task?.title ?? 'Tarefa'}</p>
-                          <p className="truncate text-sm text-slate-500">
+                        <button
+                          type="button"
+                          className="min-w-0 flex-1 text-left"
+                          aria-label={`Editar ${task?.title ?? 'tarefa'}`}
+                          onClick={() => task && openEditor(task)}
+                        >
+                          <span className="block truncate font-medium">{task?.title ?? 'Tarefa'}</span>
+                          <span className="block truncate text-sm text-slate-500">
                             {task?.anchor && anchorLabels[task.anchor] ? `${anchorLabels[task.anchor]} · ` : ''}
                             {memberName(o.assignedMemberId)}
                             {task && ` · ${taskCategoryLabels[task.category] ?? task.category}`}
                             {task && task.points > 1 && ` · ${task.points} pts`}
-                          </p>
-                        </div>
+                          </span>
+                        </button>
                         <div className="flex shrink-0 gap-1">
                           {!o.assignedMemberId && (
                             <button
@@ -229,14 +258,19 @@ export default function TasksPage() {
                         onSwipe={() => completeDateless.mutate(task.$id)}
                       >
                       <div className="card flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">{task.title}</p>
-                        <p className="truncate text-sm text-slate-500">
+                      <button
+                        type="button"
+                        className="min-w-0 flex-1 text-left"
+                        aria-label={`Editar ${task.title}`}
+                        onClick={() => openEditor(task)}
+                      >
+                        <span className="block truncate font-medium">{task.title}</span>
+                        <span className="block truncate text-sm text-slate-500">
                           {memberName(task.assignmentMode === 'fixed' ? task.assignedMemberId : null)}
                           {` · ${taskCategoryLabels[task.category] ?? task.category}`}
                           {task.points > 1 && ` · ${task.points} pts`}
-                        </p>
-                      </div>
+                        </span>
+                      </button>
                       <div className="flex shrink-0 gap-1">
                         <button
                           className="btn-secondary !min-h-[36px] !px-2 text-sm"
@@ -248,7 +282,7 @@ export default function TasksPage() {
                         </button>
                         <button
                           className="btn-secondary !min-h-[36px] !px-2 text-sm"
-                          onClick={() => { setEditing(task); setShowForm(false); }}
+                          onClick={() => openEditor(task)}
                         >
                           Editar
                         </button>
@@ -272,16 +306,21 @@ export default function TasksPage() {
           <ul className="flex flex-col gap-2">
             {(tasks.data ?? []).map((task) => (
               <li key={task.$id} className={`card flex items-center justify-between gap-2 ${task.active ? '' : 'opacity-60'}`}>
-                <div>
-                  <p className="font-medium">{task.title}</p>
-                  <p className="text-sm text-slate-500">
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left"
+                  aria-label={`Editar ${task.title}`}
+                  onClick={() => openEditor(task)}
+                >
+                  <span className="block truncate font-medium">{task.title}</span>
+                  <span className="block text-sm text-slate-500">
                     {task.type === 'routine' && task.rrule ? describeRrule(task.rrule) : task.dueDate ? 'Data única' : 'Sem data'}
                     {' · '}
                     {taskCategoryLabels[task.category] ?? task.category}
                     {task.assignmentMode === 'rotation' && ' · revezamento'}
                     {!task.active && ' · pausada'}
-                  </p>
-                </div>
+                  </span>
+                </button>
                 <div className="flex gap-1">
                   <button
                     className="btn-secondary !min-h-[36px] !px-2 text-sm"
@@ -291,7 +330,7 @@ export default function TasksPage() {
                   </button>
                   <button
                     className="btn-secondary !min-h-[36px] !px-2 text-sm"
-                    onClick={() => { setEditing(task); setShowForm(false); }}
+                    onClick={() => openEditor(task)}
                   >
                     Editar
                   </button>
