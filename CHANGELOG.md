@@ -2,6 +2,21 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Vila ousada + Agenda com nomes
+
+### Added
+- **Nível máximo transformador**: a casinha vira **palácio** (torres com
+  cones em gradiente, bandeiras, sacadas e porta em arco) e a pracinha vira
+  **grande parque** (carrossel dourado, escorregador e roda-gigante que gira
+  devagar). Rótulos mudam para "Nosso palácio" e "Grande parque".
+- **Profundidade pseudo-3D**: faces laterais sombreadas e sombras de telhado
+  em todas as construções; gradientes (telhado, ouro, parede) via defs SVG.
+
+### Fixed
+- **Agenda mostrava "Membro Membro"**: filtro de pessoas agora usa a fonte
+  robusta (`useHouseholdPeople`) — aparecem os nomes reais e o avatar de cada
+  um nos chips de filtro.
+
 ## [Unreleased] — Avatares + vila que evolui
 
 ### Added

@@ -111,6 +111,20 @@ export default function VillageMap(props: VillageMapProps) {
     <div className="relative w-full overflow-hidden rounded-3xl border border-slate-200 shadow-md dark:border-slate-800" style={{ aspectRatio: '4 / 3' }}>
       <svg viewBox="0 0 400 300" className="block h-full w-full" aria-hidden="false">
         <title>Mapa da vila: toque num lugar para abrir o módulo</title>
+        <defs>
+          <linearGradient id="vmRoof" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#fb7185" />
+            <stop offset="1" stopColor="#be123c" />
+          </linearGradient>
+          <linearGradient id="vmGold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#fde047" />
+            <stop offset="1" stopColor="#f59e0b" />
+          </linearGradient>
+          <linearGradient id="vmWall" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#fff7ed" />
+            <stop offset="1" stopColor="#fed7aa" />
+          </linearGradient>
+        </defs>
 
         {/* céu segue o horário real de São Paulo */}
         <rect width="400" height="300" className={SKY_BY_PHASE[phase]} />
@@ -193,21 +207,19 @@ export default function VillageMap(props: VillageMapProps) {
           <path d="M192 245 q3 -1.5 6 0 q3 1.5 6 0" fill="none" strokeWidth="0.8" className="stroke-sky-400 dark:stroke-sky-700" />
         </g>
 
-        {/* cerquinha da casinha */}
-        <g className="fill-amber-600/80 dark:fill-amber-950">
-          <rect x="152" y="188" width="2.4" height="9" rx="1" />
-          <rect x="159" y="187" width="2.4" height="10" rx="1" />
-          <rect x="166" y="188" width="2.4" height="9" rx="1" />
-          <rect x="152" y="190.5" width="17" height="1.6" rx="0.8" />
-          {prog.house < 3 && (
-            <>
-              <rect x="232" y="188" width="2.4" height="9" rx="1" />
-              <rect x="239" y="187" width="2.4" height="10" rx="1" />
-              <rect x="246" y="188" width="2.4" height="9" rx="1" />
-              <rect x="232" y="190.5" width="17" height="1.6" rx="0.8" />
-            </>
-          )}
-        </g>
+        {/* cerquinha da casinha (o palácio dispensa cerca) */}
+        {prog.house < 3 && (
+          <g className="fill-amber-600/80 dark:fill-amber-950">
+            <rect x="152" y="188" width="2.4" height="9" rx="1" />
+            <rect x="159" y="187" width="2.4" height="10" rx="1" />
+            <rect x="166" y="188" width="2.4" height="9" rx="1" />
+            <rect x="152" y="190.5" width="17" height="1.6" rx="0.8" />
+            <rect x="232" y="188" width="2.4" height="9" rx="1" />
+            <rect x="239" y="187" width="2.4" height="10" rx="1" />
+            <rect x="246" y="188" width="2.4" height="9" rx="1" />
+            <rect x="232" y="190.5" width="17" height="1.6" rx="0.8" />
+          </g>
+        )}
 
         {/* árvores: copadas e pinheirinhos, espalhadas sem simetria */}
         <g>
@@ -304,7 +316,9 @@ export default function VillageMap(props: VillageMapProps) {
           <ellipse cx="0" cy="1" rx="30" ry="5" className="fill-emerald-700/15 dark:fill-black/30" />
           <rect x="-26" y="-4" width="52" height="5" rx="1.5" className="fill-slate-300 dark:fill-slate-600" />
           <rect x="-22" y="-30" width="44" height="26" className="fill-slate-100 dark:fill-slate-400" />
+          <rect x="17" y="-30" width="5" height="26" className="fill-slate-300/80 dark:fill-slate-500" />
           <path d="M-26 -30 L0 -44 L26 -30 Z" className="fill-slate-200 dark:fill-slate-500" />
+          <path d="M0 -44 L26 -30 L14 -30 Z" className="fill-slate-400/30 dark:fill-slate-600/50" />
           <circle cx="0" cy="-34" r="4" className="fill-amber-400" />
           <rect x="-19" y="-26" width="5" height="21" className="fill-white dark:fill-slate-300" />
           <rect x="-8" y="-26" width="5" height="21" className="fill-white dark:fill-slate-300" />
@@ -344,6 +358,7 @@ export default function VillageMap(props: VillageMapProps) {
         <g transform="translate(330 150)" {...go({ route: '/compras', aria: 'Mercado: abrir lista de compras' })}>
           <ellipse cx="0" cy="1" rx="30" ry="5" className="fill-emerald-700/15 dark:fill-black/30" />
           <rect x="-24" y="-26" width="48" height="26" rx="2" className="fill-emerald-50 dark:fill-slate-500" />
+          <rect x="19" y="-26" width="5" height="26" rx="2" className="fill-emerald-200/80 dark:fill-slate-600/80" />
           <g>
             <rect x="-24" y="-32" width="8" height="10" rx="2" className="fill-emerald-500 dark:fill-emerald-600" />
             <rect x="-16" y="-32" width="8" height="10" rx="2" className="fill-white dark:fill-slate-300" />
@@ -370,45 +385,79 @@ export default function VillageMap(props: VillageMapProps) {
               <circle cx="27" cy="-71" r="1.8" className="fill-slate-300/40 motion-safe:animate-pulse" />
             </g>
           )}
-          <rect x="16" y="-52" width="8" height="12" className="fill-rose-700 dark:fill-rose-800" />
-          <rect x="-30" y="-34" width="60" height="34" rx="2" className="fill-orange-50 dark:fill-slate-500" />
-          <path d="M-36 -34 L0 -58 L36 -34 Z" className="fill-rose-500 dark:fill-rose-600" />
-          <path d="M0 -40 c-1.6 -3 -6 -2.4 -6 0.6 c0 2.4 3.8 4.4 6 6 c2.2 -1.6 6 -3.6 6 -6 c0 -3 -4.4 -3.6 -6 -0.6 Z" className="fill-rose-300 dark:fill-rose-400" />
-          <rect x="-24" y="-26" width="11" height="9" rx="1" className={windowGlass} />
-          <rect x="13" y="-26" width="11" height="9" rx="1" className={windowGlass} />
-          <rect x="-7" y="-17" width="14" height="17" rx="2" className="fill-amber-700 dark:fill-amber-800" />
-          <circle cx="3" cy="-8" r="1.2" className="fill-amber-300" />
-          {/* nível 1: caixa de correio */}
-          {prog.house >= 1 && (
-            <g transform="translate(-44 0)">
-              <rect x="-0.8" y="-8" width="1.6" height="8" className="fill-amber-900" />
-              <rect x="-4" y="-13" width="8" height="5.5" rx="1.6" className="fill-rose-500 dark:fill-rose-600" />
-              <rect x="3" y="-15" width="1" height="4" className="fill-amber-400" />
-            </g>
-          )}
-          {/* nível 2: sótão com janelinha */}
-          {prog.house >= 2 && (
-            <g transform="translate(-14 -46)">
-              <rect x="-5" y="0" width="10" height="8" className="fill-orange-50 dark:fill-slate-500" />
-              <path d="M-7 0 L0 -6 L7 0 Z" className="fill-rose-600 dark:fill-rose-700" />
-              <circle cx="0" cy="4" r="2.2" className={windowGlass} />
-            </g>
-          )}
-          {/* nível 3: anexo lateral */}
-          {prog.house >= 3 && (
+          {prog.house >= 3 ? (
             <>
-              <rect x="30" y="-20" width="20" height="20" rx="1.5" className="fill-orange-50 dark:fill-slate-500" />
-              <path d="M28 -20 L40 -31 L52 -20 Z" className="fill-rose-400 dark:fill-rose-500" />
-              <rect x="36" y="-14" width="8" height="7" rx="1" className={windowGlass} />
+              {/* PALÁCIO: corpo central + duas torres com cones e bandeiras */}
+              <ellipse cx="0" cy="2" rx="50" ry="6.5" className="fill-emerald-700/20 dark:fill-black/35" />
+              <rect x="-42" y="-52" width="14" height="52" rx="1" fill="url(#vmWall)" />
+              <rect x="28" y="-52" width="14" height="52" rx="1" fill="url(#vmWall)" />
+              <rect x="-42" y="-52" width="3" height="52" className="fill-orange-200/80" />
+              <rect x="39" y="-52" width="3" height="52" className="fill-orange-300/60" />
+              <path d="M-45 -52 L-35 -71 L-25 -52 Z" fill="url(#vmRoof)" />
+              <path d="M25 -52 L35 -71 L45 -52 Z" fill="url(#vmRoof)" />
+              <circle cx="-35" cy="-71.5" r="1.6" fill="url(#vmGold)" />
+              <circle cx="35" cy="-71.5" r="1.6" fill="url(#vmGold)" />
+              <rect x="-35.5" y="-80" width="1" height="8" className="fill-stone-500" />
+              <path d="M-34.5 -80 L-27.5 -77.6 L-34.5 -75.2 Z" className="fill-rose-400" />
+              <rect x="34.5" y="-80" width="1" height="8" className="fill-stone-500" />
+              <path d="M35.5 -80 L42.5 -77.6 L35.5 -75.2 Z" className="fill-sky-400" />
+              <rect x="-38" y="-44" width="6" height="9" rx="3" className={windowGlass} />
+              <rect x="32" y="-44" width="6" height="9" rx="3" className={windowGlass} />
+              <rect x="-38" y="-26" width="6" height="9" rx="3" className={windowGlass} />
+              <rect x="32" y="-26" width="6" height="9" rx="3" className={windowGlass} />
+              <rect x="-27" y="-36" width="54" height="36" fill="url(#vmWall)" />
+              <rect x="22" y="-36" width="5" height="36" className="fill-orange-300/50" />
+              <path d="M-31 -36 L0 -57 L31 -36 Z" fill="url(#vmRoof)" />
+              <path d="M0 -42 c-1.6 -3 -6 -2.4 -6 0.6 c0 2.4 3.8 4.4 6 6 c2.2 -1.6 6 -3.6 6 -6 c0 -3 -4.4 -3.6 -6 -0.6 Z" className="fill-rose-200" />
+              <rect x="-19" y="-28" width="10" height="9" rx="1" className={windowGlass} />
+              <rect x="9" y="-28" width="10" height="9" rx="1" className={windowGlass} />
+              <rect x="-20" y="-18.5" width="12" height="1.6" rx="0.8" className="fill-amber-500" />
+              <rect x="8" y="-18.5" width="12" height="1.6" rx="0.8" className="fill-amber-500" />
+              <path d="M-7 0 v-11 a7 7 0 0 1 14 0 v11 Z" className="fill-amber-800 dark:fill-amber-900" />
+              <circle cx="4" cy="-6" r="1.2" fill="url(#vmGold)" />
+              <rect x="-12" y="0" width="24" height="3" rx="1" className="fill-stone-300 dark:fill-slate-600" />
+            </>
+          ) : (
+            <>
+              <rect x="16" y="-52" width="8" height="12" className="fill-rose-700 dark:fill-rose-800" />
+              <rect x="-30" y="-34" width="60" height="34" rx="2" className="fill-orange-50 dark:fill-slate-500" />
+              {/* faces sombreadas: profundidade */}
+              <rect x="25" y="-34" width="5" height="34" className="fill-orange-200/70 dark:fill-slate-600/80" />
+              <path d="M-36 -34 L0 -58 L36 -34 Z" className="fill-rose-500 dark:fill-rose-600" />
+              <path d="M0 -58 L36 -34 L22 -34 Z" className="fill-rose-700/30 dark:fill-rose-900/40" />
+              <path d="M0 -40 c-1.6 -3 -6 -2.4 -6 0.6 c0 2.4 3.8 4.4 6 6 c2.2 -1.6 6 -3.6 6 -6 c0 -3 -4.4 -3.6 -6 -0.6 Z" className="fill-rose-300 dark:fill-rose-400" />
+              <rect x="-24" y="-26" width="11" height="9" rx="1" className={windowGlass} />
+              <rect x="13" y="-26" width="11" height="9" rx="1" className={windowGlass} />
+              <rect x="-7" y="-17" width="14" height="17" rx="2" className="fill-amber-700 dark:fill-amber-800" />
+              <circle cx="3" cy="-8" r="1.2" className="fill-amber-300" />
+              {/* nível 1: caixa de correio */}
+              {prog.house >= 1 && (
+                <g transform="translate(-44 0)">
+                  <rect x="-0.8" y="-8" width="1.6" height="8" className="fill-amber-900" />
+                  <rect x="-4" y="-13" width="8" height="5.5" rx="1.6" className="fill-rose-500 dark:fill-rose-600" />
+                  <rect x="3" y="-15" width="1" height="4" className="fill-amber-400" />
+                </g>
+              )}
+              {/* nível 2: sótão com janelinha */}
+              {prog.house >= 2 && (
+                <g transform="translate(-14 -46)">
+                  <rect x="-5" y="0" width="10" height="8" className="fill-orange-50 dark:fill-slate-500" />
+                  <path d="M-7 0 L0 -6 L7 0 Z" className="fill-rose-600 dark:fill-rose-700" />
+                  <circle cx="0" cy="4" r="2.2" className={windowGlass} />
+                </g>
+              )}
             </>
           )}
-          <text x="0" y="18" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Nossa casinha</text>
+          <text x="0" y="18" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">
+            {prog.house >= 3 ? 'Nosso palácio' : 'Nossa casinha'}
+          </text>
         </g>
 
         {/* Academia -> Treinos */}
         <g transform="translate(75 255)" {...go({ route: '/academia', aria: 'Academia: abrir treinos' })}>
           <ellipse cx="0" cy="1" rx="32" ry="5" className="fill-emerald-700/15 dark:fill-black/30" />
           <rect x="-26" y="-24" width="52" height="24" rx="2" className="fill-violet-100 dark:fill-slate-500" />
+          <rect x="21" y="-24" width="5" height="24" rx="2" className="fill-violet-200 dark:fill-slate-600/80" />
           <rect x="-28" y="-29" width="56" height="6" rx="2" className="fill-violet-500 dark:fill-violet-600" />
           <rect x="-21" y="-22" width="3" height="8" rx="1" className="fill-slate-700 dark:fill-slate-800" />
           <rect x="-8" y="-22" width="3" height="8" rx="1" className="fill-slate-700 dark:fill-slate-800" />
@@ -463,7 +512,9 @@ export default function VillageMap(props: VillageMapProps) {
               <path d="M10 -17 l3.2 -0.5 l-1.3 3.6 Z" className="fill-violet-400" />
             </g>
           )}
-          <text x="0" y="16" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Pracinha</text>
+          <text x="0" y="16" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">
+            {prog.park >= 3 ? 'Grande parque' : 'Pracinha'}
+          </text>
         </g>
 
         {/* pracinha nível 1+: balanço ao lado do coreto */}
@@ -483,13 +534,40 @@ export default function VillageMap(props: VillageMapProps) {
             <circle cx="3.1" cy="-2.8" r="0.4" className="fill-slate-800" />
           </g>
         )}
-        {/* pracinha nível 3: escorregador */}
+        {/* pracinha nível 3: vira GRANDE PARQUE — escorregador, carrossel e roda-gigante */}
         {prog.park >= 3 && (
-          <g transform="translate(354 238)">
-            <rect x="-1" y="-11" width="2" height="11" className="fill-stone-400" />
-            <path d="M-4 -9 h6 M-4 -6 h6 M-4 -3 h6" fill="none" strokeWidth="0.9" className="stroke-stone-500" />
-            <path d="M0 -10 C7 -7 9 -3 14 1 L9 2 C5 -1 3 -4 -1 -7 Z" className="fill-sky-400 dark:fill-sky-600" />
-          </g>
+          <>
+            <g transform="translate(300 274)">
+              <rect x="-1" y="-11" width="2" height="11" className="fill-stone-400" />
+              <path d="M-4 -9 h6 M-4 -6 h6 M-4 -3 h6" fill="none" strokeWidth="0.9" className="stroke-stone-500" />
+              <path d="M0 -10 C7 -7 9 -3 14 1 L9 2 C5 -1 3 -4 -1 -7 Z" className="fill-sky-400 dark:fill-sky-600" />
+            </g>
+            <g transform="translate(262 256)">
+              <ellipse cx="0" cy="1" rx="8" ry="2.6" className="fill-stone-300 dark:fill-slate-600" />
+              <rect x="-0.7" y="-16" width="1.4" height="17" className="fill-stone-500" />
+              <path d="M-9 -12 L0 -21 L9 -12 Z" fill="url(#vmGold)" />
+              <path d="M-9 -12 L-4.5 -16.5 L0 -12 Z M0 -12 L4.5 -16.5 L9 -12 Z" className="fill-rose-400" />
+              <circle cx="-4" cy="-6" r="1.6" className="fill-violet-400" />
+              <circle cx="4" cy="-7.5" r="1.6" className="fill-sky-400" />
+            </g>
+            <g transform="translate(369 224)">
+              <path d="M0 0 L-7 25 M0 0 L7 25" fill="none" strokeWidth="1.6" strokeLinecap="round" className="stroke-stone-500" />
+              <g
+                className="motion-safe:animate-[spin_18s_linear_infinite]"
+                style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+              >
+                <circle cx="0" cy="0" r="13" fill="none" strokeWidth="1.4" className="stroke-stone-400 dark:stroke-stone-500" />
+                <path d="M0 -13 V13 M-13 0 H13 M-9.2 -9.2 L9.2 9.2 M-9.2 9.2 L9.2 -9.2" strokeWidth="0.9" className="stroke-stone-400/80 dark:stroke-stone-500" />
+                <circle cx="0" cy="-13" r="2" className="fill-rose-400" />
+                <circle cx="13" cy="0" r="2" className="fill-sky-400" />
+                <circle cx="0" cy="13" r="2" className="fill-amber-400" />
+                <circle cx="-13" cy="0" r="2" className="fill-violet-400" />
+                <circle cx="9.2" cy="-9.2" r="2" className="fill-emerald-400" />
+                <circle cx="-9.2" cy="9.2" r="2" className="fill-orange-400" />
+              </g>
+              <circle cx="0" cy="0" r="1.6" className="fill-stone-500" />
+            </g>
+          </>
         )}
 
         {/* bichinhos aparecem conforme a vila cresce */}

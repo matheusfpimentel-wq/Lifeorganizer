@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { useActiveHousehold, useHouseholdMembers, useProfiles } from '@/features/households/hooks';
+import { useState } from 'react';
+import { useActiveHousehold, useHouseholdPeople } from '@/features/households/hooks';
+import { BuiltinAvatar } from '@/components/avatars';
 import {
   useCancelOccurrence,
   useCreateEvent,
@@ -26,9 +27,7 @@ export default function AgendaPage() {
   const createEvent = useCreateEvent(householdId);
   const deleteEvent = useDeleteEvent(householdId);
   const cancelOccurrence = useCancelOccurrence(householdId);
-  const { data: members } = useHouseholdMembers(householdId);
-  const memberIds = useMemo(() => (members ?? []).map((m) => m.userId), [members]);
-  const { data: profiles } = useProfiles(memberIds);
+  const { people, profileById } = useHouseholdPeople(householdId);
 
   const memberFilter = useUiStore((s) => s.memberFilter);
   const setMemberFilter = useUiStore((s) => s.setMemberFilter);
@@ -41,9 +40,8 @@ export default function AgendaPage() {
   const [showRoutine, setShowRoutine] = useState(true);
 
   const now = new Date();
-  const memberName = (id: string) => profiles?.get(id)?.displayName ?? 'Membro';
-  const memberColor = (id: string) => profiles?.get(id)?.color ?? '#64748b';
-  const memberOptions = memberIds.map((id) => ({ id, name: memberName(id) }));
+  const memberColor = (id: string) => people.find((p) => p.id === id)?.color ?? '#64748b';
+  const memberOptions = people.map((p) => ({ id: p.id, name: p.name }));
 
   const eventById = new Map((events.data ?? []).map((e) => [e.$id, e]));
 
@@ -88,21 +86,26 @@ export default function AgendaPage() {
         >
           Todos
         </button>
-        {memberIds.map((id) => (
-          <button
-            key={id}
-            className="flex items-center gap-1 rounded-full px-3 py-1 text-sm"
-            style={
-              memberFilter === id
-                ? { backgroundColor: memberColor(id), color: '#fff' }
-                : { backgroundColor: 'rgb(241 245 249)' }
-            }
-            onClick={() => setMemberFilter(memberFilter === id ? null : id)}
-          >
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: memberColor(id) }} />
-            {memberName(id).split(' ')[0]}
-          </button>
-        ))}
+        {people.map((p) => {
+          const avatar = profileById.get(p.id)?.avatar as string | undefined;
+          return (
+            <button
+              key={p.id}
+              className={`flex items-center gap-1.5 rounded-full py-1 pl-1.5 pr-3 text-sm transition-transform active:scale-95 ${memberFilter === p.id ? 'text-white' : 'bg-slate-100 dark:bg-slate-800'}`}
+              style={memberFilter === p.id ? { backgroundColor: p.color ?? '#64748b' } : undefined}
+              onClick={() => setMemberFilter(memberFilter === p.id ? null : p.id)}
+            >
+              {avatar ? (
+                <BuiltinAvatar slug={avatar} className="h-5 w-5 rounded-full" />
+              ) : (
+                <span className="h-5 w-5 rounded-full text-center text-[11px] font-bold leading-5 text-white" style={{ backgroundColor: p.color ?? '#64748b' }}>
+                  {p.name.slice(0, 1).toUpperCase()}
+                </span>
+              )}
+              {p.name.split(' ')[0]}
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
