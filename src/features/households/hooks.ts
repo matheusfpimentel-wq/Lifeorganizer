@@ -55,15 +55,22 @@ export function useProfiles(userIds: string[]) {
   return useQuery({
     queryKey: ['profiles', [...userIds].sort()],
     enabled: userIds.length > 0,
-    queryFn: async () => {
+    // A query GUARDA um array (serializável no localStorage); o Map é montado no
+    // `select`. Retornar um Map direto quebra a persistência: JSON.stringify(Map)
+    // vira "{}" e, ao reidratar, `.get` não existe (TypeError).
+    queryFn: async (): Promise<Array<Profile & { $id: string }>> => {
       const result = await tablesDB.listRows({
         databaseId: DB_ID,
         tableId: TABLES.profiles,
         queries: [Query.equal('userId', userIds), Query.limit(100)],
       });
+      return result.rows as unknown as Array<Profile & { $id: string }>;
+    },
+    select: (rows): Map<string, Profile & { $id: string }> => {
       const map = new Map<string, Profile & { $id: string }>();
-      for (const row of result.rows) {
-        map.set(row.userId as string, row as unknown as Profile & { $id: string });
+      // defensivo contra cache antigo corrompido (objeto no lugar de array)
+      if (Array.isArray(rows)) {
+        for (const row of rows) map.set(row.userId, row);
       }
       return map;
     },

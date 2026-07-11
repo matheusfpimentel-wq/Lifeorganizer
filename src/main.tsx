@@ -31,7 +31,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister, maxAge: 24 * 60 * 60 * 1000 }}
+      // buster: muda quando o formato do cache muda, descartando cache antigo
+      // (ex.: profiles serializado como Map corrompido em versões anteriores).
+      persistOptions={{ persister, maxAge: 24 * 60 * 60 * 1000, buster: 'v2-arrays' }}
     >
       <AuthProvider>
         <BrowserRouter basename={import.meta.env.BASE_URL}>
