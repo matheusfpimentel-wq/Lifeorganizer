@@ -13,7 +13,7 @@ const NAV_ITEMS: { to: string; label: string; icon: IconType }[] = [
   { to: '/agenda', label: 'Agenda', icon: Icon.Calendar },
   { to: '/tarefas', label: 'Tarefas', icon: Icon.CheckSquare },
   { to: '/compras', label: 'Mercado', icon: Icon.Store },
-  { to: '/contas', label: 'Banco', icon: Icon.Bank },
+  { to: '/contas', label: 'Contas', icon: Icon.Bank },
 ];
 
 const MENU_ITEMS: { to: string; label: string; icon: IconType }[] = [

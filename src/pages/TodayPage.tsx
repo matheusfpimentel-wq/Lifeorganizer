@@ -7,9 +7,10 @@ import { useActiveList, useListItems } from '@/features/shopping/hooks';
 import { useBalances } from '@/features/expenses/hooks';
 import { useCreateEvent, useEvents } from '@/features/events/hooks';
 import { expandEventOccurrences, type EventInput } from '@/core/calendar';
-import { formatCentsBRL, formatTime, greeting, saoPauloDayBoundsUtc } from '@/lib/format';
+import { formatTime, greeting, saoPauloDayBoundsUtc } from '@/lib/format';
 import { formatDate } from '@/lib/format';
 import { Icon } from '@/components/icons';
+import VillageMap from '@/components/VillageMap';
 
 export default function TodayPage() {
   const { user } = useAuth();
@@ -46,6 +47,13 @@ export default function TodayPage() {
 
   const pendingItems = (items.data ?? []).filter((i) => !i.checked).length;
   const myBalance = user ? (balances.get(user.$id) ?? 0) : 0;
+
+  // próximo evento de hoje ainda por vir (para a plaquinha da pracinha)
+  const now = new Date();
+  const upcomingEvent = todayEvents.find((o) => new Date(o.startAt) >= now);
+  const nextEventLabel = upcomingEvent
+    ? `${formatTime(upcomingEvent.startAt)} ${eventTitle(upcomingEvent.eventId)}`
+    : null;
 
   // próximo "dia de compras" já agendado (evento futuro cujo título começa com "Compras")
   const nextShoppingEvent = (events.data ?? [])
@@ -85,34 +93,14 @@ export default function TodayPage() {
         </p>
       </div>
 
-      {/* Banco + Mercado */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          to="/contas"
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-md"
-        >
-          <Icon.Bank className="h-6 w-6 opacity-80" />
-          <p className="mt-3 text-xs uppercase tracking-wide opacity-70">Meu saldo</p>
-          <p className="text-xl font-bold">{balancesLoading ? '—' : formatCentsBRL(myBalance)}</p>
-          <p className="mt-0.5 text-xs opacity-80">
-            {myBalance < 0 ? 'você deve' : myBalance > 0 ? 'a receber' : 'tudo certo'}
-          </p>
-          <Icon.Banknote className="absolute -bottom-3 -right-3 h-20 w-20 opacity-10" />
-        </Link>
-
-        <Link
-          to="/compras"
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-4 text-white shadow-md"
-        >
-          <Icon.Store className="h-6 w-6 opacity-80" />
-          <p className="mt-3 text-xs uppercase tracking-wide opacity-70">Mercado</p>
-          <p className="text-xl font-bold">{pendingItems}</p>
-          <p className="mt-0.5 text-xs opacity-80">
-            {pendingItems === 1 ? 'item na lista' : 'itens na lista'}
-          </p>
-          <Icon.Cart className="absolute -bottom-3 -right-3 h-20 w-20 opacity-10" />
-        </Link>
-      </div>
+      {/* mapa da vila: casinha no centro, caminhos para cada módulo */}
+      <VillageMap
+        balanceCents={balancesLoading ? null : myBalance}
+        marketCount={pendingItems}
+        todayTasks={todayOccurrences.length}
+        overdueTasks={overdue.length}
+        nextEventLabel={nextEventLabel}
+      />
 
       {/* dia de compras -> agenda */}
       <section className="card flex flex-col gap-2">
@@ -235,17 +223,6 @@ export default function TodayPage() {
           </ul>
         )}
       </section>
-
-      <Link to="/academia" className="card flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon.Dumbbell className="h-5 w-5 text-orange-500" />
-          <div>
-            <h2 className="font-semibold">Treino de hoje</h2>
-            <p className="text-sm text-slate-500">Iniciar sessão pelo seu plano</p>
-          </div>
-        </div>
-        <Icon.ChevronRight className="h-5 w-5 text-slate-400" />
-      </Link>
     </div>
   );
 }

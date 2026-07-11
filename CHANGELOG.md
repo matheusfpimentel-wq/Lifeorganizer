@@ -2,6 +2,22 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — UX vila
+
+### Added
+- **Home como mapa da vila** (`src/components/VillageMap.tsx`): cena SVG
+  ilustrada com a casinha no centro e caminhos de pedrinhas para Banco
+  (Contas), Mercado (Compras), Academia e Pracinha (Agenda). Cada construção é
+  clicável (acessível por teclado) e tem plaquinha com dado ao vivo: saldo,
+  itens na lista, tarefas de hoje/atrasadas e próximo evento. No modo escuro a
+  vila anoitece: lua, estrelas e janelas acesas.
+
+### Changed
+- Navegação inferior volta a chamar o módulo financeiro de **"Contas"** (o
+  nome "Banco" fica só na metáfora do mapa).
+- Home: cartões de gradiente e atalho da academia substituídos pelo mapa
+  (dia de compras, atrasadas, tarefas e eventos de hoje continuam abaixo).
+
 ## [Unreleased] — F6 PWA / Polish
 
 ### Added
