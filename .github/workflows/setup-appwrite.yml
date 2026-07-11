@@ -35,5 +35,14 @@ jobs:
             exit 1
           fi
           npx appwrite client --endpoint "$ENDPOINT" --project-id "$PROJECT_ID" --key "$API_KEY"
-      - name: Push schema (database, tables, buckets, functions)
-        run: npx appwrite push all --force
+      # Empurra só tables (database + 19 tabelas) e functions. NÃO empurra
+      # 'settings' (exige sessão de console) nem 'buckets' (limite do plano Free
+      # — avatars/receipts entram na F5/F6). O primeiro push de tables é
+      # tolerante ao aviso "re-run to continue" que ocorre quando o CLI remove
+      # um database remoto divergente; o segundo conclui as criações.
+      - name: Push database + tables
+        run: |
+          npx appwrite push tables --force || true
+          npx appwrite push tables --force
+      - name: Push functions
+        run: npx appwrite push functions --force
