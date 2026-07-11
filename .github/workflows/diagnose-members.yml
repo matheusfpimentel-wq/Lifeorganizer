@@ -1,0 +1,22 @@
+name: Diagnose members
+
+# Diagnóstico somente-leitura de teams/memberships/profiles (não altera nada).
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run diagnosis
+        env:
+          APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT || secrets.VITE_APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID || secrets.VITE_APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+        run: node scripts/diagnose-members.mjs

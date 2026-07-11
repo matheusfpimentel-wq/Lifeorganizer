@@ -164,8 +164,9 @@ export default function TaskForm({ members, initial, submitting, onSubmit, onCan
         </div>
       ) : (
         <div>
-          <label className="label" htmlFor="taskDue">Data</label>
-          <input id="taskDue" type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} required={type === 'specific'} />
+          <label className="label" htmlFor="taskDue">Data (opcional)</label>
+          <input id="taskDue" type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          <p className="mt-1 text-xs text-slate-500">Sem data, a tarefa fica em "Sem data" nas pendências até alguém concluir.</p>
         </div>
       )}
 

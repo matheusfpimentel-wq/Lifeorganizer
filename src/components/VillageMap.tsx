@@ -103,30 +103,108 @@ export default function VillageMap(props: VillageMapProps) {
         <path d="M0 130 Q100 98 200 122 T400 116 L400 300 L0 300 Z" className="fill-emerald-200 dark:fill-emerald-950" />
         <path d="M0 200 Q200 168 400 202 L400 300 L0 300 Z" className="fill-emerald-300/60 dark:fill-emerald-900/60" />
 
-        {/* caminhos de pedrinhas saindo da casinha */}
-        <g fill="none" strokeLinecap="round" strokeWidth="5" strokeDasharray="0.5 9" className="stroke-amber-500/70 dark:stroke-amber-300/30">
-          <path d="M196 190 Q140 180 72 152" />
-          <path d="M204 190 Q260 180 328 152" />
-          <path d="M194 192 Q135 235 80 253" />
-          <path d="M206 192 Q265 235 322 253" />
+        {/* caminhos de terra sinuosos saindo da casinha */}
+        <g fill="none" strokeLinecap="round">
+          <g strokeWidth="10" className="stroke-amber-700/35 dark:stroke-amber-950/60">
+            <path d="M197 196 C 168 208, 158 174, 128 182 C 102 189, 98 160, 74 151" />
+            <path d="M203 196 C 238 210, 244 172, 276 180 C 302 186, 304 158, 326 151" />
+            <path d="M196 198 C 178 228, 138 216, 120 236 C 106 251, 96 244, 82 253" />
+            <path d="M204 198 C 228 226, 264 212, 282 232 C 296 247, 306 242, 318 253" />
+          </g>
+          <g strokeWidth="6" className="stroke-amber-200 dark:stroke-amber-900/70">
+            <path d="M197 196 C 168 208, 158 174, 128 182 C 102 189, 98 160, 74 151" />
+            <path d="M203 196 C 238 210, 244 172, 276 180 C 302 186, 304 158, 326 151" />
+            <path d="M196 198 C 178 228, 138 216, 120 236 C 106 251, 96 244, 82 253" />
+            <path d="M204 198 C 228 226, 264 212, 282 232 C 296 247, 306 242, 318 253" />
+          </g>
         </g>
 
-        {/* árvores e canteiros */}
+        {/* pedrinhas ao longo dos caminhos */}
+        <g className="fill-amber-700/45 dark:fill-amber-950">
+          <ellipse cx="160" cy="188" rx="2" ry="1.3" />
+          <ellipse cx="112" cy="176" rx="1.7" ry="1.1" />
+          <ellipse cx="246" cy="186" rx="2" ry="1.3" />
+          <ellipse cx="292" cy="172" rx="1.7" ry="1.1" />
+          <ellipse cx="152" cy="222" rx="2" ry="1.3" />
+          <ellipse cx="258" cy="219" rx="1.8" ry="1.2" />
+        </g>
+
+        {/* laguinho */}
         <g>
-          <rect x="138" y="126" width="4" height="10" className="fill-amber-800" />
-          <circle cx="140" cy="120" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
-          <circle cx="135" cy="126" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
-          <rect x="262" y="124" width="4" height="10" className="fill-amber-800" />
-          <circle cx="264" cy="118" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
-          <circle cx="269" cy="124" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
-          <circle cx="32" cy="208" r="5" className="fill-emerald-500 dark:fill-emerald-800" />
-          <circle cx="40" cy="211" r="4" className="fill-emerald-400 dark:fill-emerald-700" />
-          <circle cx="368" cy="204" r="5" className="fill-emerald-500 dark:fill-emerald-800" />
-          <circle cx="360" cy="207" r="4" className="fill-emerald-400 dark:fill-emerald-700" />
-          <circle cx="160" cy="262" r="2" className="fill-rose-400" />
-          <circle cx="170" cy="268" r="2" className="fill-amber-400" />
-          <circle cx="238" cy="264" r="2" className="fill-rose-400" />
-          <circle cx="228" cy="270" r="2" className="fill-amber-400" />
+          <ellipse cx="200" cy="247" rx="19" ry="6.5" className="fill-sky-300 dark:fill-sky-900" />
+          <ellipse cx="200" cy="246" rx="14" ry="4.5" className="fill-sky-200 dark:fill-sky-800" />
+          <path d="M192 245 q3 -1.5 6 0 q3 1.5 6 0" fill="none" strokeWidth="0.8" className="stroke-sky-400 dark:stroke-sky-700" />
+        </g>
+
+        {/* cerquinha da casinha */}
+        <g className="fill-amber-600/80 dark:fill-amber-950">
+          <rect x="152" y="188" width="2.4" height="9" rx="1" />
+          <rect x="159" y="187" width="2.4" height="10" rx="1" />
+          <rect x="166" y="188" width="2.4" height="9" rx="1" />
+          <rect x="152" y="190.5" width="17" height="1.6" rx="0.8" />
+          <rect x="232" y="188" width="2.4" height="9" rx="1" />
+          <rect x="239" y="187" width="2.4" height="10" rx="1" />
+          <rect x="246" y="188" width="2.4" height="9" rx="1" />
+          <rect x="232" y="190.5" width="17" height="1.6" rx="0.8" />
+        </g>
+
+        {/* árvores: copadas e pinheirinhos, espalhadas sem simetria */}
+        <g>
+          <rect x="138" y="128" width="4" height="10" className="fill-amber-800" />
+          <circle cx="140" cy="121" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
+          <circle cx="134" cy="127" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+          <circle cx="146" cy="126" r="5" className="fill-emerald-600 dark:fill-emerald-900" />
+
+          <rect x="262" y="126" width="4" height="10" className="fill-amber-800" />
+          <circle cx="264" cy="119" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
+          <circle cx="270" cy="125" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+
+          <g transform="translate(34 118)">
+            <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
+            <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
+            <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
+            <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+          </g>
+          <g transform="translate(370 122) scale(0.8)">
+            <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
+            <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
+            <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
+            <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+          </g>
+          <g transform="translate(148 246) scale(0.7)">
+            <rect x="-1.7" y="16" width="3.4" height="7" className="fill-amber-900" />
+            <path d="M0 -12 L10 4 L-10 4 Z" className="fill-emerald-600 dark:fill-emerald-900" />
+            <path d="M0 -4 L12 12 L-12 12 Z" className="fill-emerald-500 dark:fill-emerald-800" />
+            <path d="M0 4 L14 18 L-14 18 Z" className="fill-emerald-400 dark:fill-emerald-700" />
+          </g>
+          <g transform="translate(252 258) scale(0.6)">
+            <rect x="-2" y="14" width="4" height="8" className="fill-amber-800" />
+            <circle cx="0" cy="6" r="10" className="fill-emerald-500 dark:fill-emerald-800" />
+            <circle cx="-7" cy="11" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
+          </g>
+
+          {/* moitas e tufos de grama */}
+          <circle cx="30" cy="210" r="5" className="fill-emerald-500 dark:fill-emerald-800" />
+          <circle cx="38" cy="213" r="4" className="fill-emerald-400 dark:fill-emerald-700" />
+          <circle cx="368" cy="206" r="5" className="fill-emerald-500 dark:fill-emerald-800" />
+          <circle cx="360" cy="209" r="4" className="fill-emerald-400 dark:fill-emerald-700" />
+          <circle cx="120" cy="158" r="3.4" className="fill-emerald-500/80 dark:fill-emerald-800" />
+          <circle cx="286" cy="156" r="3.4" className="fill-emerald-500/80 dark:fill-emerald-800" />
+          <g fill="none" strokeWidth="1.2" strokeLinecap="round" className="stroke-emerald-600/70 dark:stroke-emerald-700">
+            <path d="M96 200 q1 -4 0 -6 M99 200 q2 -3 4 -4 M93 200 q-2 -3 -4 -4" />
+            <path d="M304 196 q1 -4 0 -6 M307 196 q2 -3 4 -4 M301 196 q-2 -3 -4 -4" />
+            <path d="M178 154 q1 -3.4 0 -5 M181 154 q1.8 -2.6 3.4 -3.4" />
+          </g>
+
+          {/* florzinhas */}
+          <circle cx="162" cy="266" r="2" className="fill-rose-400" />
+          <circle cx="171" cy="271" r="2" className="fill-amber-400" />
+          <circle cx="236" cy="268" r="2" className="fill-rose-400" />
+          <circle cx="228" cy="273" r="2" className="fill-violet-400" />
+          <circle cx="58" cy="182" r="1.8" className="fill-rose-400" />
+          <circle cx="64" cy="186" r="1.8" className="fill-amber-400" />
+          <circle cx="342" cy="186" r="1.8" className="fill-violet-400" />
+          <circle cx="348" cy="182" r="1.8" className="fill-rose-400" />
         </g>
 
         {/* Banco -> Contas */}

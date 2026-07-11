@@ -51,6 +51,63 @@ export function useHouseholdMembers(teamId: string | null) {
   });
 }
 
+export interface Person {
+  id: string;
+  name: string;
+  color?: string;
+}
+
+/**
+ * Pessoas do lar, robusto contra a privacidade de memberships do Appwrite
+ * (que pode devolver `userId`/`userName`/`userEmail` vazios no client).
+ * Junta duas fontes: memberships confirmadas e os perfis legíveis pela
+ * permissão do time. Nunca devolve id vazio; nome cai em cascata
+ * perfil → nome do cadastro → e-mail → "Membro".
+ */
+export function useHouseholdPeople(teamId: string | null) {
+  const membersQuery = useHouseholdMembers(teamId);
+  const profilesQuery = useQuery({
+    queryKey: ['householdProfiles', teamId],
+    enabled: !!teamId,
+    queryFn: async (): Promise<Array<Profile & { $id: string }>> => {
+      const result = await tablesDB.listRows({
+        databaseId: DB_ID,
+        tableId: TABLES.profiles,
+        queries: [Query.limit(100)],
+      });
+      return result.rows as unknown as Array<Profile & { $id: string }>;
+    },
+  });
+
+  const confirmed = (membersQuery.data ?? []).filter((m) => m.confirm);
+  const membershipIds = confirmed.map((m) => m.userId).filter(Boolean);
+  const profiles = Array.isArray(profilesQuery.data) ? profilesQuery.data : [];
+  const profileById = new Map(profiles.filter((p) => p.userId).map((p) => [p.userId, p]));
+
+  // memberships completas -> usa os ids delas; caso contrário soma os perfis
+  // legíveis (fallback quando a API oculta o userId das memberships)
+  const ids =
+    membershipIds.length >= confirmed.length && membershipIds.length > 0
+      ? membershipIds
+      : [...new Set([...membershipIds, ...profileById.keys()])];
+
+  const people: Person[] = ids.map((id) => {
+    const membership = confirmed.find((m) => m.userId === id);
+    const profile = profileById.get(id);
+    return {
+      id,
+      name: profile?.displayName || membership?.userName || membership?.userEmail || 'Membro',
+      color: profile?.color,
+    };
+  });
+
+  return {
+    people,
+    profileById,
+    isLoading: membersQuery.isLoading || profilesQuery.isLoading,
+  };
+}
+
 export function useProfiles(userIds: string[]) {
   return useQuery({
     queryKey: ['profiles', [...userIds].sort()],

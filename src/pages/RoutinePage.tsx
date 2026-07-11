@@ -1,6 +1,6 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
-import { useActiveHousehold, useHouseholdMembers, useProfiles } from '@/features/households/hooks';
+import { useActiveHousehold, useHouseholdPeople } from '@/features/households/hooks';
 import {
   useCreateRoutineBlock,
   useDeleteRoutineBlock,
@@ -20,9 +20,7 @@ export default function RoutinePage() {
   const blocks = useRoutineBlocks(householdId);
   const createBlock = useCreateRoutineBlock(householdId);
   const deleteBlock = useDeleteRoutineBlock(householdId);
-  const { data: members } = useHouseholdMembers(householdId);
-  const memberIds = useMemo(() => (members ?? []).map((m) => m.userId), [members]);
-  const { data: profiles } = useProfiles(memberIds);
+  const { people } = useHouseholdPeople(householdId);
 
   const [showForm, setShowForm] = useState(false);
   const [onlyMe, setOnlyMe] = useState(false);
@@ -35,8 +33,8 @@ export default function RoutinePage() {
   const [endTime, setEndTime] = useState('10:00');
   const [target, setTarget] = useState<'me' | 'household' | string>('me');
 
-  const memberName = (id?: string | null) => (id ? profiles?.get(id)?.displayName ?? 'Membro' : 'Todos');
-  const memberColor = (id?: string | null) => (id ? profiles?.get(id)?.color ?? '#94a3b8' : '#94a3b8');
+  const memberName = (id?: string | null) => (id ? people.find((p) => p.id === id)?.name ?? 'Membro' : 'Todos');
+  const memberColor = (id?: string | null) => (id ? people.find((p) => p.id === id)?.color ?? '#94a3b8' : '#94a3b8');
 
   const visible = (blocks.data ?? []).filter(
     (b) => !onlyMe || b.memberId === user?.$id || !b.memberId,
@@ -93,8 +91,8 @@ export default function RoutinePage() {
               <select id="rbTarget" className="input" value={target} onChange={(e) => setTarget(e.target.value)}>
                 <option value="me">Eu</option>
                 <option value="household">Lar inteiro</option>
-                {memberIds.filter((id) => id !== user?.$id).map((id) => (
-                  <option key={id} value={id}>{memberName(id)}</option>
+                {people.filter((p) => p.id !== user?.$id).map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>

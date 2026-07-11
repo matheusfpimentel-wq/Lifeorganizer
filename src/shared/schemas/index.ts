@@ -252,10 +252,6 @@ export const taskSchema = z
     message: 'Tarefa rotineira exige recorrência',
     path: ['rrule'],
   })
-  .refine((t) => t.type !== 'specific' || !!t.dueDate, {
-    message: 'Tarefa específica exige data',
-    path: ['dueDate'],
-  })
   .refine((t) => t.assignmentMode !== 'fixed' || !!t.assignedMemberId, {
     message: 'Modo fixo exige responsável',
     path: ['assignedMemberId'],

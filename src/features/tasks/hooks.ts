@@ -82,11 +82,83 @@ export function useUpdateTask(householdId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mutationFn: async ({ taskId, data }: { taskId: string; data: Record<string, any> }) =>
-      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.tasks, rowId: taskId, data }),
+    mutationFn: async ({ taskId, data }: { taskId: string; data: Record<string, any> }) => {
+      const task = await tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.tasks, rowId: taskId, data });
+      // tarefa avulsa: mantém a ocorrência pendente em sincronia com a data
+      // (inclusive quando uma tarefa sem data ganha data depois)
+      if (householdId && data.type === 'specific' && data.dueDate) {
+        const pending = await listAllRows<OccurrenceRow>(TABLES.taskOccurrences, [
+          Query.equal('taskId', taskId),
+          Query.equal('status', 'pending'),
+        ]);
+        if (pending.length === 0) {
+          await tablesDB.createRow({
+            databaseId: DB_ID,
+            tableId: TABLES.taskOccurrences,
+            rowId: ID.unique(),
+            data: {
+              householdId,
+              taskId,
+              dueAt: data.dueDate,
+              assignedMemberId: data.assignmentMode === 'fixed' ? data.assignedMemberId : null,
+              status: 'pending',
+            },
+            permissions: withHouseholdPermissions(householdId),
+          });
+        } else if (pending[0].dueAt !== data.dueDate) {
+          await tablesDB.updateRow({
+            databaseId: DB_ID,
+            tableId: TABLES.taskOccurrences,
+            rowId: pending[0].$id,
+            data: { dueAt: data.dueDate },
+          });
+        }
+      }
+      return task;
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['tasks', householdId] });
       void queryClient.invalidateQueries({ queryKey: ['occurrences', householdId] });
+    },
+  });
+}
+
+/**
+ * Conclui uma tarefa avulsa sem data: registra uma ocorrência já concluída
+ * (conta pontos no equilíbrio) e desativa o modelo para sair das pendências.
+ */
+export function useCompleteDatelessTask(householdId: string | null) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (taskId: string) => {
+      if (!householdId) throw new Error('Nenhum lar ativo');
+      const now = new Date().toISOString();
+      await tablesDB.createRow({
+        databaseId: DB_ID,
+        tableId: TABLES.taskOccurrences,
+        rowId: ID.unique(),
+        data: {
+          householdId,
+          taskId,
+          dueAt: now,
+          status: 'done',
+          completedBy: user!.$id,
+          completedAt: now,
+        },
+        permissions: withHouseholdPermissions(householdId),
+      });
+      await tablesDB.updateRow({
+        databaseId: DB_ID,
+        tableId: TABLES.tasks,
+        rowId: taskId,
+        data: { active: false },
+      });
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['tasks', householdId] });
+      void queryClient.invalidateQueries({ queryKey: ['occurrences', householdId] });
+      void queryClient.invalidateQueries({ queryKey: ['taskBalance', householdId] });
     },
   });
 }

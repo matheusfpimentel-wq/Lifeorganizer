@@ -12,7 +12,24 @@ Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/A
   itens na lista, tarefas de hoje/atrasadas e próximo evento. No modo escuro a
   vila anoitece: lua, estrelas e janelas acesas.
 
+### Added
+- **Tarefa sem data**: a data da tarefa avulsa agora é opcional. Sem data, ela
+  fica no grupo "Sem data" das pendências até alguém concluir (a conclusão
+  registra ocorrência e conta pontos no equilíbrio). Editar e adicionar data
+  depois cria/move a ocorrência automaticamente.
+- **Diagnóstico de membros** (`scripts/diagnose-members.mjs` + workflow
+  somente-leitura) para inspecionar teams/memberships/profiles pelo servidor.
+
 ### Fixed
+- **Membros "Membro" e despesa com id vazio**: novo hook `useHouseholdPeople`
+  une memberships confirmadas + perfis legíveis do lar; nunca produz
+  participante com id vazio (causa do erro Zod ao lançar despesa) e resolve o
+  nome em cascata (perfil → nome do cadastro → e-mail). Aplicado em Contas,
+  Tarefas e Rotina.
+- Vila mais orgânica: caminhos de terra sinuosos com pedrinhas (no lugar do
+  pontilhado reto), pinheirinhos e copadas variadas, cerquinha na casinha,
+  laguinho, tufos de grama e mais flores.
+- Ícone de lixeira substitui o emoji no excluir tarefa.
 - **Auto-recuperação após deploy**: se o app estava aberto durante uma
   publicação e tenta carregar um chunk antigo ("Importing a module script
   failed"), o ErrorBoundary agora recarrega a página sozinho (uma vez, com

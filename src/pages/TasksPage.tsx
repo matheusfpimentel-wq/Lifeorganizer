@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
-import { useActiveHousehold, useHouseholdMembers, useProfiles } from '@/features/households/hooks';
+import { useState } from 'react';
+import { useActiveHousehold, useHouseholdPeople } from '@/features/households/hooks';
 import {
+  useCompleteDatelessTask,
   useCreateTask,
   useDeleteTask,
   useOccurrences,
@@ -52,27 +53,27 @@ export default function TasksPage() {
   const tasks = useTasks(householdId, true);
   const occurrences = useOccurrences(householdId);
   const action = useOccurrenceAction(householdId);
+  const completeDateless = useCompleteDatelessTask(householdId);
   const createTask = useCreateTask(householdId);
   const updateTask = useUpdateTask(householdId);
   const deleteTask = useDeleteTask(householdId);
-  const { data: members } = useHouseholdMembers(householdId);
-  const memberIds = useMemo(() => (members ?? []).map((m) => m.userId), [members]);
-  const { data: profiles } = useProfiles(memberIds);
+  const { people } = useHouseholdPeople(householdId);
 
   const [tab, setTab] = useState<Tab>('pending');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<TaskRow | null>(null);
 
   const memberName = (id?: string | null) =>
-    id ? (profiles?.get(id)?.displayName ?? 'Membro') : 'Sem dono';
-  const memberOptions = memberIds.map((id) => ({
-    id,
-    name: memberName(id),
-    color: profiles?.get(id)?.color,
-  }));
+    id ? (people.find((p) => p.id === id)?.name ?? 'Membro') : 'Sem dono';
+  const memberOptions = people.map((p) => ({ id: p.id, name: p.name, color: p.color }));
 
   const pending = (occurrences.data ?? []).filter((o) => o.status === 'pending');
   const taskById = new Map((tasks.data ?? []).map((t) => [t.$id, t]));
+
+  // tarefas avulsas sem data: não têm ocorrência, vivem no grupo "Sem data"
+  const datelessTasks = (tasks.data ?? []).filter(
+    (t) => t.active && t.type === 'specific' && !t.dueDate,
+  );
 
   function handleSubmit(values: TaskFormValues) {
     if (editing) {
@@ -139,7 +140,7 @@ export default function TasksPage() {
       {tab === 'pending' &&
         (occurrences.isLoading ? (
           <div className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
-        ) : pending.length === 0 ? (
+        ) : pending.length === 0 && datelessTasks.length === 0 ? (
           <div className="card flex flex-col items-center gap-2 py-8 text-center text-slate-500">
             <Icon.CheckSquare className="h-8 w-8 text-slate-300" />
             <p>Nenhuma tarefa pendente.</p>
@@ -202,6 +203,44 @@ export default function TasksPage() {
                 </ul>
               </section>
             ))}
+
+            {datelessTasks.length > 0 && (
+              <section>
+                <h2 className="mb-1.5 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Sem data
+                </h2>
+                <ul className="flex flex-col gap-2">
+                  {datelessTasks.map((task) => (
+                    <li key={task.$id} className="card flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{task.title}</p>
+                        <p className="truncate text-sm text-slate-500">
+                          {memberName(task.assignmentMode === 'fixed' ? task.assignedMemberId : null)}
+                          {` · ${taskCategoryLabels[task.category] ?? task.category}`}
+                          {task.points > 1 && ` · ${task.points} pts`}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 gap-1">
+                        <button
+                          className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                          aria-label="Concluir"
+                          onClick={() => completeDateless.mutate(task.$id)}
+                          disabled={completeDateless.isPending}
+                        >
+                          <Icon.Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                          onClick={() => { setEditing(task); setShowForm(false); }}
+                        >
+                          Editar
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
         ))}
 
@@ -217,7 +256,7 @@ export default function TasksPage() {
                 <div>
                   <p className="font-medium">{task.title}</p>
                   <p className="text-sm text-slate-500">
-                    {task.type === 'routine' && task.rrule ? describeRrule(task.rrule) : 'Data única'}
+                    {task.type === 'routine' && task.rrule ? describeRrule(task.rrule) : task.dueDate ? 'Data única' : 'Sem data'}
                     {' · '}
                     {taskCategoryLabels[task.category] ?? task.category}
                     {task.assignmentMode === 'rotation' && ' · revezamento'}
@@ -244,7 +283,7 @@ export default function TasksPage() {
                       if (confirm(`Excluir "${task.title}" e suas ocorrências?`)) deleteTask.mutate(task.$id);
                     }}
                   >
-                    🗑
+                    <Icon.Trash className="h-4 w-4" />
                   </button>
                 </div>
               </li>

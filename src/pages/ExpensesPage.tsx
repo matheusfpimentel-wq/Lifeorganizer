@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
-import { useActiveHousehold, useHouseholdMembers, useProfiles } from '@/features/households/hooks';
+import { useActiveHousehold, useHouseholdPeople } from '@/features/households/hooks';
 import {
   useBalances,
   useConfirmExpense,
@@ -30,24 +30,19 @@ export default function ExpensesPage() {
   const createSettlement = useCreateSettlement(householdId);
   const confirmExpense = useConfirmExpense(householdId);
   const deleteExpense = useDeleteExpense(householdId);
-  const { data: members } = useHouseholdMembers(householdId);
-  const memberIds = useMemo(
-    () => (members ?? []).filter((m) => m.confirm).map((m) => m.userId),
-    [members],
-  );
-  const { data: profiles } = useProfiles(memberIds);
+  const { people: memberOptions, profileById } = useHouseholdPeople(householdId);
 
   const [tab, setTab] = useState<Tab>('summary');
   const [showForm, setShowForm] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const report = useMonthlyReport(householdId, 0);
 
-  const memberName = (id: string) => profiles?.get(id)?.displayName ?? 'Membro';
-  const memberOptions = memberIds.map((id) => ({ id, name: memberName(id) }));
+  const memberName = (id: string) =>
+    memberOptions.find((p) => p.id === id)?.name ?? profileById.get(id)?.displayName ?? 'Membro';
   const myBalance = user ? (balances.get(user.$id) ?? 0) : 0;
 
   function handlePixCharge(toMember: string, amountCents: number) {
-    const creditorProfile = profiles?.get(toMember);
+    const creditorProfile = profileById.get(toMember);
     if (!creditorProfile?.pixKey) {
       alert(`${memberName(toMember)} ainda não cadastrou a chave Pix no perfil.`);
       return;
