@@ -41,3 +41,8 @@ export const equipmentLabels: Record<string, string> = {
   barra: 'Barra', halter: 'Halter', maquina: 'Máquina', polia: 'Polia',
   pesoCorporal: 'Peso corporal', kettlebell: 'Kettlebell', elastico: 'Elástico', outro: 'Outro',
 };
+
+export const techniqueLabels: Record<string, string> = {
+  normal: 'Normal', aquecimento: 'Aquecimento', dropset: 'Drop set',
+  restPause: 'Rest-pause', falha: 'Até a falha', superset: 'Super set', isometria: 'Isometria',
+};

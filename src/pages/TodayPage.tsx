@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useActiveHousehold, useMyProfile } from '@/features/households/hooks';
 import { useOccurrences, useOccurrenceAction, useTasks } from '@/features/tasks/hooks';
 import { useActiveList, useListItems } from '@/features/shopping/hooks';
 import { useBalances } from '@/features/expenses/hooks';
+import { useCreateEvent, useEvents } from '@/features/events/hooks';
+import { expandEventOccurrences, type EventInput } from '@/core/calendar';
 import { formatCentsBRL, formatTime, greeting, saoPauloDayBoundsUtc } from '@/lib/format';
+import { formatDate } from '@/lib/format';
+import { Icon } from '@/components/icons';
 
 export default function TodayPage() {
   const { user } = useAuth();
@@ -16,13 +21,15 @@ export default function TodayPage() {
   const activeList = useActiveList(householdId);
   const items = useListItems(activeList.data?.$id ?? null);
   const { balances, isLoading: balancesLoading } = useBalances(householdId);
+  const events = useEvents(householdId);
+  const createEvent = useCreateEvent(householdId);
+
+  const [pickingDay, setPickingDay] = useState(false);
+  const [shoppingDay, setShoppingDay] = useState('');
 
   const { start, end } = saoPauloDayBoundsUtc();
   const todayOccurrences = (occurrences.data ?? []).filter(
-    (o) =>
-      o.status === 'pending' &&
-      new Date(o.dueAt) >= start &&
-      new Date(o.dueAt) <= end,
+    (o) => o.status === 'pending' && new Date(o.dueAt) >= start && new Date(o.dueAt) <= end,
   );
   const overdue = (occurrences.data ?? []).filter(
     (o) => o.status === 'pending' && new Date(o.dueAt) < start,
@@ -30,18 +37,127 @@ export default function TodayPage() {
   const taskTitle = (taskId: string) =>
     tasksQuery.data?.find((t) => t.$id === taskId)?.title ?? 'Tarefa';
 
+  const todayEvents = expandEventOccurrences(
+    (events.data ?? []) as unknown as EventInput[],
+    start,
+    end,
+  );
+  const eventTitle = (id: string) => events.data?.find((e) => e.$id === id)?.title ?? 'Evento';
+
   const pendingItems = (items.data ?? []).filter((i) => !i.checked).length;
   const myBalance = user ? (balances.get(user.$id) ?? 0) : 0;
 
+  // próximo "dia de compras" já agendado (evento futuro cujo título começa com "Compras")
+  const nextShoppingEvent = (events.data ?? [])
+    .filter((e) => (e.title as string).toLowerCase().startsWith('compras') && new Date(e.startAt) >= start)
+    .sort((a, b) => String(a.startAt).localeCompare(String(b.startAt)))[0];
+
+  function scheduleShoppingDay() {
+    if (!shoppingDay) return;
+    const startAt = new Date(`${shoppingDay}T10:00:00-03:00`);
+    createEvent.mutate(
+      {
+        title: 'Compras do mercado',
+        startAt: startAt.toISOString(),
+        endAt: new Date(startAt.getTime() + 90 * 60 * 1000).toISOString(),
+        allDay: false,
+        memberIds: [],
+        reminderMinutes: [60],
+        rrule: null,
+      },
+      { onSuccess: () => { setPickingDay(false); setShoppingDay(''); } },
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold">
-        {greeting()}, {profile?.displayName?.split(' ')[0] ?? ''}!
-      </h1>
+      <div>
+        <h1 className="text-2xl font-bold">
+          {greeting()}, {profile?.displayName?.split(' ')[0] ?? ''}
+        </h1>
+        <p className="text-sm text-slate-500">
+          {new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            weekday: 'long',
+            day: '2-digit',
+            month: 'long',
+          }).format(new Date())}
+        </p>
+      </div>
+
+      {/* Banco + Mercado */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          to="/contas"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-md"
+        >
+          <Icon.Bank className="h-6 w-6 opacity-80" />
+          <p className="mt-3 text-xs uppercase tracking-wide opacity-70">Meu saldo</p>
+          <p className="text-xl font-bold">{balancesLoading ? '—' : formatCentsBRL(myBalance)}</p>
+          <p className="mt-0.5 text-xs opacity-80">
+            {myBalance < 0 ? 'você deve' : myBalance > 0 ? 'a receber' : 'tudo certo'}
+          </p>
+          <Icon.Banknote className="absolute -bottom-3 -right-3 h-20 w-20 opacity-10" />
+        </Link>
+
+        <Link
+          to="/compras"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-4 text-white shadow-md"
+        >
+          <Icon.Store className="h-6 w-6 opacity-80" />
+          <p className="mt-3 text-xs uppercase tracking-wide opacity-70">Mercado</p>
+          <p className="text-xl font-bold">{pendingItems}</p>
+          <p className="mt-0.5 text-xs opacity-80">
+            {pendingItems === 1 ? 'item na lista' : 'itens na lista'}
+          </p>
+          <Icon.Cart className="absolute -bottom-3 -right-3 h-20 w-20 opacity-10" />
+        </Link>
+      </div>
+
+      {/* dia de compras -> agenda */}
+      <section className="card flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon.Calendar className="h-5 w-5 text-emerald-600" />
+            <h2 className="font-semibold">Dia de compras</h2>
+          </div>
+          {!pickingDay && (
+            <button className="btn-secondary !min-h-[36px] !px-3 text-sm" onClick={() => setPickingDay(true)}>
+              {nextShoppingEvent ? 'Remarcar' : 'Marcar'}
+            </button>
+          )}
+        </div>
+        {pickingDay ? (
+          <div className="flex gap-2">
+            <input
+              type="date"
+              aria-label="Dia das compras"
+              className="input flex-1"
+              value={shoppingDay}
+              onChange={(e) => setShoppingDay(e.target.value)}
+            />
+            <button className="btn-primary" onClick={scheduleShoppingDay} disabled={!shoppingDay || createEvent.isPending}>
+              Agendar
+            </button>
+            <button className="btn-secondary" onClick={() => setPickingDay(false)} aria-label="Cancelar">
+              <Icon.X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : nextShoppingEvent ? (
+          <p className="text-sm text-slate-500">
+            Próximo: {formatDate(nextShoppingEvent.startAt)} às {formatTime(nextShoppingEvent.startAt)} — já na Agenda, com lembrete.
+          </p>
+        ) : (
+          <p className="text-sm text-slate-500">Escolha o dia da feira e ele entra na Agenda do lar com lembrete.</p>
+        )}
+      </section>
 
       {overdue.length > 0 && (
         <section className="card border-l-4 border-amber-500">
-          <h2 className="mb-2 font-semibold text-amber-600">Atrasadas ({overdue.length})</h2>
+          <div className="mb-2 flex items-center gap-2">
+            <Icon.Alert className="h-5 w-5 text-amber-500" />
+            <h2 className="font-semibold text-amber-600">Atrasadas ({overdue.length})</h2>
+          </div>
           <ul className="flex flex-col gap-2">
             {overdue.slice(0, 5).map((o) => (
               <li key={o.$id} className="flex items-center justify-between gap-2">
@@ -51,7 +167,7 @@ export default function TodayPage() {
                     className="btn-secondary !min-h-[36px] !px-2 text-sm"
                     onClick={() => occurrenceAction.mutate({ occurrenceId: o.$id, action: 'done' })}
                   >
-                    Concluir
+                    <Icon.Check className="h-4 w-4" />
                   </button>
                   <button
                     className="btn-secondary !min-h-[36px] !px-2 text-sm"
@@ -67,12 +183,18 @@ export default function TodayPage() {
       )}
 
       <section className="card">
-        <h2 className="mb-2 font-semibold">Tarefas de hoje</h2>
+        <div className="mb-2 flex items-center gap-2">
+          <Icon.CheckSquare className="h-5 w-5 text-brand-600" />
+          <h2 className="font-semibold">Tarefas de hoje</h2>
+        </div>
         {occurrences.isLoading ? (
           <div className="h-16 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
         ) : todayOccurrences.length === 0 ? (
           <p className="text-slate-500">
-            Nada para hoje. <Link className="text-brand-600" to="/tarefas">Ver tarefas →</Link>
+            Nada para hoje.{' '}
+            <Link className="text-brand-600" to="/tarefas">
+              Ver tarefas
+            </Link>
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -84,9 +206,10 @@ export default function TodayPage() {
                 </span>
                 <button
                   className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                  aria-label="Concluir"
                   onClick={() => occurrenceAction.mutate({ occurrenceId: o.$id, action: 'done' })}
                 >
-                  Concluir
+                  <Icon.Check className="h-4 w-4" />
                 </button>
               </li>
             ))}
@@ -95,31 +218,34 @@ export default function TodayPage() {
       </section>
 
       <section className="card">
-        <h2 className="mb-2 font-semibold">Treino de hoje</h2>
-        <p className="text-slate-500">Planos de treino chegam na Fase 5.</p>
-        <Link to="/academia" className="btn-secondary mt-2">Abrir Academia</Link>
+        <div className="mb-2 flex items-center gap-2">
+          <Icon.Calendar className="h-5 w-5 text-violet-600" />
+          <h2 className="font-semibold">Eventos de hoje</h2>
+        </div>
+        {todayEvents.length === 0 ? (
+          <p className="text-slate-500">Agenda livre hoje.</p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {todayEvents.map((o, i) => (
+              <li key={i} className="flex items-center gap-2 text-sm">
+                <span className="w-12 text-slate-500">{formatTime(o.startAt)}</span>
+                <span>{eventTitle(o.eventId)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Link to="/compras" className="card block">
-          <h2 className="font-semibold">Compras</h2>
-          <p className="mt-1 text-2xl font-bold text-brand-600">{pendingItems}</p>
-          <p className="text-sm text-slate-500">itens na lista</p>
-        </Link>
-        <Link to="/contas" className="card block">
-          <h2 className="font-semibold">Meu saldo</h2>
-          <p
-            className={`mt-1 text-2xl font-bold ${
-              myBalance > 0 ? 'text-green-600' : myBalance < 0 ? 'text-red-600' : ''
-            }`}
-          >
-            {balancesLoading ? '…' : formatCentsBRL(myBalance)}
-          </p>
-          <p className="text-sm text-slate-500">
-            {myBalance < 0 ? 'você deve' : myBalance > 0 ? 'a receber' : 'tudo certo'}
-          </p>
-        </Link>
-      </div>
+      <Link to="/academia" className="card flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon.Dumbbell className="h-5 w-5 text-orange-500" />
+          <div>
+            <h2 className="font-semibold">Treino de hoje</h2>
+            <p className="text-sm text-slate-500">Iniciar sessão pelo seu plano</p>
+          </div>
+        </div>
+        <Icon.ChevronRight className="h-5 w-5 text-slate-400" />
+      </Link>
     </div>
   );
 }

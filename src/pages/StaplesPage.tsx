@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useActiveHousehold } from '@/features/households/hooks';
 import { useAddStaple, useRemoveStaple, useStaples } from '@/features/shopping/staples';
 import { shoppingCategoryLabels } from '@/shared/labels';
+import { Icon } from '@/components/icons';
 
 /** Itens recorrentes (staples): base do botão "Repor recorrentes" na lista. */
 export default function StaplesPage() {
@@ -82,7 +83,7 @@ export default function StaplesPage() {
                     aria-label={`Remover ${staple.name}`}
                     onClick={() => removeStaple.mutate(staple.$id)}
                   >
-                    ✕
+                    <Icon.X className="h-4 w-4" />
                   </button>
                 </li>
               ))}

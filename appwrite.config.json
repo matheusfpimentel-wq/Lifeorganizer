@@ -841,6 +841,28 @@
           "min": 0,
           "max": 10,
           "required": false
+        },
+        {
+          "key": "durationSeconds",
+          "type": "integer",
+          "min": 0,
+          "required": false
+        },
+        {
+          "key": "technique",
+          "type": "string",
+          "format": "enum",
+          "elements": [
+            "normal",
+            "aquecimento",
+            "dropset",
+            "restPause",
+            "falha",
+            "superset",
+            "isometria"
+          ],
+          "size": 255,
+          "required": false
         }
       ],
       "indexes": [

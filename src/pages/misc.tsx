@@ -8,7 +8,10 @@ import {
   useMyProfile,
   useMyTeams,
   useProfiles,
+  useRemoveMember,
 } from '@/features/households/hooks';
+import type { Models } from 'appwrite';
+import { Icon } from '@/components/icons';
 import { DB_ID, TABLES, tablesDB } from '@/lib/appwrite';
 import { listAllRows } from '@/lib/pagination';
 import { withPersonalPermissions } from '@/lib/permissions';
@@ -34,16 +37,23 @@ import { applyTheme, useUiStore } from '@/stores/ui';
 const PROFILE_COLORS = ['#0ea5e9', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#eab308', '#14b8a6'];
 
 export function MembersPage() {
+  const { user } = useAuth();
   const { householdId } = useActiveHousehold();
   const { data: members } = useHouseholdMembers(householdId);
   const memberIds = useMemo(() => (members ?? []).map((m) => m.userId), [members]);
   const { data: profiles } = useProfiles(memberIds);
   const invite = useInviteMember(householdId);
+  const removeMember = useRemoveMember(householdId);
   const [email, setEmail] = useState('');
 
   function handleInvite(e: FormEvent) {
     e.preventDefault();
     invite.mutate({ email }, { onSuccess: () => setEmail('') });
+  }
+
+  function displayFor(m: Models.Membership): string {
+    const profile = profiles?.get(m.userId);
+    return profile?.displayName || m.userName || m.userEmail || 'Convidado(a)';
   }
 
   return (
@@ -55,28 +65,54 @@ export function MembersPage() {
           <input id="inviteEmail" type="email" className="input flex-1" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <button type="submit" className="btn-primary" disabled={invite.isPending}>Convidar</button>
         </div>
-        {invite.isSuccess && <p className="text-sm text-green-600">Convite enviado!</p>}
+        {invite.isSuccess && <p className="text-sm text-green-600">Convite enviado. Peça para checar a caixa de entrada (e o spam).</p>}
         {invite.isError && <p className="text-sm text-red-600">{(invite.error as Error).message}</p>}
       </form>
+
       <ul className="flex flex-col gap-2">
         {(members ?? []).map((m) => {
           const profile = profiles?.get(m.userId);
+          const name = displayFor(m);
+          const isMe = m.userId === user?.$id;
           return (
             <li key={m.$id} className="card flex items-center gap-3">
               <span
-                className="flex h-10 w-10 items-center justify-center rounded-full font-semibold text-white"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-semibold text-white"
                 style={{ backgroundColor: profile?.color ?? '#94a3b8' }}
               >
-                {(profile?.displayName ?? m.userName ?? '?').slice(0, 1).toUpperCase()}
+                {name.slice(0, 1).toUpperCase()}
               </span>
-              <div>
-                <p className="font-medium">{profile?.displayName ?? m.userName ?? m.userEmail}</p>
-                <p className="text-sm text-slate-500">{m.confirm ? 'Ativo' : 'Convite pendente'}</p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">
+                  {name}
+                  {isMe && <span className="ml-1 text-sm font-normal text-slate-400">(você)</span>}
+                </p>
+                <p className="truncate text-sm text-slate-500">
+                  {m.userEmail && m.userEmail !== name ? `${m.userEmail} · ` : ''}
+                  {m.confirm ? 'Ativo' : 'Convite pendente'}
+                </p>
               </div>
+              {!isMe && (
+                <button
+                  className="shrink-0 rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                  aria-label={m.confirm ? `Remover ${name}` : `Cancelar convite de ${name}`}
+                  onClick={() => {
+                    const question = m.confirm
+                      ? `Remover ${name} do lar?`
+                      : `Cancelar o convite de ${name}?`;
+                    if (confirm(question)) removeMember.mutate(m.$id);
+                  }}
+                >
+                  <Icon.Trash className="h-5 w-5" />
+                </button>
+              )}
             </li>
           );
         })}
       </ul>
+      {removeMember.isError && (
+        <p className="text-sm text-red-600">{(removeMember.error as Error).message}</p>
+      )}
     </div>
   );
 }
@@ -332,7 +368,7 @@ function NotificationsSettings() {
         </div>
       ) : granted ? (
         <>
-          <p className="text-sm text-green-600">Notificações ativadas ✓</p>
+          <p className="text-sm text-green-600">Notificações ativadas.</p>
           <button className="btn-secondary" onClick={() => test.mutate()} disabled={test.isPending}>
             {test.isPending ? 'Enviando…' : 'Testar notificação'}
           </button>

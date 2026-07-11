@@ -144,6 +144,18 @@ export function useCreateHousehold() {
   });
 }
 
+/** Remove um membro ou cancela um convite pendente (deleta a membership). */
+export function useRemoveMember(teamId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (membershipId: string) => {
+      if (!teamId) throw new Error('Nenhum lar ativo');
+      return teams.deleteMembership({ teamId, membershipId });
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['members', teamId] }),
+  });
+}
+
 /** Convite nativo do Teams por e-mail; aceite tratado em /convite. */
 export function useInviteMember(teamId: string | null) {
   const queryClient = useQueryClient();

@@ -166,7 +166,7 @@ async function handlePushTest(
     try {
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: JSON.parse(sub.keys) },
-        JSON.stringify({ title: 'MinhaCasinha', body: 'Notificação de teste 🎉', url: '/' }),
+        JSON.stringify({ title: 'MinhaCasinha', body: 'Notificação de teste funcionando!', url: '/' }),
       );
       sent += 1;
     } catch (err) {

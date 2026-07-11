@@ -9,6 +9,7 @@ import {
 } from '@/features/routine/hooks';
 import { routineCategoryLabels } from '@/shared/labels';
 import { WEEKDAY_FULL, WEEKDAY_LABELS } from '@/lib/dates';
+import { Icon } from '@/components/icons';
 
 const CATEGORIES = Object.keys(routineCategoryLabels);
 const WEEK_ORDER = [0, 1, 2, 3, 4, 5, 6]; // domingo..sábado (padrão do lar)
@@ -148,7 +149,7 @@ export default function RoutinePage() {
                       <span className="w-24 text-slate-500">{b.startTime}–{b.endTime}</span>
                       <span className="flex-1">{b.title}</span>
                       <span className="text-xs text-slate-400">{memberName(b.memberId).split(' ')[0]}</span>
-                      <button className="text-slate-400 hover:text-red-600" aria-label="Excluir" onClick={() => deleteBlock.mutate(b.$id)}>✕</button>
+                      <button className="text-slate-400 hover:text-red-600" aria-label="Excluir" onClick={() => deleteBlock.mutate(b.$id)}><Icon.X className="h-4 w-4" /></button>
                     </li>
                   ))}
                 </ul>

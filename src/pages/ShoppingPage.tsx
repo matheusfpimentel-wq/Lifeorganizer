@@ -17,6 +17,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { shoppingCategoryLabels } from '@/shared/labels';
 import { formatCentsBRL, parseBRLToCents } from '@/lib/format';
 import { shoppingTotalCents } from '@/core/shopping';
+import { Icon } from '@/components/icons';
 
 function PriceInput({
   item,
@@ -191,7 +192,7 @@ export default function ShoppingPage() {
                         aria-label={`Remover ${item.name}`}
                         onClick={() => removeItem.mutate(item.$id)}
                       >
-                        ✕
+                        <Icon.X className="h-4 w-4" />
                       </button>
                     </div>
                     <div className="flex items-center gap-2 pl-8">

@@ -3,6 +3,7 @@ import { useExpenses, useMonthlyReport } from './hooks';
 import { toCsv } from '@/core/report';
 import { expenseCategoryLabels } from '@/shared/labels';
 import { formatCentsBRL, formatDate } from '@/lib/format';
+import { Icon } from '@/components/icons';
 
 interface Props {
   householdId: string | null;
@@ -48,9 +49,9 @@ export default function MonthlyClosing({ householdId, memberName }: Props) {
   return (
     <section className="card flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Mês anterior" onClick={() => setOffset((o) => o - 1)}>‹</button>
+        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Mês anterior" onClick={() => setOffset((o) => o - 1)}><Icon.ChevronLeft className="h-4 w-4" /></button>
         <h2 className="font-semibold capitalize">{report.monthLabel}</h2>
-        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Próximo mês" disabled={offset >= 0} onClick={() => setOffset((o) => Math.min(0, o + 1))}>›</button>
+        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Próximo mês" disabled={offset >= 0} onClick={() => setOffset((o) => Math.min(0, o + 1))}><Icon.ChevronRight className="h-4 w-4" /></button>
       </div>
 
       {report.isLoading ? (
@@ -64,7 +65,7 @@ export default function MonthlyClosing({ householdId, memberName }: Props) {
             </div>
             {report.deltaPercent !== null && (
               <span className={`text-sm ${report.deltaPercent > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                {report.deltaPercent > 0 ? '▲' : '▼'} {Math.abs(report.deltaPercent)}% vs. mês anterior
+                {report.deltaPercent > 0 ? '+' : '−'}{Math.abs(report.deltaPercent)}% vs. mês anterior
               </span>
             )}
           </div>

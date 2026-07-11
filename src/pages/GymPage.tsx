@@ -30,7 +30,9 @@ import {
 } from '@/features/gym/hooks';
 import RestTimer from '@/features/gym/RestTimer';
 import { bestSetByExercise, estimate1RM, prTimeline, volumeKg, weeklyVolume } from '@/core/workout';
+import { techniqueLabels } from '@/shared/labels';
 import { formatDate } from '@/lib/format';
+import { Icon } from '@/components/icons';
 
 type Tab = 'train' | 'plans' | 'history' | 'progress';
 
@@ -210,8 +212,8 @@ function TrainTab({
             logged={logged}
             defaultReps={last?.reps ?? (plan ? Number(String(plan.repRange).split('-')[0]) || 8 : 8)}
             defaultLoad={last?.loadKg ?? plan?.targetLoadKg ?? 0}
-            onLog={(reps, loadKg) => {
-              logSet.mutate({ sessionId, exerciseId, setNumber: logged.length + 1, reps, loadKg });
+            onLog={(values) => {
+              logSet.mutate({ sessionId, exerciseId, setNumber: logged.length + 1, ...values });
               setRestFor({ key: exerciseId, seconds: rest });
             }}
             resting={restFor?.key === exerciseId ? restFor.seconds : null}
@@ -230,6 +232,14 @@ function TrainTab({
   );
 }
 
+export interface SetLogValues {
+  reps: number;
+  loadKg: number;
+  durationSeconds: number | null;
+  technique: string | null;
+  rpe: number | null;
+}
+
 function ExerciseLogger({
   name,
   planned,
@@ -245,39 +255,109 @@ function ExerciseLogger({
   logged: SetRow[];
   defaultReps: number;
   defaultLoad: number;
-  onLog: (reps: number, loadKg: number) => void;
+  onLog: (values: SetLogValues) => void;
   resting: number | null;
   onDismissRest: () => void;
 }) {
+  const [mode, setMode] = useState<'reps' | 'tempo'>('reps');
   const [reps, setReps] = useState(defaultReps);
+  const [seconds, setSeconds] = useState(30);
   const [load, setLoad] = useState(defaultLoad);
+  const [technique, setTechnique] = useState('normal');
+  const [rpe, setRpe] = useState('');
+
+  function describeSet(s: SetRow): string {
+    const base = s.durationSeconds ? `${s.durationSeconds}s` : `${s.reps}×`;
+    const withLoad = s.durationSeconds
+      ? s.loadKg > 0 ? `${base} · ${s.loadKg}kg` : base
+      : `${base}${s.loadKg}kg`;
+    const tech = s.technique && s.technique !== 'normal' ? ` · ${techniqueLabels[s.technique] ?? s.technique}` : '';
+    const rpeTag = s.rpe ? ` · RPE ${s.rpe}` : '';
+    return withLoad + tech + rpeTag;
+  }
+
+  function submit() {
+    onLog({
+      reps: mode === 'reps' ? reps : 0,
+      loadKg: load,
+      durationSeconds: mode === 'tempo' ? seconds : null,
+      technique: technique === 'normal' ? null : technique,
+      rpe: rpe ? Math.min(10, Math.max(0, Number(rpe.replace(',', '.')))) : null,
+    });
+  }
+
   return (
     <section className="card flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
         <h3 className="font-semibold">{name}</h3>
         {planned && <span className="text-sm text-slate-500">{planned}</span>}
       </div>
+
       {logged.length > 0 && (
         <ol className="flex flex-wrap gap-1 text-sm">
           {logged.map((s, i) => (
             <li key={s.$id} className="rounded bg-slate-100 px-2 py-0.5 dark:bg-slate-800">
-              {i + 1}: {s.reps}×{s.loadKg}kg
+              {i + 1}: {describeSet(s)}
             </li>
           ))}
         </ol>
       )}
       {resting !== null && <RestTimer seconds={resting} onDismiss={onDismissRest} />}
+
+      <div className="flex items-center gap-2">
+        <div className="grid flex-1 grid-cols-2 gap-1 rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800">
+          <button
+            type="button"
+            className={`min-h-[32px] rounded-md text-xs font-medium ${mode === 'reps' ? 'bg-white shadow-sm dark:bg-slate-900' : 'text-slate-500'}`}
+            onClick={() => setMode('reps')}
+          >
+            Repetições
+          </button>
+          <button
+            type="button"
+            className={`min-h-[32px] rounded-md text-xs font-medium ${mode === 'tempo' ? 'bg-white shadow-sm dark:bg-slate-900' : 'text-slate-500'}`}
+            onClick={() => setMode('tempo')}
+          >
+            Tempo
+          </button>
+        </div>
+        <select
+          aria-label="Técnica"
+          className="input !min-h-[36px] max-w-[140px] !py-1 text-sm"
+          value={technique}
+          onChange={(e) => setTechnique(e.target.value)}
+        >
+          {Object.entries(techniqueLabels).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="flex items-end gap-2">
-        <label className="flex-1 text-sm">
-          Reps
-          <input type="number" min={0} className="input !min-h-[40px]" value={reps} onChange={(e) => setReps(Math.max(0, Number(e.target.value)))} />
-        </label>
+        {mode === 'reps' ? (
+          <label className="flex-1 text-sm">
+            Reps
+            <input type="number" min={0} className="input !min-h-[40px]" value={reps} onChange={(e) => setReps(Math.max(0, Number(e.target.value)))} />
+          </label>
+        ) : (
+          <label className="flex-1 text-sm">
+            Segundos
+            <input type="number" min={0} step="5" className="input !min-h-[40px]" value={seconds} onChange={(e) => setSeconds(Math.max(0, Number(e.target.value)))} />
+          </label>
+        )}
         <label className="flex-1 text-sm">
           Carga (kg)
           <input type="number" min={0} step="0.5" className="input !min-h-[40px]" value={load} onChange={(e) => setLoad(Math.max(0, Number(e.target.value)))} />
         </label>
-        <button className="btn-primary !min-h-[40px]" onClick={() => onLog(reps, load)}>Série</button>
+        <label className="w-16 text-sm" title="Esforço percebido de 1 (muito leve) a 10 (falha)">
+          RPE
+          <input inputMode="decimal" placeholder="—" className="input !min-h-[40px]" value={rpe} onChange={(e) => setRpe(e.target.value)} />
+        </label>
+        <button className="btn-primary !min-h-[40px]" onClick={submit}>Série</button>
       </div>
+      <p className="text-xs text-slate-400">
+        RPE: esforço percebido (1–10). Use Tempo para pranchas, isometrias e cardio.
+      </p>
     </section>
   );
 }
@@ -339,7 +419,7 @@ function PlansTab({
           <section key={p.$id} className="card">
             <button className="flex w-full items-center justify-between" onClick={() => setSelectedPlan(selectedPlan === p.$id ? null : p.$id)}>
               <span className="font-semibold">{p.name}</span>
-              <span className="text-slate-400">{selectedPlan === p.$id ? '▲' : '▼'}</span>
+              <span className="text-slate-400">{selectedPlan === p.$id ? <Icon.ChevronUp className="h-4 w-4" /> : <Icon.ChevronDown className="h-4 w-4" />}</span>
             </button>
             {selectedPlan === p.$id && (
               <PlanEditor householdId={householdId} memberId={memberId} planId={p.$id} library={library} exName={exName} />
@@ -380,7 +460,7 @@ function PlanEditor({
       {(days.data ?? []).map((d: PlanDayRow) => (
         <div key={d.$id} className="rounded-lg bg-slate-50 p-2 dark:bg-slate-800/50">
           <button className="flex w-full items-center justify-between text-sm font-medium" onClick={() => setOpenDay(openDay === d.$id ? null : d.$id)}>
-            {d.label}<span className="text-slate-400">{openDay === d.$id ? '▲' : '▼'}</span>
+            {d.label}<span className="text-slate-400">{openDay === d.$id ? <Icon.ChevronUp className="h-4 w-4" /> : <Icon.ChevronDown className="h-4 w-4" />}</span>
           </button>
           {openDay === d.$id && (
             <DayEditor householdId={householdId} memberId={memberId} planDayId={d.$id} library={library} exName={exName} />

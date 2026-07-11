@@ -229,7 +229,7 @@ export default function TaskForm({ members, initial, submitting, onSubmit, onCan
               }
             />
             <button type="button" className="btn-secondary !px-3" aria-label="Remover passo" onClick={() => setChecklist((prev) => prev.filter((_, idx) => idx !== i))}>
-              ✕
+              <span aria-hidden>×</span>
             </button>
           </div>
         ))}

@@ -264,9 +264,12 @@ const tables = [
       id('sessionId', req),
       id('exerciseId', req),
       int('setNumber', { ...req, min: 1 }),
-      int('reps', { ...req, min: 0 }),
+      int('reps', { ...req, min: 0 }), // 0 quando a série é por tempo
       dbl('loadKg', { ...req, min: 0 }),
       dbl('rpe', { min: 0, max: 10 }),
+      int('durationSeconds', { min: 0 }), // séries por tempo (prancha, isometria, cardio)
+      // técnica de intensidade aplicada à série
+      enm('technique', ['normal', 'aquecimento', 'dropset', 'restPause', 'falha', 'superset', 'isometria']),
     ],
     [
       idx('idx_sessionId', ['sessionId']),

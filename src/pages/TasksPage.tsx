@@ -14,8 +14,38 @@ import BalancePanel from '@/features/tasks/BalancePanel';
 import { describeRrule } from '@/features/tasks/weekdays';
 import { taskCategoryLabels } from '@/shared/labels';
 import { formatDate } from '@/lib/format';
+import { spDateKey } from '@/lib/dates';
+import { Icon } from '@/components/icons';
 
 type Tab = 'pending' | 'models' | 'balance';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Occurrence = Record<string, any> & { $id: string };
+
+/** Agrupa pendências em Atrasadas / Hoje / Amanhã / demais datas (DD/MM). */
+function groupPending(pending: Occurrence[]): [string, Occurrence[]][] {
+  const todayKey = spDateKey(new Date());
+  const tomorrowKey = spDateKey(new Date(Date.now() + 24 * 60 * 60 * 1000));
+  const groups = new Map<string, Occurrence[]>();
+  const push = (label: string, o: Occurrence) => {
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label)!.push(o);
+  };
+  for (const o of [...pending].sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt)))) {
+    const key = spDateKey(new Date(o.dueAt));
+    if (key < todayKey) push('Atrasadas', o);
+    else if (key === todayKey) push('Hoje', o);
+    else if (key === tomorrowKey) push('Amanhã', o);
+    else push(formatDate(o.dueAt), o);
+  }
+  // Atrasadas primeiro, depois na ordem natural das datas
+  const ordered: [string, Occurrence[]][] = [];
+  if (groups.has('Atrasadas')) ordered.push(['Atrasadas', groups.get('Atrasadas')!]);
+  for (const [label, occs] of groups) {
+    if (label !== 'Atrasadas') ordered.push([label, occs]);
+  }
+  return ordered;
+}
 
 export default function TasksPage() {
   const { householdId } = useActiveHousehold();
@@ -110,43 +140,69 @@ export default function TasksPage() {
         (occurrences.isLoading ? (
           <div className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
         ) : pending.length === 0 ? (
-          <div className="card text-center text-slate-500">
-            Nenhuma tarefa pendente. Crie a primeira! 🎉
+          <div className="card flex flex-col items-center gap-2 py-8 text-center text-slate-500">
+            <Icon.CheckSquare className="h-8 w-8 text-slate-300" />
+            <p>Nenhuma tarefa pendente.</p>
+            <p className="text-sm">Toque em "+ Nova" para criar a primeira.</p>
           </div>
         ) : (
-          <ul className="flex flex-col gap-2">
-            {pending.map((o) => {
-              const task = taskById.get(o.taskId);
-              const overdue = new Date(o.dueAt) < new Date();
-              return (
-                <li
-                  key={o.$id}
-                  className={`card flex items-center justify-between gap-2 ${overdue ? 'border-l-4 border-amber-500' : ''}`}
+          <div className="flex flex-col gap-3">
+            {groupPending(pending).map(([label, occs]) => (
+              <section key={label}>
+                <h2
+                  className={`mb-1.5 flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide ${
+                    label === 'Atrasadas' ? 'text-amber-600' : 'text-slate-500'
+                  }`}
                 >
-                  <div>
-                    <p className="font-medium">{task?.title ?? 'Tarefa'}</p>
-                    <p className="text-sm text-slate-500">
-                      {formatDate(o.dueAt)} · {memberName(o.assignedMemberId)}
-                      {task && ` · ${taskCategoryLabels[task.category] ?? task.category}`}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    {!o.assignedMemberId && (
-                      <button className="btn-secondary !min-h-[36px] !px-2 text-sm" onClick={() => action.mutate({ occurrenceId: o.$id, action: 'claim' })}>
-                        Pegar
-                      </button>
-                    )}
-                    <button className="btn-secondary !min-h-[36px] !px-2 text-sm" aria-label="Concluir" onClick={() => action.mutate({ occurrenceId: o.$id, action: 'done' })}>
-                      ✓
-                    </button>
-                    <button className="btn-secondary !min-h-[36px] !px-2 text-sm" onClick={() => action.mutate({ occurrenceId: o.$id, action: 'skipped' })}>
-                      Pular
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                  {label === 'Atrasadas' && <Icon.Alert className="h-4 w-4" />}
+                  {label}
+                </h2>
+                <ul className="flex flex-col gap-2">
+                  {occs.map((o) => {
+                    const task = taskById.get(o.taskId);
+                    return (
+                      <li
+                        key={o.$id}
+                        className={`card flex items-center justify-between gap-2 ${label === 'Atrasadas' ? 'border-l-4 border-amber-500' : ''}`}
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{task?.title ?? 'Tarefa'}</p>
+                          <p className="truncate text-sm text-slate-500">
+                            {memberName(o.assignedMemberId)}
+                            {task && ` · ${taskCategoryLabels[task.category] ?? task.category}`}
+                            {task && task.points > 1 && ` · ${task.points} pts`}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 gap-1">
+                          {!o.assignedMemberId && (
+                            <button
+                              className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                              onClick={() => action.mutate({ occurrenceId: o.$id, action: 'claim' })}
+                            >
+                              Pegar
+                            </button>
+                          )}
+                          <button
+                            className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                            aria-label="Concluir"
+                            onClick={() => action.mutate({ occurrenceId: o.$id, action: 'done' })}
+                          >
+                            <Icon.Check className="h-4 w-4" />
+                          </button>
+                          <button
+                            className="btn-secondary !min-h-[36px] !px-2 text-sm"
+                            onClick={() => action.mutate({ occurrenceId: o.$id, action: 'skipped' })}
+                          >
+                            Pular
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
         ))}
 
       {tab === 'models' &&

@@ -185,6 +185,8 @@ export function useLogSet(householdId: string | null, memberId: string | null) {
       reps: number;
       loadKg: number;
       rpe?: number | null;
+      durationSeconds?: number | null;
+      technique?: string | null;
     }) => {
       if (!householdId || !memberId) throw new Error('Sem lar/membro');
       return tablesDB.createRow({

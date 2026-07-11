@@ -8,13 +8,15 @@ import {
   useCreateSettlement,
   useDeleteExpense,
   useExpenses,
+  useMonthlyReport,
   usePendingExpenses,
 } from '@/features/expenses/hooks';
 import ExpenseForm from '@/features/expenses/ExpenseForm';
 import MonthlyClosing from '@/features/expenses/MonthlyClosing';
 import { expenseCategoryLabels } from '@/shared/labels';
-import { formatCentsBRL, formatDate } from '@/lib/format';
+import { formatCentsBRL, formatDate, parseBRLToCents } from '@/lib/format';
 import { buildPixPayload } from '@/core/pix';
+import { Icon } from '@/components/icons';
 
 type Tab = 'summary' | 'closing';
 
@@ -37,9 +39,12 @@ export default function ExpensesPage() {
 
   const [tab, setTab] = useState<Tab>('summary');
   const [showForm, setShowForm] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const report = useMonthlyReport(householdId, 0);
 
   const memberName = (id: string) => profiles?.get(id)?.displayName ?? 'Membro';
   const memberOptions = memberIds.map((id) => ({ id, name: memberName(id) }));
+  const myBalance = user ? (balances.get(user.$id) ?? 0) : 0;
 
   function handlePixCharge(toMember: string, amountCents: number) {
     const creditorProfile = profiles?.get(toMember);
@@ -99,6 +104,45 @@ export default function ExpensesPage() {
 
       {tab === 'summary' && (
         <>
+          {/* visão do mês em um card só */}
+          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-4 text-white shadow-md">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-wide opacity-70">Gastos de {report.monthLabel}</p>
+                <p className="text-2xl font-bold">{formatCentsBRL(report.summary.totalCents)}</p>
+                {report.deltaPercent !== null && (
+                  <p className="mt-0.5 text-xs opacity-80">
+                    {report.deltaPercent > 0 ? '+' : ''}{report.deltaPercent}% vs. mês anterior
+                  </p>
+                )}
+              </div>
+              <div className="text-right">
+                <p className="text-xs uppercase tracking-wide opacity-70">Meu saldo</p>
+                <p className={`text-xl font-bold ${myBalance < 0 ? 'text-red-200' : myBalance > 0 ? 'text-emerald-200' : ''}`}>
+                  {balancesLoading ? '—' : formatCentsBRL(myBalance)}
+                </p>
+                <p className="text-xs opacity-80">{myBalance < 0 ? 'você deve' : myBalance > 0 ? 'a receber' : 'tudo certo'}</p>
+              </div>
+            </div>
+            <Icon.Bank className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10" />
+          </section>
+
+          <button className="btn-secondary" onClick={() => setShowPayment((s) => !s)}>
+            <Icon.Banknote className="h-4 w-4" />
+            {showPayment ? 'Fechar registro de pagamento' : 'Registrar pagamento'}
+          </button>
+          {showPayment && (
+            <PaymentForm
+              members={memberOptions}
+              currentUserId={user?.$id ?? ''}
+              submitting={createSettlement.isPending}
+              onSubmit={(values) => createSettlement.mutate(values, { onSuccess: () => setShowPayment(false) })}
+            />
+          )}
+          {createSettlement.isError && (
+            <p className="text-sm text-red-600">{(createSettlement.error as Error).message}</p>
+          )}
+
           {(pending.data ?? []).length > 0 && (
             <section className="card border-l-4 border-amber-500">
               <h2 className="mb-2 font-semibold text-amber-600">
@@ -218,5 +262,79 @@ export default function ExpensesPage() {
 
       {tab === 'closing' && <MonthlyClosing householdId={householdId} memberName={memberName} />}
     </div>
+  );
+}
+
+/** Registro manual de pagamento entre membros (acerto por fora dos sugeridos). */
+function PaymentForm({
+  members,
+  currentUserId,
+  submitting,
+  onSubmit,
+}: {
+  members: { id: string; name: string }[];
+  currentUserId: string;
+  submitting: boolean;
+  onSubmit: (values: {
+    fromMember: string;
+    toMember: string;
+    amountCents: number;
+    method: 'pix' | 'dinheiro' | 'outro';
+  }) => void;
+}) {
+  const [fromMember, setFromMember] = useState(currentUserId);
+  const [toMember, setToMember] = useState(members.find((m) => m.id !== currentUserId)?.id ?? '');
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState<'pix' | 'dinheiro' | 'outro'>('pix');
+  const [error, setError] = useState<string | null>(null);
+
+  return (
+    <form
+      className="card flex flex-col gap-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setError(null);
+        if (fromMember === toMember) return setError('Escolha pessoas diferentes.');
+        try {
+          const amountCents = parseBRLToCents(amount);
+          if (amountCents <= 0) return setError('Informe um valor maior que zero.');
+          onSubmit({ fromMember, toMember, amountCents, method });
+        } catch {
+          setError('Valor inválido.');
+        }
+      }}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="label" htmlFor="payFrom">Quem pagou</label>
+          <select id="payFrom" className="input" value={fromMember} onChange={(e) => setFromMember(e.target.value)}>
+            {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="label" htmlFor="payTo">Quem recebeu</label>
+          <select id="payTo" className="input" value={toMember} onChange={(e) => setToMember(e.target.value)}>
+            {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="label" htmlFor="payAmount">Valor (R$)</label>
+          <input id="payAmount" className="input" inputMode="decimal" placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+        </div>
+        <div>
+          <label className="label" htmlFor="payMethod">Forma</label>
+          <select id="payMethod" className="input" value={method} onChange={(e) => setMethod(e.target.value as typeof method)}>
+            <option value="pix">Pix</option>
+            <option value="dinheiro">Dinheiro</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <button type="submit" className="btn-primary" disabled={submitting}>Registrar</button>
+      <p className="text-xs text-slate-400">O pagamento abate diretamente os saldos entre as duas pessoas.</p>
+    </form>
   );
 }

@@ -14,6 +14,7 @@ import { monthMatrix, spDateKey, weekDays, WEEKDAY_LABELS, WEEKDAY_FULL } from '
 import { formatTime } from '@/lib/format';
 import { routineCategoryLabels } from '@/shared/labels';
 import { useUiStore } from '@/stores/ui';
+import { Icon } from '@/components/icons';
 
 type View = 'agenda' | 'week' | 'month';
 const WEEK_START = 0 as const; // domingo (padrão do lar)
@@ -188,7 +189,7 @@ function OccurrenceItem({
           {event?.rrule ? ' · repete' : ''}
         </p>
       </div>
-      <button className="text-slate-400 hover:text-red-600" aria-label="Excluir" onClick={onCancel}>✕</button>
+      <button className="text-slate-400 hover:text-red-600" aria-label="Excluir" onClick={onCancel}><Icon.X className="h-4 w-4" /></button>
     </li>
   );
 }
@@ -270,9 +271,9 @@ function MonthView({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Mês anterior" onClick={() => setMonthOffset(monthOffset - 1)}>‹</button>
+        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Mês anterior" onClick={() => setMonthOffset(monthOffset - 1)}><Icon.ChevronLeft className="h-4 w-4" /></button>
         <h2 className="font-semibold capitalize">{grid.label}</h2>
-        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Próximo mês" onClick={() => setMonthOffset(monthOffset + 1)}>›</button>
+        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Próximo mês" onClick={() => setMonthOffset(monthOffset + 1)}><Icon.ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="card">
         <div className="grid grid-cols-7 text-center text-xs text-slate-400">
@@ -377,12 +378,12 @@ function WeekView({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Semana anterior" onClick={() => setWeekOffset(weekOffset - 1)}>‹</button>
+        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Semana anterior" onClick={() => setWeekOffset(weekOffset - 1)}><Icon.ChevronLeft className="h-4 w-4" /></button>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" className="h-4 w-4 accent-brand-600" checked={showRoutine} onChange={(e) => setShowRoutine(e.target.checked)} />
           Rotina
         </label>
-        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Próxima semana" onClick={() => setWeekOffset(weekOffset + 1)}>›</button>
+        <button className="btn-secondary !min-h-[36px] !px-2" aria-label="Próxima semana" onClick={() => setWeekOffset(weekOffset + 1)}><Icon.ChevronRight className="h-4 w-4" /></button>
       </div>
       {week.days.map((day) => {
         const occs = byDay.get(day.key) ?? [];
