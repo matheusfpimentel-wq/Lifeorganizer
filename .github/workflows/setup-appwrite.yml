@@ -41,13 +41,23 @@ jobs:
       # tolerante ao aviso "re-run to continue" que ocorre quando o CLI remove
       # um database remoto divergente; o segundo conclui as criações.
       # O database 'morada' vem do bloco `tablesDB` do config; push tables cria
-      # database + tabelas. (Antes o database estava na chave errada `databases`
-      # e o push apagava o remoto.)
+      # database + tabelas (idempotente). Retry por causa de 'fetch failed'
+      # transitório durante as muitas chamadas de criação.
       - name: Push database + tables
-        run: npx appwrite push tables --all --force
-      - name: Push functions
-        run: npx appwrite push functions --all --force --activate true --no-logs
-      - name: Verify tables created
         run: |
-          echo "Tabelas em 'morada':"
-          npx appwrite tables-db list-tables --database-id morada
+          n=0
+          until npx appwrite push tables --all --force; do
+            n=$((n+1))
+            if [ $n -ge 5 ]; then echo "push tables falhou após $n tentativas"; exit 1; fi
+            echo "falha transitória — tentativa $n, aguardando..."; sleep 8
+          done
+      - name: Push functions
+        run: |
+          n=0
+          until npx appwrite push functions --all --force --activate true --no-logs; do
+            n=$((n+1))
+            if [ $n -ge 5 ]; then echo "push functions falhou após $n tentativas"; exit 1; fi
+            echo "falha transitória — tentativa $n, aguardando..."; sleep 8
+          done
+      - name: Verify tables created
+        run: npx appwrite tables-db list-tables --database-id morada
