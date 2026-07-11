@@ -1,5 +1,5 @@
 {
-  "projectId": "6a51840d002b0d958cb0",
+  "projectId": "REPLACE_WITH_PROJECT_ID",
   "projectName": "MinhaCasinha",
   "databases": [
     {
@@ -176,7 +176,6 @@
         {
           "key": "revoked",
           "type": "boolean",
-          "required": true,
           "default": false
         }
       ],
@@ -273,7 +272,6 @@
         {
           "key": "active",
           "type": "boolean",
-          "required": true,
           "default": true
         }
       ],
@@ -332,7 +330,6 @@
         {
           "key": "allDay",
           "type": "boolean",
-          "required": true,
           "default": false
         },
         {
@@ -510,7 +507,6 @@
         {
           "key": "active",
           "type": "boolean",
-          "required": true,
           "default": true
         }
       ],
@@ -629,7 +625,6 @@
         {
           "key": "restSeconds",
           "type": "integer",
-          "required": true,
           "default": 90
         },
         {
@@ -821,13 +816,11 @@
             "archived"
           ],
           "size": 255,
-          "required": true,
           "default": "active"
         },
         {
           "key": "isDefault",
           "type": "boolean",
-          "required": true,
           "default": false
         },
         {
@@ -884,7 +877,6 @@
         {
           "key": "qty",
           "type": "double",
-          "required": true,
           "default": 1
         },
         {
@@ -906,7 +898,6 @@
             "outro"
           ],
           "size": 255,
-          "required": true,
           "default": "outro"
         },
         {
@@ -923,7 +914,6 @@
         {
           "key": "checked",
           "type": "boolean",
-          "required": true,
           "default": false
         },
         {
@@ -983,7 +973,6 @@
         {
           "key": "defaultQty",
           "type": "double",
-          "required": true,
           "default": 1
         },
         {
@@ -1005,7 +994,6 @@
             "outro"
           ],
           "size": 255,
-          "required": true,
           "default": "outro"
         }
       ],
@@ -1103,7 +1091,6 @@
             "pending"
           ],
           "size": 255,
-          "required": true,
           "default": "confirmed"
         },
         {
@@ -1322,7 +1309,6 @@
         {
           "key": "rotationIndex",
           "type": "integer",
-          "required": true,
           "default": 0
         },
         {
@@ -1335,7 +1321,6 @@
             "alta"
           ],
           "size": 255,
-          "required": true,
           "default": "media"
         },
         {
@@ -1346,7 +1331,6 @@
         {
           "key": "points",
           "type": "integer",
-          "required": true,
           "default": 1,
           "min": 1,
           "max": 100
@@ -1354,7 +1338,6 @@
         {
           "key": "active",
           "type": "boolean",
-          "required": true,
           "default": true
         }
       ],
@@ -1417,7 +1400,6 @@
             "skipped"
           ],
           "size": 255,
-          "required": true,
           "default": "pending"
         },
         {

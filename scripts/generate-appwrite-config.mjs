@@ -103,7 +103,7 @@ const tables = [
       id('userId', req),
       id('householdId', req),
       str('token', 64, req),
-      bool('revoked', { ...req, default: false }),
+      bool('revoked', { default: false }),
     ],
     [idx('idx_token', ['token'], 'unique'), idx('idx_userId', ['userId'])],
   ),
@@ -121,7 +121,7 @@ const tables = [
       str('endTime', 5, req),
       str('color', 7),
       str('notes', 500),
-      bool('active', { ...req, default: true }),
+      bool('active', { default: true }),
     ],
     [idx('idx_householdId', ['householdId'])],
   ),
@@ -136,7 +136,7 @@ const tables = [
       str('location', 200),
       dt('startAt', req),
       dt('endAt', req),
-      bool('allDay', { ...req, default: false }),
+      bool('allDay', { default: false }),
       id('memberIds', arr), // vazio = lar inteiro
       str('rrule', 500),
       str('exdates', 36, arr), // ISO UTC das ocorrências canceladas
@@ -180,7 +180,7 @@ const tables = [
       id('memberId', req),
       str('name', 128, req),
       str('goal', 200),
-      bool('active', { ...req, default: true }), // 1 ativo por membro (regra no app)
+      bool('active', { default: true }), // 1 ativo por membro (regra no app)
     ],
     [idx('idx_householdId', ['householdId']), idx('idx_memberId', ['memberId'])],
   ),
@@ -208,7 +208,7 @@ const tables = [
       int('sets', { ...req, min: 1, max: 20 }),
       str('repRange', 20, req), // ex.: "8-12"
       dbl('targetLoadKg'),
-      int('restSeconds', { ...req, default: 90 }),
+      int('restSeconds', { default: 90 }),
       int('order', req),
       str('notes', 200),
     ],
@@ -257,8 +257,8 @@ const tables = [
     [
       id('householdId', req),
       str('name', 128, req),
-      enm('status', ['active', 'archived'], { ...req, default: 'active' }),
-      bool('isDefault', { ...req, default: false }),
+      enm('status', ['active', 'archived'], { default: 'active' }),
+      bool('isDefault', { default: false }),
       int('totalCents', { min: 0 }), // preenchido ao arquivar
     ],
     [idx('idx_householdId', ['householdId']), idx('idx_status', ['status'])],
@@ -271,12 +271,12 @@ const tables = [
       id('householdId', req),
       id('listId', req),
       str('name', 128, req),
-      dbl('qty', { ...req, default: 1 }),
+      dbl('qty', { default: 1 }),
       str('unit', 20),
-      enm('category', CATEGORY_SHOPPING, { ...req, default: 'outro' }),
+      enm('category', CATEGORY_SHOPPING, { default: 'outro' }),
       str('note', 200),
       id('addedBy', req),
-      bool('checked', { ...req, default: false }),
+      bool('checked', { default: false }),
       id('checkedBy'),
       dt('checkedAt'),
       int('priceCents', { min: 0 }),
@@ -290,9 +290,9 @@ const tables = [
     [
       id('householdId', req),
       str('name', 128, req),
-      dbl('defaultQty', { ...req, default: 1 }),
+      dbl('defaultQty', { default: 1 }),
       str('unit', 20),
-      enm('category', CATEGORY_SHOPPING, { ...req, default: 'outro' }),
+      enm('category', CATEGORY_SHOPPING, { default: 'outro' }),
     ],
     [idx('idx_householdId', ['householdId'])],
   ),
@@ -313,7 +313,7 @@ const tables = [
       dt('date', req),
       enm('splitType', ['equal', 'percent', 'shares', 'exact'], req),
       json('splits', 4000, req), // [{memberId, amountCents}] — resolvidos; mesma linha por atomicidade
-      enm('status', ['confirmed', 'pending'], { ...req, default: 'confirmed' }), // pending = gerada por rrule, aguarda confirmação
+      enm('status', ['confirmed', 'pending'], { default: 'confirmed' }), // pending = gerada por rrule, aguarda confirmação
       str('rrule', 500), // contas fixas
       str('recurrenceKey', 100), // idempotência da geração via tick: expenseId|dueDate
       id('receiptFileId'),
@@ -356,11 +356,11 @@ const tables = [
       enm('assignmentMode', ['fixed', 'rotation', 'volunteer'], req),
       id('assignedMemberId'),
       id('rotationMemberIds', arr),
-      int('rotationIndex', { ...req, default: 0 }),
-      enm('priority', ['baixa', 'media', 'alta'], { ...req, default: 'media' }),
+      int('rotationIndex', { default: 0 }),
+      enm('priority', ['baixa', 'media', 'alta'], { default: 'media' }),
       json('checklist', 4000), // [{label, done}]
-      int('points', { ...req, default: 1, min: 1, max: 100 }),
-      bool('active', { ...req, default: true }),
+      int('points', { default: 1, min: 1, max: 100 }),
+      bool('active', { default: true }),
     ],
     [idx('idx_householdId', ['householdId']), idx('idx_active', ['active'])],
   ),
@@ -373,7 +373,7 @@ const tables = [
       id('taskId', req),
       dt('dueAt', req),
       id('assignedMemberId'),
-      enm('status', ['pending', 'done', 'skipped'], { ...req, default: 'pending' }),
+      enm('status', ['pending', 'done', 'skipped'], { default: 'pending' }),
       id('completedBy'),
       dt('completedAt'),
     ],
