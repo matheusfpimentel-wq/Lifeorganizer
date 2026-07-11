@@ -2,6 +2,28 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — F4 Agenda + Rotina
+
+### Added
+- **Expansão de eventos** (`src/core/calendar.ts`, núcleo puro, 6 testes):
+  `expandEventOccurrences` expande recorrentes + avulsos numa janela (reusa
+  `expandRecurrence`, herda duração, respeita exdates, ordena).
+- **Agenda** (`AgendaPage`): views **Agenda / Semana / Mês**, filtro por membro
+  persistente, criar evento (`EventForm`: data/hora, dia inteiro, participantes,
+  recorrência, lembretes). Semana com **camada de rotina** (toggle). Cancelar
+  ocorrência de recorrente via exdate; excluir avulso.
+- **Rotina semanal** (`RoutinePage`): blocos por dia da semana, coloridos por
+  membro, criar/excluir, filtro "só os meus (e do lar)".
+- **Feed iCal** (`features/ical`): gerar/revogar link privado por token para
+  assinar no Google Agenda (consome a rota `/ical/{token}` da function `api`;
+  URL da function via `VITE_API_FUNCTION_URL`).
+- Helpers de calendário em fuso SP (`src/lib/dates.ts`): matriz do mês, dias da
+  semana, chaves de dia local.
+
+### Notes
+- Assinar o feed no Google Agenda requer configurar `VITE_API_FUNCTION_URL`
+  (domínio público da function `api`). Total: 81 testes.
+
 ## [Unreleased] — F3 Contas
 
 ### Added
