@@ -176,7 +176,8 @@
         {
           "key": "revoked",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "required": false
         }
       ],
       "indexes": [
@@ -272,7 +273,8 @@
         {
           "key": "active",
           "type": "boolean",
-          "default": true
+          "default": true,
+          "required": false
         }
       ],
       "indexes": [
@@ -330,7 +332,8 @@
         {
           "key": "allDay",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "required": false
         },
         {
           "key": "memberIds",
@@ -507,7 +510,8 @@
         {
           "key": "active",
           "type": "boolean",
-          "default": true
+          "default": true,
+          "required": false
         }
       ],
       "indexes": [
@@ -625,7 +629,8 @@
         {
           "key": "restSeconds",
           "type": "integer",
-          "default": 90
+          "default": 90,
+          "required": false
         },
         {
           "key": "order",
@@ -816,12 +821,14 @@
             "archived"
           ],
           "size": 255,
-          "default": "active"
+          "default": "active",
+          "required": false
         },
         {
           "key": "isDefault",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "required": false
         },
         {
           "key": "totalCents",
@@ -877,7 +884,8 @@
         {
           "key": "qty",
           "type": "double",
-          "default": 1
+          "default": 1,
+          "required": false
         },
         {
           "key": "unit",
@@ -898,7 +906,8 @@
             "outro"
           ],
           "size": 255,
-          "default": "outro"
+          "default": "outro",
+          "required": false
         },
         {
           "key": "note",
@@ -914,7 +923,8 @@
         {
           "key": "checked",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "required": false
         },
         {
           "key": "checkedBy",
@@ -973,7 +983,8 @@
         {
           "key": "defaultQty",
           "type": "double",
-          "default": 1
+          "default": 1,
+          "required": false
         },
         {
           "key": "unit",
@@ -994,7 +1005,8 @@
             "outro"
           ],
           "size": 255,
-          "default": "outro"
+          "default": "outro",
+          "required": false
         }
       ],
       "indexes": [
@@ -1091,7 +1103,8 @@
             "pending"
           ],
           "size": 255,
-          "default": "confirmed"
+          "default": "confirmed",
+          "required": false
         },
         {
           "key": "rrule",
@@ -1309,7 +1322,8 @@
         {
           "key": "rotationIndex",
           "type": "integer",
-          "default": 0
+          "default": 0,
+          "required": false
         },
         {
           "key": "priority",
@@ -1321,7 +1335,8 @@
             "alta"
           ],
           "size": 255,
-          "default": "media"
+          "default": "media",
+          "required": false
         },
         {
           "key": "checklist",
@@ -1333,12 +1348,14 @@
           "type": "integer",
           "default": 1,
           "min": 1,
-          "max": 100
+          "max": 100,
+          "required": false
         },
         {
           "key": "active",
           "type": "boolean",
-          "default": true
+          "default": true,
+          "required": false
         }
       ],
       "indexes": [
@@ -1400,7 +1417,8 @@
             "skipped"
           ],
           "size": 255,
-          "default": "pending"
+          "default": "pending",
+          "required": false
         },
         {
           "key": "completedBy",

@@ -40,6 +40,23 @@ const arr = { array: true };
 
 const idx = (key, columns, type = 'key') => ({ key, type, columns });
 
+/**
+ * Normaliza uma coluna para o schema do Appwrite:
+ * - a CLI trata `required` ausente como true; então toda coluna com `default`
+ *   precisa de `required: false` explícito (required + default é proibido);
+ * - colunas array não podem ter default (removido se presente).
+ */
+function normalizeColumn(col) {
+  const out = { ...col };
+  const hasDefault = out.default !== undefined && out.default !== null;
+  if (out.array && hasDefault) {
+    delete out.default;
+  } else if (hasDefault) {
+    out.required = false;
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // Tabelas
 // ---------------------------------------------------------------------------
@@ -52,7 +69,7 @@ const table = ($id, name, columns, indexes = []) => ({
   // criação liberada para usuários logados; leitura/escrita controladas por
   // permissões de LINHA (Role.team) gravadas pelo helper withHouseholdPermissions
   $permissions: ['create("users")'],
-  columns,
+  columns: columns.map(normalizeColumn),
   indexes,
 });
 
