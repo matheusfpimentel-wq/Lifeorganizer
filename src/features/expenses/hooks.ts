@@ -5,6 +5,7 @@ import { listAllRows } from '@/lib/pagination';
 import { withHouseholdPermissions } from '@/lib/permissions';
 import { computeSplits, type SplitSpec } from '@/core/split';
 import { computeBalances, simplifyDebts } from '@/core/settle';
+import { monthOverMonthPercent, summarizeMonth, type ExpenseForReport } from '@/core/report';
 import { expenseSchema } from '@/shared/schemas';
 import { useAuth } from '@/features/auth/AuthContext';
 
@@ -64,6 +65,7 @@ export function useCreateExpense(householdId: string | null) {
       paidBy: string;
       date: string;
       splitSpec: SplitSpec;
+      rrule?: string | null;
     }) => {
       if (!householdId || !user) throw new Error('Nenhum lar ativo');
       const splits = computeSplits(input.amountCents, input.splitSpec);
@@ -76,6 +78,7 @@ export function useCreateExpense(householdId: string | null) {
         date: input.date,
         splitType: input.splitSpec.type,
         splits,
+        rrule: input.rrule ?? null,
         createdBy: user.$id,
       });
       return tablesDB.createRow({
@@ -88,6 +91,83 @@ export function useCreateExpense(householdId: string | null) {
     },
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['expenses', householdId] }),
   });
+}
+
+/** Despesas pendentes de confirmação (geradas por `tick` a partir de rrule). */
+export function usePendingExpenses(householdId: string | null) {
+  const all = useExpenses(householdId);
+  return { ...all, data: (all.data ?? []).filter((e) => e.status === 'pending') };
+}
+
+export function useConfirmExpense(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (expenseId: string) =>
+      tablesDB.updateRow({
+        databaseId: DB_ID,
+        tableId: TABLES.expenses,
+        rowId: expenseId,
+        data: { status: 'confirmed' },
+      }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['expenses', householdId] }),
+  });
+}
+
+export function useDeleteExpense(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (expenseId: string) =>
+      tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.expenses, rowId: expenseId }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['expenses', householdId] }),
+  });
+}
+
+/**
+ * Fechamento mensal: resumo do mês selecionado + comparativo com o anterior.
+ * Agrega no cliente as despesas confirmadas (ADR-004). `monthOffset` 0 = mês
+ * atual, -1 = anterior, etc. Datas em America/Sao_Paulo (UTC-3 fixo).
+ */
+export function useMonthlyReport(householdId: string | null, monthOffset = 0) {
+  const expenses = useExpenses(householdId);
+
+  const confirmed: ExpenseForReport[] = (expenses.data ?? [])
+    .filter((e) => e.status !== 'pending')
+    .map((e) => ({
+      amountCents: e.amountCents,
+      category: e.category,
+      paidBy: e.paidBy,
+      date: e.date,
+      splits: JSON.parse(e.splits),
+    }));
+
+  // limites do mês em BRT (UTC-3): 1º dia 00:00 BRT == 03:00 UTC
+  const now = new Date();
+  const base = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + monthOffset, 1, 3, 0, 0));
+  const monthStart = base.toISOString();
+  const monthEnd = new Date(
+    Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 1, 3, 0, 0) - 1,
+  ).toISOString();
+  const prevStart = new Date(
+    Date.UTC(base.getUTCFullYear(), base.getUTCMonth() - 1, 1, 3, 0, 0),
+  ).toISOString();
+
+  const summary = summarizeMonth(confirmed, monthStart, monthEnd);
+  const prevSummary = summarizeMonth(confirmed, prevStart, monthStart);
+  const deltaPercent = monthOverMonthPercent(summary.totalCents, prevSummary.totalCents);
+
+  return {
+    isLoading: expenses.isLoading,
+    summary,
+    prevTotalCents: prevSummary.totalCents,
+    deltaPercent,
+    monthStart,
+    monthEnd,
+    monthLabel: new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      month: 'long',
+      year: 'numeric',
+    }).format(base),
+  };
 }
 
 export function useCreateSettlement(householdId: string | null) {

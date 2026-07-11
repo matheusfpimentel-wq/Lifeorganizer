@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { useActiveHousehold } from '@/features/households/hooks';
+import { useActiveHousehold, useHouseholdMembers } from '@/features/households/hooks';
 import {
   useActiveList,
   useAddItem,
@@ -12,6 +12,8 @@ import {
   useUpdateItem,
   type ItemRow,
 } from '@/features/shopping/hooks';
+import { useCreateExpense } from '@/features/expenses/hooks';
+import { useAuth } from '@/features/auth/AuthContext';
 import { shoppingCategoryLabels } from '@/shared/labels';
 import { formatCentsBRL, parseBRLToCents } from '@/lib/format';
 import { shoppingTotalCents } from '@/core/shopping';
@@ -53,6 +55,7 @@ function PriceInput({
 }
 
 export default function ShoppingPage() {
+  const { user } = useAuth();
   const { householdId } = useActiveHousehold();
   const list = useActiveList(householdId);
   const listId = list.data?.$id ?? null;
@@ -63,6 +66,12 @@ export default function ShoppingPage() {
   const removeItem = useRemoveItem(listId);
   const restock = useRestockStaples(householdId, listId);
   const archive = useArchiveList(householdId);
+  const createExpense = useCreateExpense(householdId);
+  const { data: members } = useHouseholdMembers(householdId);
+  const memberIds = useMemo(
+    () => (members ?? []).filter((m) => m.confirm).map((m) => m.userId),
+    [members],
+  );
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('mercearia');
@@ -87,11 +96,29 @@ export default function ShoppingPage() {
   function handleArchive() {
     if (!list.data) return;
     const total = shoppingTotalCents(items.data ?? []);
+    const listName = list.data.name;
     const msg =
       total > 0
         ? `Arquivar a lista com total de ${formatCentsBRL(total)}? Uma nova lista vazia será criada.`
         : 'Arquivar a lista e começar uma nova? (sem preços lançados)';
-    if (confirm(msg)) archive.mutate(list.data);
+    if (!confirm(msg)) return;
+    archive.mutate(list.data, {
+      // ponte com Contas: oferecer criar despesa (mercado) do total apurado
+      onSuccess: ({ totalCents }) => {
+        if (totalCents > 0 && user && householdId && memberIds.length > 0) {
+          if (confirm(`Criar despesa de ${formatCentsBRL(totalCents)} (mercado), dividida igualmente?`)) {
+            createExpense.mutate({
+              description: `Compras — ${listName}`,
+              amountCents: totalCents,
+              category: 'mercado',
+              paidBy: user.$id,
+              date: new Date().toISOString(),
+              splitSpec: { type: 'equal', memberIds },
+            });
+          }
+        }
+      },
+    });
   }
 
   const grouped = new Map<string, ItemRow[]>();

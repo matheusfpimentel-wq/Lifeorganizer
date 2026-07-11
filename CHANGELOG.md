@@ -2,6 +2,29 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — F3 Contas
+
+### Added
+- **Fechamento mensal + CSV** (`src/core/report.ts`, núcleo puro, 8 testes):
+  `summarizeMonth` (total, por categoria, por pagador, por consumidor),
+  `monthOverMonthPercent` e `toCsv`/`csvField` (RFC 4180). Componente
+  `MonthlyClosing` com navegação por mês, comparativo vs. anterior e export CSV
+  (com BOM para Excel pt-BR).
+- **Todos os tipos de rateio na UI** (`ExpenseForm`): equal/percent/shares/exact
+  com seleção de participantes, inputs por membro e **prévia do rateio** validada
+  em tempo real (reusa `computeSplits`).
+- **Contas fixas:** despesa marcável como "repete todo mês" (rrule mensal). A
+  função `tick` gera lançamentos `pending`; nova seção "Contas fixas a confirmar"
+  com confirmar/descartar (`useConfirmExpense`/`useDeleteExpense`).
+- **Ponte lista arquivada → despesa:** ao arquivar lista de compras com total,
+  oferece criar despesa (mercado) dividida igualmente.
+- `ExpensesPage` reorganizada em abas **Resumo** (pendentes, saldos, acertos +
+  Pix, últimas) e **Fechamento**.
+
+### Notes
+- Testes 7.1 (rateio) e 7.5 (Pix) seguem verdes. "Pix lido por app bancário
+  real" depende de validação manual sua. Total: 75 testes.
+
 ## [Unreleased] — F2 Compras
 
 ### Added
