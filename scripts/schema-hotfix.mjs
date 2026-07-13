@@ -65,7 +65,24 @@ async function createColumn(tableId, col) {
 
 async function auditTable(tableDef) {
   const tableId = tableDef.$id;
-  const remote = await tables.listColumns({ databaseId: DB_ID, tableId });
+  let remote;
+  try {
+    remote = await tables.listColumns({ databaseId: DB_ID, tableId });
+  } catch (err) {
+    if (err?.code !== 404) throw err;
+    // tabela ainda não existe: cria (creates-only, nunca apaga nada)
+    await tables.createTable({
+      databaseId: DB_ID,
+      tableId,
+      name: tableDef.name ?? tableId,
+      permissions: tableDef.$permissions ?? [],
+      rowSecurity: tableDef.rowSecurity ?? true,
+      enabled: tableDef.enabled ?? true,
+    });
+    console.log(`+ tabela criada: ${tableId}`);
+    await sleep(1500);
+    remote = await tables.listColumns({ databaseId: DB_ID, tableId });
+  }
   const remoteKeys = new Set(remote.columns.map((c) => c.key));
   let created = 0;
 

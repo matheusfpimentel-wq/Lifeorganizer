@@ -72,8 +72,9 @@ export function MembersPage() {
         {invite.isError && <p className="text-sm text-red-600">{(invite.error as Error).message}</p>}
       </form>
 
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">No lar</h2>
       <ul className="flex flex-col gap-2">
-        {(members ?? []).map((m) => {
+        {(members ?? []).filter((m) => m.confirm).map((m) => {
           const profile = profiles?.get(m.userId);
           const name = displayFor(m);
           const isMe = m.userId === user?.$id;
@@ -96,18 +97,15 @@ export function MembersPage() {
                 </p>
                 <p className="truncate text-sm text-slate-500">
                   {m.userEmail && m.userEmail !== name ? `${m.userEmail} · ` : ''}
-                  {m.confirm ? 'Ativo' : 'Convite pendente'}
+                  Ativo
                 </p>
               </div>
               {!isMe && (
                 <button
                   className="shrink-0 rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
-                  aria-label={m.confirm ? `Remover ${name}` : `Cancelar convite de ${name}`}
+                  aria-label={`Remover ${name}`}
                   onClick={() => {
-                    const question = m.confirm
-                      ? `Remover ${name} do lar?`
-                      : `Cancelar o convite de ${name}?`;
-                    if (confirm(question)) removeMember.mutate(m.$id);
+                    if (confirm(`Remover ${name} do lar?`)) removeMember.mutate(m.$id);
                   }}
                 >
                   <Icon.Trash className="h-5 w-5" />
@@ -117,6 +115,47 @@ export function MembersPage() {
           );
         })}
       </ul>
+
+      {(members ?? []).some((m) => !m.confirm) && (
+        <>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-600">
+            Convites pendentes (ainda não aceitos)
+          </h2>
+          <p className="-mt-2 text-xs text-slate-500">
+            Quem aparece aqui ainda não entrou no lar. Convites repetidos ou antigos podem ser
+            cancelados sem medo — a pessoa ativa continua na lista de cima.
+          </p>
+          <ul className="flex flex-col gap-2">
+            {(members ?? [])
+              .filter((m) => !m.confirm)
+              .sort((a, b) => String(b.$createdAt).localeCompare(String(a.$createdAt)))
+              .map((m) => {
+                const email = m.userEmail || profiles?.get(m.userId)?.displayName || 'convite antigo, sem e-mail';
+                const when = new Date(m.$createdAt).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+                return (
+                  <li key={m.$id} className="card flex items-center gap-3 border-l-4 border-amber-400">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+                      <Icon.Send className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{email}</p>
+                      <p className="truncate text-sm text-slate-500">Convidado em {when} · aguardando aceitar</p>
+                    </div>
+                    <button
+                      className="shrink-0 rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                      aria-label={`Cancelar convite de ${email}`}
+                      onClick={() => {
+                        if (confirm(`Cancelar o convite de ${email}?`)) removeMember.mutate(m.$id);
+                      }}
+                    >
+                      <Icon.Trash className="h-5 w-5" />
+                    </button>
+                  </li>
+                );
+              })}
+          </ul>
+        </>
+      )}
       {removeMember.isError && (
         <p className="text-sm text-red-600">{(removeMember.error as Error).message}</p>
       )}
@@ -295,7 +334,7 @@ export function SettingsPage() {
                 className={`h-11 w-11 rounded-full border-4 transition-transform active:scale-90 ${
                   accent === key ? 'scale-110 border-slate-900/70 dark:border-white/80' : 'border-transparent'
                 }`}
-                style={{ background: `linear-gradient(135deg, ${ACCENTS[key].shades[400]}, ${ACCENTS[key].shades[700]})` }}
+                style={{ backgroundColor: ACCENTS[key].shades[500] }}
               />
             ))}
           </div>
@@ -492,6 +531,7 @@ function ProportionalSettings() {
   const meta = useHouseholdMeta(householdId);
   const queryClient = useQueryClient();
   const [values, setValues] = useState<Record<string, string> | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   const saved: Record<string, number> = (() => {
     try {
@@ -528,11 +568,24 @@ function ProportionalSettings() {
   return (
     <section className="card flex flex-col gap-3">
       <div>
-        <h2 className="font-semibold">Divisão proporcional das contas</h2>
-        <p className="text-sm text-slate-500">
-          Se as rendas são diferentes, combinem uma proporção (ex.: 60% / 40%). Ela vira a opção
-          "Proporcional" ao lançar despesas — percepção de justiça sem calcular toda vez.
-        </p>
+        <div className="flex items-center gap-2">
+          <h2 className="font-semibold">Divisão proporcional das contas</h2>
+          <button
+            type="button"
+            aria-label="O que é a divisão proporcional?"
+            aria-expanded={showHelp}
+            className="text-slate-400 hover:text-brand-600"
+            onClick={() => setShowHelp((s) => !s)}
+          >
+            <Icon.HelpCircle className="h-4.5 w-4.5 h-[18px] w-[18px]" />
+          </button>
+        </div>
+        {showHelp && (
+          <p className="mt-1 text-sm text-slate-500">
+            Se as rendas são diferentes, combinem uma proporção (ex.: 60% / 40%). Ela vira a opção
+            "Proporcional" ao lançar despesas — percepção de justiça sem calcular toda vez.
+          </p>
+        )}
       </div>
       <div className="flex flex-col gap-2">
         {people.map((p) => (

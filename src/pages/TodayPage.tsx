@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
-import { useActiveHousehold, useHouseholdMeta, useMyProfile } from '@/features/households/hooks';
+import { useActiveHousehold, useHouseholdMeta, useHouseholdPeople, useMyProfile } from '@/features/households/hooks';
 import { useOccurrences, useOccurrenceAction, useTasks } from '@/features/tasks/hooks';
 import { useActiveList, useListItems } from '@/features/shopping/hooks';
 import { useBalances } from '@/features/expenses/hooks';
@@ -30,6 +30,13 @@ export default function TodayPage() {
   const villageProgress = useVillageProgress(householdId);
   const meta = useHouseholdMeta(householdId);
   const weather = useWeather();
+  const { people, profileById } = useHouseholdPeople(householdId);
+  const villagePeople = people.map((p) => ({
+    id: p.id,
+    name: p.name,
+    color: p.color,
+    avatar: (profileById.get(p.id)?.avatar as string | undefined) ?? null,
+  }));
   const pausedUntil = (() => {
     try {
       const settings = meta.data?.settings ? JSON.parse(meta.data.settings as string) : {};
@@ -171,6 +178,7 @@ export default function TodayPage() {
         completedToday={completedToday}
         progress={villageProgress.data}
         weather={weather.data?.kind ?? null}
+        people={villagePeople}
       />
 
       {/* cards da home em 2 colunas */}

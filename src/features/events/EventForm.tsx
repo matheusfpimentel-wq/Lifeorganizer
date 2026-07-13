@@ -50,7 +50,10 @@ export default function EventForm({ members, initial, submitting, onSubmit, onCa
   const [description, setDescription] = useState<string>(initial?.description ?? '');
   const [location, setLocation] = useState<string>(initial?.location ?? '');
   const [startAt, setStartAt] = useState(isoToLocalInput(initial?.startAt, 9));
-  const [endAt, setEndAt] = useState(isoToLocalInput(initial?.endAt, 10));
+  // fim é opcional: evento sem fim é gravado com endAt = startAt
+  const [endAt, setEndAt] = useState(
+    initial ? (initial.endAt && initial.endAt !== initial.startAt ? isoToLocalInput(initial.endAt, 10) : '') : '',
+  );
   const [allDay, setAllDay] = useState<boolean>(initial?.allDay ?? false);
   const [memberIds, setMemberIds] = useState<string[]>(initial?.memberIds ?? []);
   const [rrule, setRrule] = useState(initial?.rrule ?? '');
@@ -70,7 +73,7 @@ export default function EventForm({ members, initial, submitting, onSubmit, onCa
       description: description.trim() || null,
       location: location.trim() || null,
       startAt: localInputToIso(startAt),
-      endAt: localInputToIso(endAt < startAt ? startAt : endAt),
+      endAt: localInputToIso(!endAt || endAt < startAt ? startAt : endAt),
       allDay,
       memberIds,
       rrule: rrule || null,
@@ -91,8 +94,8 @@ export default function EventForm({ members, initial, submitting, onSubmit, onCa
           <input id="evStart" type="datetime-local" className="input" value={startAt} onChange={(e) => setStartAt(e.target.value)} required />
         </div>
         <div>
-          <label className="label" htmlFor="evEnd">Fim</label>
-          <input id="evEnd" type="datetime-local" className="input" value={endAt} onChange={(e) => setEndAt(e.target.value)} required />
+          <label className="label" htmlFor="evEnd">Fim (opcional)</label>
+          <input id="evEnd" type="datetime-local" className="input" value={endAt} onChange={(e) => setEndAt(e.target.value)} />
         </div>
       </div>
 

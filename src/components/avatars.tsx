@@ -208,6 +208,105 @@ export const AVATARS: Record<string, { label: string; render: (p: P) => JSX.Elem
         </>
       )),
   },
+  ninja: {
+    label: 'Ninja',
+    render: (p) =>
+      frame(p, '#334155', (
+        <>
+          <circle cx="24" cy="26" r="12" fill="#0f172a" />
+          <rect x="13" y="21" width="22" height="8" rx="4" fill="#fcd9b8" />
+          <circle cx="20" cy="25" r="1.6" fill="#0f172a" />
+          <circle cx="28" cy="25" r="1.6" fill="#0f172a" />
+          <path d="M35 20l7-4-3 7Z" fill="#dc2626" />
+          <path d="M36 22q4 1 5 4" stroke="#dc2626" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+        </>
+      )),
+  },
+  pirata: {
+    label: 'Pirata',
+    render: (p) =>
+      frame(p, '#0e7490', (
+        <>
+          <circle cx="24" cy="27" r="11" fill="#fcd9b8" />
+          <path d="M11 22 C13 10 35 10 37 22 l-2 2 c-6 -4 -20 -4 -22 0 Z" fill="#1e293b" />
+          <path d="M11 22 q13 -5 26 0" stroke="#f8fafc" strokeWidth="1.6" fill="none" />
+          <circle cx="16" cy="14.5" r="1.6" fill="#f8fafc" />
+          <path d="M25 24 h7 l-1 4 h-5 Z" fill="#1e293b" />
+          <path d="M18 20 L34 24" stroke="#1e293b" strokeWidth="1.6" />
+          <circle cx="20" cy="26" r="1.5" fill="#1e293b" />
+          <path d="M20 32q3 2.4 7 0.6" stroke="#b45309" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+          <circle cx="13" cy="30" r="1.8" fill="#fde047" />
+        </>
+      )),
+  },
+  fada: {
+    label: 'Fada',
+    render: (p) =>
+      frame(p, '#86efac', (
+        <>
+          <ellipse cx="13" cy="22" rx="6" ry="9" fill="#f0fdfa" opacity="0.9" transform="rotate(-18 13 22)" />
+          <ellipse cx="35" cy="22" rx="6" ry="9" fill="#f0fdfa" opacity="0.9" transform="rotate(18 35 22)" />
+          <circle cx="24" cy="25" r="9" fill="#fcd9b8" />
+          <path d="M15 24c0-7 4-11 9-11s9 4 9 11c-2.5-3.5-4-5-6-5-1.5 1.6-4.5 1.6-6 0-2 0-3.5 1.5-6 5Z" fill="#fb7185" />
+          <path d="M24 8 l1.2 2.6 2.8 0.4 -2 2 0.4 2.8 -2.4 -1.4 -2.4 1.4 0.4 -2.8 -2 -2 2.8 -0.4 Z" fill="#fde047" />
+          <circle cx="21" cy="24" r="1.4" fill="#1e293b" />
+          <circle cx="27" cy="24" r="1.4" fill="#1e293b" />
+          <path d="M21.5 28.5q2.5 2 5 0" stroke="#b45309" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          <path d="M14 36c4 3 16 3 20 0v3c-4 3-16 3-20 0Z" fill="#4ade80" />
+        </>
+      )),
+  },
+  vampiro: {
+    label: 'Vampirinho',
+    render: (p) =>
+      frame(p, '#3b0764', (
+        <>
+          <path d="M8 34 Q16 24 24 30 Q32 24 40 34 L34 30 L30 36 L24 32 L18 36 L14 30 Z" fill="#1e1b4b" />
+          <circle cx="24" cy="22" r="10" fill="#f1f5f9" />
+          <path d="M14 20 C15 10 33 10 34 20 L29 16 L24 19 L19 16 Z" fill="#0f172a" />
+          <circle cx="20.5" cy="21" r="1.5" fill="#dc2626" />
+          <circle cx="27.5" cy="21" r="1.5" fill="#dc2626" />
+          <path d="M20.5 26 q3.5 2.4 7 0" stroke="#7f1d1d" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          <path d="M21.4 26.6 l0.8 2.4 1 -2.2 Z M25.8 26.8 l0.8 2.2 1 -2.4 Z" fill="#f8fafc" />
+        </>
+      )),
+  },
+  panda: {
+    label: 'Panda',
+    render: (p) =>
+      frame(p, '#84cc16', (
+        <>
+          <circle cx="14" cy="13" r="4.5" fill="#1c1917" />
+          <circle cx="34" cy="13" r="4.5" fill="#1c1917" />
+          <circle cx="24" cy="26" r="13" fill="#f8fafc" />
+          <ellipse cx="19" cy="23" rx="3.4" ry="4" fill="#1c1917" transform="rotate(-14 19 23)" />
+          <ellipse cx="29" cy="23" rx="3.4" ry="4" fill="#1c1917" transform="rotate(14 29 23)" />
+          <circle cx="19.5" cy="23" r="1.3" fill="#f8fafc" />
+          <circle cx="28.5" cy="23" r="1.3" fill="#f8fafc" />
+          <circle cx="19.8" cy="23.2" r="0.65" fill="#1c1917" />
+          <circle cx="28.2" cy="23.2" r="0.65" fill="#1c1917" />
+          <ellipse cx="24" cy="29.5" rx="2" ry="1.4" fill="#1c1917" />
+          <path d="M24 31v1.6M24 32.6q-2 1.6-3.6 0M24 32.6q2 1.6 3.6 0" stroke="#1c1917" strokeWidth="1" fill="none" strokeLinecap="round" />
+        </>
+      )),
+  },
+  sereia: {
+    label: 'Sereia',
+    render: (p) =>
+      frame(p, '#0ea5e9', (
+        <>
+          <path d="M20 38 q4 4 8 0 q-1 -4 -4 -6 q-3 2 -4 6 Z" fill="#14b8a6" />
+          <path d="M16 42 q4 -3 8 -1 q4 -2 8 1 q-4 3 -8 1 q-4 2 -8 -1 Z" fill="#0d9488" />
+          <circle cx="24" cy="22" r="9" fill="#fcd9b8" />
+          <path d="M15 22 c-1 -8 4 -12 9 -12 s10 4 9 12 c-1.5 -3 -2.5 -5 -5 -5.5 c-1.5 1.6 -6.5 1.6 -8 0 c-2.5 0.5 -3.5 2.5 -5 5.5 Z" fill="#dc2626" />
+          <path d="M13 22 q2 6 4 8 q-3 -1 -5 -4 Z M35 22 q-2 6 -4 8 q3 -1 5 -4 Z" fill="#dc2626" />
+          <path d="M24 5 l0.9 2 2.1 0.3 -1.5 1.5 0.3 2.1 -1.8 -1 -1.8 1 0.3 -2.1 -1.5 -1.5 2.1 -0.3 Z" fill="#fde047" />
+          <circle cx="21" cy="21" r="1.4" fill="#1e293b" />
+          <circle cx="27" cy="21" r="1.4" fill="#1e293b" />
+          <path d="M21.5 25.5q2.5 2 5 0" stroke="#b45309" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+        </>
+      )),
+  },
 };
 
 export const AVATAR_SLUGS = Object.keys(AVATARS);

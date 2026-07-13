@@ -3,6 +3,7 @@ import type { SplitSpec } from '@/core/split';
 import { computeSplits } from '@/core/split';
 import { expenseCategoryLabels, splitTypeLabels } from '@/shared/labels';
 import { formatCentsBRL, parseBRLToCents } from '@/lib/format';
+import { CATEGORY_ICONS } from './categoryIcons';
 import type { ExpenseRow } from './hooks';
 
 interface Member {
@@ -162,24 +163,50 @@ export default function ExpenseForm({ members, currentUserId, proportional, init
 
   return (
     <form className="card flex flex-col gap-3" onSubmit={handleSubmit}>
+      {/* ícone da conta (categoria) antes da descrição */}
+      <fieldset>
+        <legend className="label">
+          Ícone da conta · <span className="font-normal text-slate-500">{expenseCategoryLabels[category] ?? category}</span>
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(expenseCategoryLabels).map(([value, label]) => {
+            const CatIcon = CATEGORY_ICONS[value];
+            const active = category === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                title={label}
+                aria-label={label}
+                aria-pressed={active}
+                onClick={() => setCategory(value)}
+                className={`flex h-11 w-11 items-center justify-center rounded-full transition-transform active:scale-90 ${
+                  active
+                    ? 'bg-brand-600 text-white shadow-md'
+                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
+                <CatIcon className="h-5 w-5" />
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
       <div>
         <label className="label" htmlFor="expDesc">Descrição</label>
         <input id="expDesc" className="input" value={description} onChange={(e) => setDescription(e.target.value)} required maxLength={200} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 items-end gap-3">
         <div>
           <label className="label" htmlFor="expAmount">Valor (R$)</label>
           <input id="expAmount" className="input" inputMode="decimal" placeholder="0,00" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         </div>
-        <div>
-          <label className="label" htmlFor="expCategory">Categoria</label>
-          <select id="expCategory" className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
-            {Object.entries(expenseCategoryLabels).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </div>
+        <label className="flex min-h-[48px] items-center gap-2 rounded-xl bg-slate-50 px-3 dark:bg-slate-800/60">
+          <input type="checkbox" className="h-5 w-5 accent-brand-600" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />
+          <span className="text-sm">Conta fixa (todo mês)</span>
+        </label>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -232,11 +259,6 @@ export default function ExpenseForm({ members, currentUserId, proportional, init
           </div>
         ))}
       </fieldset>
-
-      <label className="flex items-center gap-2">
-        <input type="checkbox" className="h-5 w-5 accent-brand-600" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />
-        <span>Conta fixa (repete todo mês)</span>
-      </label>
 
       {preview && 'error' in preview ? (
         <p className="text-sm text-amber-600">Prévia: {preview.error}</p>

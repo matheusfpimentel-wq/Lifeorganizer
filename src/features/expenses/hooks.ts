@@ -161,6 +161,60 @@ export function useDeleteExpense(householdId: string | null) {
   });
 }
 
+// --- Fundo do casal ----------------------------------------------------------
+export function useFundContributions(householdId: string | null) {
+  return useQuery({
+    queryKey: ['fundContributions', householdId],
+    enabled: !!householdId,
+    queryFn: () =>
+      listAllRows<ExpenseRow>(TABLES.fundContributions, [
+        Query.equal('householdId', householdId!),
+        Query.orderDesc('date'),
+      ]),
+  });
+}
+
+export function useAddFundContribution(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { memberId: string; amountCents: number; date: string; note?: string | null }) => {
+      if (!householdId) throw new Error('Nenhum lar ativo');
+      return tablesDB.createRow({
+        databaseId: DB_ID,
+        tableId: TABLES.fundContributions,
+        rowId: ID.unique(),
+        data: { ...input, note: input.note ?? null, householdId },
+        permissions: withHouseholdPermissions(householdId),
+      });
+    },
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['fundContributions', householdId] }),
+  });
+}
+
+export function useUpdateFundContribution(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      contributionId,
+      data,
+    }: {
+      contributionId: string;
+      data: { memberId?: string; amountCents?: number; date?: string; note?: string | null };
+    }) =>
+      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.fundContributions, rowId: contributionId, data }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['fundContributions', householdId] }),
+  });
+}
+
+export function useDeleteFundContribution(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (contributionId: string) =>
+      tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.fundContributions, rowId: contributionId }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['fundContributions', householdId] }),
+  });
+}
+
 /**
  * Fechamento mensal: resumo do mês selecionado + comparativo com o anterior.
  * Agrega no cliente as despesas confirmadas (ADR-004). `monthOffset` 0 = mês

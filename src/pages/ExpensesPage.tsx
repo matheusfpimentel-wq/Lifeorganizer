@@ -14,18 +14,19 @@ import {
   type ExpenseRow,
 } from '@/features/expenses/hooks';
 import ExpenseForm from '@/features/expenses/ExpenseForm';
+import FundPanel from '@/features/expenses/FundPanel';
 import MonthlyClosing from '@/features/expenses/MonthlyClosing';
+import { categoryIcon } from '@/features/expenses/categoryIcons';
 import { expenseCategoryLabels } from '@/shared/labels';
 import { formatCentsBRL, formatDate, parseBRLToCents } from '@/lib/format';
-import { buildPixPayload } from '@/core/pix';
 import { Icon } from '@/components/icons';
 import { BankScene, ModuleHero } from '@/components/scenes';
 
-type Tab = 'summary' | 'closing';
+type Tab = 'summary' | 'fund' | 'closing';
 
 export default function ExpensesPage() {
   const { user } = useAuth();
-  const { householdId, household } = useActiveHousehold();
+  const { householdId } = useActiveHousehold();
   const expenses = useExpenses(householdId);
   const pending = usePendingExpenses(householdId);
   const { balances, transfers, isLoading: balancesLoading } = useBalances(householdId);
@@ -72,26 +73,6 @@ export default function ExpensesPage() {
   const allSettled = !balancesLoading && transfers.length === 0 && (expenses.data ?? []).some((e) => e.status !== 'pending');
   const myBalance = user ? (balances.get(user.$id) ?? 0) : 0;
 
-  function handlePixCharge(toMember: string, amountCents: number) {
-    const creditorProfile = profileById.get(toMember);
-    if (!creditorProfile?.pixKey) {
-      alert(`${memberName(toMember)} ainda não cadastrou a chave Pix no perfil.`);
-      return;
-    }
-    const payload = buildPixPayload({
-      pixKey: creditorProfile.pixKey,
-      merchantName: creditorProfile.displayName,
-      merchantCity: 'SAO PAULO',
-      amountCents,
-    });
-    const text = `Pix de ${formatCentsBRL(amountCents)} para ${creditorProfile.displayName} (${household?.name}):\n${payload}`;
-    if (navigator.share) void navigator.share({ text });
-    else {
-      void navigator.clipboard.writeText(payload);
-      alert('Pix copia e cola copiado!');
-    }
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <ModuleHero
@@ -135,8 +116,8 @@ export default function ExpensesPage() {
         <p className="text-sm text-red-600">{((createExpense.error ?? updateExpense.error) as Error).message}</p>
       )}
 
-      <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-        {([['summary', 'Resumo'], ['closing', 'Fechamento']] as const).map(([id, label]) => (
+      <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+        {([['summary', 'Resumo'], ['fund', 'Fundo do casal'], ['closing', 'Fechamento']] as const).map(([id, label]) => (
           <button
             key={id}
             className={`min-h-[40px] rounded-lg text-sm font-medium ${tab === id ? 'bg-white shadow-sm dark:bg-slate-900' : 'text-slate-500'}`}
@@ -258,40 +239,6 @@ export default function ExpensesPage() {
             )}
           </section>
 
-          {transfers.length > 0 && (
-            <section className="card">
-              <h2 className="mb-2 font-semibold">Acertos sugeridos</h2>
-              <ul className="flex flex-col gap-2">
-                {transfers.map((t, i) => (
-                  <li key={i} className="flex items-center justify-between gap-2">
-                    <span>
-                      {memberName(t.fromMember)} → {memberName(t.toMember)}:{' '}
-                      <strong>{formatCentsBRL(t.amountCents)}</strong>
-                    </span>
-                    <span className="flex gap-1">
-                      <button className="btn-secondary !min-h-[36px] !px-2 text-sm" onClick={() => handlePixCharge(t.toMember, t.amountCents)}>
-                        Pix
-                      </button>
-                      <button
-                        className="btn-secondary !min-h-[36px] !px-2 text-sm"
-                        onClick={() =>
-                          createSettlement.mutate({
-                            fromMember: t.fromMember,
-                            toMember: t.toMember,
-                            amountCents: t.amountCents,
-                            method: 'pix',
-                          })
-                        }
-                      >
-                        Marcar pago
-                      </button>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
           <section className="card">
             <h2 className="mb-2 font-semibold">Últimas despesas</h2>
             {expenses.isLoading ? (
@@ -303,24 +250,34 @@ export default function ExpensesPage() {
                 {(expenses.data ?? [])
                   .filter((e) => e.status !== 'pending')
                   .slice(0, 20)
-                  .map((expense) => (
+                  .map((expense) => {
+                    const CatIcon = categoryIcon(expense.category);
+                    return (
                     <li key={expense.$id} className="flex items-center justify-between gap-2">
                       <button
                         type="button"
-                        className="min-w-0 flex-1 text-left"
+                        className="flex min-w-0 flex-1 items-center gap-3 text-left"
                         aria-label={`Editar ${expense.description}`}
                         onClick={() => openEditor(expense)}
                       >
-                        <span className="block truncate font-medium">
-                          {expense.description}
-                          {expense.rrule && (
-                            <span className="ml-2 rounded bg-brand-100 px-1.5 py-0.5 text-xs text-brand-800 dark:bg-brand-900 dark:text-brand-100">
-                              fixa
-                            </span>
-                          )}
+                        <span
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600/10 text-brand-600 dark:bg-brand-400/15 dark:text-brand-400"
+                          title={expenseCategoryLabels[expense.category] ?? expense.category}
+                        >
+                          <CatIcon className="h-4.5 w-4.5 h-[18px] w-[18px]" />
                         </span>
-                        <span className="block truncate text-sm text-slate-500">
-                          {formatDate(expense.date)} · {expenseCategoryLabels[expense.category] ?? expense.category} · pagou: {memberName(expense.paidBy)}
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">
+                            {expense.description}
+                            {expense.rrule && (
+                              <span className="ml-2 rounded bg-brand-100 px-1.5 py-0.5 text-xs text-brand-800 dark:bg-brand-900 dark:text-brand-100">
+                                fixa
+                              </span>
+                            )}
+                          </span>
+                          <span className="block truncate text-sm text-slate-500">
+                            {formatDate(expense.date)} · pagou: {memberName(expense.paidBy)}
+                          </span>
                         </span>
                       </button>
                       <span className="shrink-0 font-semibold">{formatCentsBRL(expense.amountCents)}</span>
@@ -336,11 +293,16 @@ export default function ExpensesPage() {
                         <Icon.X className="h-4 w-4" />
                       </button>
                     </li>
-                  ))}
+                    );
+                  })}
               </ul>
             )}
           </section>
         </>
+      )}
+
+      {tab === 'fund' && user && (
+        <FundPanel householdId={householdId} currentUserId={user.$id} members={memberOptions} />
       )}
 
       {tab === 'closing' && <MonthlyClosing householdId={householdId} memberName={memberName} />}

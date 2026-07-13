@@ -59,7 +59,12 @@ export default function TasksPage() {
   const createTask = useCreateTask(householdId);
   const updateTask = useUpdateTask(householdId);
   const deleteTask = useDeleteTask(householdId);
-  const { people } = useHouseholdPeople(householdId);
+  const { people, profileById } = useHouseholdPeople(householdId);
+  const scenePeople = people.map((p) => ({
+    id: p.id,
+    color: p.color,
+    avatar: (profileById.get(p.id)?.avatar as string | undefined) ?? null,
+  }));
 
   const [tab, setTab] = useState<Tab>('pending');
   const [showForm, setShowForm] = useState(false);
@@ -118,7 +123,7 @@ export default function TasksPage() {
   return (
     <div className="flex flex-col gap-4">
       <ModuleHero
-        scene={<HouseScene className="h-24 w-full" />}
+        scene={<HouseScene className="h-24 w-full" people={scenePeople} />}
         title="Tarefas"
         action={
           <button

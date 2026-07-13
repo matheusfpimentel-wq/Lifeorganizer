@@ -6,9 +6,60 @@ import type { CSSProperties, ReactNode, SVGProps } from 'react';
  * Animações leves (motion-safe) reutilizam as keyframes globais do index.css.
  */
 
+import { BuiltinAvatar } from '@/components/avatars';
+
 type P = SVGProps<SVGSVGElement>;
 
 const SWAY: CSSProperties = { transformBox: 'fill-box', transformOrigin: '50% 0%' };
+
+export interface ScenePerson {
+  id: string;
+  avatar?: string | null;
+  color?: string | null;
+}
+
+/** Pessoinha genérica que atravesa a cena andando (roupa/cabelo variam). */
+function Passerby({ shirt, hair, delay, duration, y = 66, bag }: {
+  shirt: string;
+  hair: string;
+  delay?: string;
+  duration?: string;
+  y?: number;
+  bag?: boolean;
+}) {
+  return (
+    <g className="animate-stroll" style={{ animationDelay: delay, animationDuration: duration }}>
+      <g transform={`translate(0 ${y})`}>
+        <circle cx="0" cy="-14" r="3.4" fill="#fcd9b8" />
+        <path d="M-3.4 -15 a3.4 3.4 0 0 1 6.8 0 l-0.8 -1.6 h-5.2 Z" className={hair} />
+        <rect x="-3" y="-10.4" width="6" height="9" rx="2.4" className={shirt} />
+        <path d="M-1.6 -1.6 l-1.2 5.6 M1.6 -1.6 l1.2 5.6" strokeWidth="1.8" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+        {bag && <path d="M3 -6 l3 1.4 l-0.6 4.6 l-3.4 -1.2 Z" className="fill-amber-300" />}
+      </g>
+    </g>
+  );
+}
+
+/** Morador do lar em pé na cena, com o avatar escolhido como rosto. */
+function PersonaFigure({ person, x, y, flip }: { person: ScenePerson; x: number; y: number; flip?: boolean }) {
+  return (
+    <g transform={`translate(${x} ${y})${flip ? ' scale(-1 1)' : ''}`}>
+      <g className="animate-bob" style={{ animationDuration: '3.4s' }}>
+        <rect x="-3.4" y="0" width="6.8" height="10" rx="2.8" style={{ fill: person.color ?? '#0ea5e9' }} />
+        <path d="M-1.8 9.6 l-1 3.6 M1.8 9.6 l1 3.6" strokeWidth="1.8" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+        <path d="M-3.4 2.6 l-2.6 3 M3.4 2.6 l2.6 3" strokeWidth="1.5" strokeLinecap="round" style={{ stroke: person.color ?? '#0ea5e9' }} />
+        {person.avatar ? (
+          <BuiltinAvatar slug={person.avatar} x={-5.5} y={-11.4} width={11} height={11} />
+        ) : (
+          <>
+            <circle cx="0" cy="-4.6" r="4.4" fill="#fcd9b8" />
+            <path d="M-4.4 -5.6 a4.4 4.4 0 0 1 8.8 0 l-1 -1.8 h-6.8 Z" className="fill-amber-900" />
+          </>
+        )}
+      </g>
+    </g>
+  );
+}
 
 function Frame({ skyClass, children, ...props }: P & { skyClass: string; children: ReactNode }) {
   return (
@@ -63,9 +114,69 @@ export function BankScene(props: P) {
         <ellipse cx="22" cy="-8" rx="4" ry="1.6" fill="url(#scGold)" />
         <ellipse cx="22" cy="-11" rx="4" ry="1.6" fill="url(#scGold)" />
       </g>
+      {/* cofre do banco */}
+      <g transform="translate(214 66)">
+        <rect x="-11" y="-22" width="22" height="22" rx="2.4" className="fill-slate-600 dark:fill-slate-700" />
+        <rect x="-8.4" y="-19.4" width="16.8" height="16.8" rx="1.8" className="fill-slate-500 dark:fill-slate-600" />
+        <circle cx="0" cy="-11" r="4.6" fill="none" strokeWidth="1.6" className="stroke-slate-300" />
+        <path d="M0 -11 v-3 M0 -11 l2.6 1.6" strokeWidth="1.1" strokeLinecap="round" className="stroke-slate-300" />
+      </g>
+      {/* dono do banco: de tempos em tempos vai conferir o cofre e volta */}
+      <g className="animate-drift" style={{ animationDuration: '18s' }}>
+        <g transform="translate(168 64)">
+          <g className="animate-bob" style={{ animationDuration: '2.8s' }}>
+            <circle cx="0" cy="-22" r="5.6" fill="#fcd9b8" />
+            <path d="M-5.6 -23.6 a5.6 5.6 0 0 1 11.2 0 l-1.4 -2 h-8.6 Z" className="fill-stone-300" />
+            <circle cx="-1.8" cy="-22.3" r="0.7" className="fill-slate-900" />
+            <circle cx="1.8" cy="-22.3" r="0.7" className="fill-slate-900" />
+            <path d="M-1.4 -19.6 q1.4 1.2 2.8 0" fill="none" strokeWidth="0.7" strokeLinecap="round" className="stroke-amber-800" />
+            <path d="M-6.5 -16 L6.5 -16 L5 -1 L-5 -1 Z" className="fill-slate-800 dark:fill-slate-900" />
+            <path d="M0 -16 l-1.6 4 1.6 6.4 1.6 -6.4 Z" className="fill-rose-500" />
+            <path d="M6 -12 q3.4 -1 4.6 -3.6" fill="none" strokeWidth="2" strokeLinecap="round" stroke="#fcd9b8" />
+            <ellipse cx="12" cy="-16.6" rx="2.6" ry="1" fill="url(#scGold)" />
+          </g>
+        </g>
+      </g>
+      {/* clientes na fila do balcão */}
+      <g transform="translate(64 66)">
+        {[0, 1].map((i) => (
+          <g key={i} transform={`translate(${i * 16} 0)`} className="animate-bob" style={{ animationDuration: `${3.2 + i * 0.7}s`, animationDelay: `${i * 0.5}s` }}>
+            <circle cx="0" cy="-17" r="4" fill={i ? '#f0c8a0' : '#fcd9b8'} />
+            <path d="M-4 -18.2 a4 4 0 0 1 8 0 l-1 -1.8 h-6 Z" className={i ? 'fill-slate-800' : 'fill-amber-900'} />
+            <rect x="-3.6" y="-12.6" width="7.2" height="11" rx="2.8" className={i ? 'fill-sky-600' : 'fill-emerald-600'} />
+          </g>
+        ))}
+      </g>
+      {/* ladrão em disparada com a polícia logo atrás */}
+      <g className="animate-stroll" style={{ animationDuration: '44s', animationDelay: '6s' }}>
+        <g transform="translate(0 66)">
+          {/* ladrão: máscara e saco de moedas */}
+          <g transform="rotate(8)">
+            <circle cx="0" cy="-14" r="3.4" fill="#fcd9b8" />
+            <rect x="-3.4" y="-15.4" width="6.8" height="2.6" rx="1.2" className="fill-slate-900" />
+            <circle cx="-1.2" cy="-14.2" r="0.55" fill="#fff" />
+            <circle cx="1.6" cy="-14.2" r="0.55" fill="#fff" />
+            <path d="M-3.4 -17 a3.4 3.4 0 0 1 6.8 0 Z" className="fill-slate-700" />
+            <rect x="-3" y="-10.6" width="6" height="9" rx="2.4" className="fill-slate-700" />
+            <path d="M-1.6 -1.8 l-2.6 4.6 M1.6 -1.8 l2.8 4" strokeWidth="1.8" strokeLinecap="round" className="stroke-slate-800 dark:stroke-slate-400" />
+            <path d="M3 -9 q4 -2.4 5.6 -0.4" fill="none" strokeWidth="1.6" strokeLinecap="round" stroke="#fcd9b8" />
+            <circle cx="10" cy="-8.4" r="3.2" className="fill-amber-200" />
+            <path d="M8.6 -10.8 l1.4 -1.4 l1.4 1.4" fill="none" strokeWidth="0.9" className="stroke-amber-700" />
+          </g>
+          {/* policial correndo atrás */}
+          <g transform="translate(-22 0) rotate(6)">
+            <circle cx="0" cy="-14" r="3.4" fill="#f0c8a0" />
+            <path d="M-3.8 -15.2 h7.6 l-0.8 -2.4 a3.4 3.4 0 0 0 -6 0 Z" className="fill-sky-900" />
+            <rect x="-1.4" y="-19.2" width="2.8" height="1.6" rx="0.7" className="fill-sky-900" />
+            <rect x="-3" y="-10.6" width="6" height="9" rx="2.4" className="fill-sky-800" />
+            <path d="M-1.6 -1.8 l-2.8 4.2 M1.6 -1.8 l2.6 4.4" strokeWidth="1.8" strokeLinecap="round" className="stroke-slate-800 dark:stroke-slate-400" />
+            <path d="M3 -8.6 l4 -2.6" strokeWidth="1.6" strokeLinecap="round" stroke="#f0c8a0" />
+          </g>
+        </g>
+      </g>
       {/* moedas soltas */}
-      <circle cx="220" cy="30" r="4" fill="url(#scGold)" className="animate-bob" />
-      <circle cx="250" cy="44" r="2.8" fill="url(#scGold)" className="animate-bob" style={{ animationDelay: '1s' }} />
+      <circle cx="250" cy="30" r="4" fill="url(#scGold)" className="animate-bob" />
+      <circle cx="278" cy="44" r="2.8" fill="url(#scGold)" className="animate-bob" style={{ animationDelay: '1s' }} />
       <defs>
         <linearGradient id="scGold" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fde047" />
@@ -124,6 +235,19 @@ export function MarketScene(props: P) {
         <path d="M8 -15 q2.6 -3.4 4.6 -1" fill="none" strokeWidth="1.4" strokeLinecap="round" stroke="#fcd9b8" />
       </g>
       </g>
+      {/* feirante arrumando os caixotes */}
+      <g transform="translate(196 66)">
+        <g className="animate-bob" style={{ animationDuration: '2.4s' }}>
+          <circle cx="0" cy="-18" r="4.4" fill="#f0c8a0" />
+          <path d="M-5.4 -18.6 h10.8 l-1.2 -2.8 a4.4 4.4 0 0 0 -8.4 0 Z" className="fill-amber-400" />
+          <rect x="-4" y="-12.6" width="8" height="10" rx="2.6" className="fill-sky-700" />
+          <path d="M-4 -10 l-3.4 4.6 M4 -10 l3.4 4.6" strokeWidth="1.6" strokeLinecap="round" stroke="#f0c8a0" />
+          <circle cx="-7.8" cy="-4.6" r="2" className="fill-orange-400" />
+        </g>
+      </g>
+      {/* clientes passando com sacolas */}
+      <Passerby shirt="fill-rose-500" hair="fill-slate-800" duration="30s" bag />
+      <Passerby shirt="fill-violet-600" hair="fill-amber-900" duration="42s" delay="14s" y={70} bag />
     </Frame>
   );
 }
@@ -168,6 +292,8 @@ export function GymScene(props: P) {
         <path d="M-4.4 -12 a5 5 0 0 1 8.8 0" fill="none" strokeWidth="2.6" className="stroke-slate-700 dark:stroke-slate-400" />
         <circle cx="0" cy="-6" r="7" className="fill-slate-700 dark:fill-slate-500" />
       </g>
+      {/* corredor na esteira do fundo passa de vez em quando */}
+      <Passerby shirt="fill-emerald-500" hair="fill-slate-900" duration="16s" y={68} />
     </Frame>
   );
 }
@@ -201,18 +327,56 @@ export function ParkScene(props: P) {
         <ellipse cx="-11" cy="-10" rx="5.6" ry="7" className="fill-amber-400" />
       </g>
       </g>
-      {/* banco de praça */}
+      {/* banco de praça com velhinhos namorando */}
       <g transform="translate(180 72)">
         <rect x="-16" y="-8" width="32" height="3.4" rx="1.6" className="fill-amber-800" />
         <rect x="-16" y="-15" width="32" height="3" rx="1.5" className="fill-amber-700" />
         <path d="M-13 -5 v7 M13 -5 v7" strokeWidth="2.4" className="stroke-amber-900" />
+        {/* vovô */}
+        <g transform="translate(-6 -8)">
+          <circle cx="0" cy="-8.4" r="3.6" fill="#f0c8a0" />
+          <path d="M-3.6 -9.6 a3.6 3.6 0 0 1 7.2 0 Z" className="fill-slate-100" />
+          <path d="M-2.2 -8 h1.6 M0.8 -8 h1.6 M-0.6 -8 h1.4" strokeWidth="0.55" className="stroke-slate-500" />
+          <rect x="-3.4" y="-5" width="6.8" height="6" rx="2" className="fill-emerald-700" />
+          <path d="M-2 1 v3.4 M2 1 v3.4" strokeWidth="1.6" strokeLinecap="round" className="stroke-slate-700" />
+        </g>
+        {/* vovó com coquinho, cabeça encostada */}
+        <g transform="translate(4.5 -8) rotate(-10)">
+          <circle cx="0" cy="-8.2" r="3.4" fill="#fcd9b8" />
+          <path d="M-3.4 -9 a3.4 3.4 0 0 1 6.8 0 Z" className="fill-slate-200" />
+          <circle cx="0" cy="-12" r="1.4" className="fill-slate-200" />
+          <rect x="-3.2" y="-5" width="6.4" height="6" rx="2" className="fill-rose-400" />
+          <path d="M-1.8 1 v3.2 M1.8 1 v3.2" strokeWidth="1.5" strokeLinecap="round" className="stroke-slate-700" />
+        </g>
+        {/* coração dos pombinhos */}
+        <path d="M-0.5 -22 c-1 -1.8 -3.8 -1.4 -3.8 0.6 c0 1.6 2.4 2.8 3.8 3.9 c1.4 -1.1 3.8 -2.3 3.8 -3.9 c0 -2 -2.8 -2.4 -3.8 -0.6 Z" className="animate-heart fill-rose-400" />
       </g>
+      {/* crianças correndo atrás uma da outra */}
+      <g className="animate-stroll" style={{ animationDuration: '17s' }}>
+        <g transform="translate(0 70)">
+          <g transform="rotate(6)">
+            <circle cx="0" cy="-10.4" r="2.8" fill="#fcd9b8" />
+            <path d="M-2.8 -11.4 a2.8 2.8 0 0 1 5.6 0 l-0.6 -1.2 h-4.4 Z" className="fill-amber-800" />
+            <rect x="-2.4" y="-7.4" width="4.8" height="6" rx="2" className="fill-sky-500" />
+            <path d="M-1.2 -1.6 l-1.8 3.2 M1.2 -1.6 l2 2.8" strokeWidth="1.5" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+          </g>
+          <g transform="translate(-14 0) rotate(8)">
+            <circle cx="0" cy="-10.4" r="2.8" fill="#f0c8a0" />
+            <path d="M-2.8 -11 a2.8 2.8 0 0 1 5.6 0 Z" className="fill-slate-900" />
+            <path d="M0 -13.4 v-1.6" strokeWidth="0.8" strokeLinecap="round" className="stroke-slate-900" />
+            <rect x="-2.4" y="-7.4" width="4.8" height="6" rx="2" className="fill-amber-500" />
+            <path d="M-1.2 -1.6 l-2 2.8 M1.2 -1.6 l1.8 3.2" strokeWidth="1.5" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+          </g>
+        </g>
+      </g>
+      {/* alguém passeando com calma */}
+      <Passerby shirt="fill-stone-600" hair="fill-stone-300" duration="46s" delay="20s" y={70} />
     </Frame>
   );
 }
 
-/** Casinha/Tarefas: casa, varal de roupas ao vento e vassoura. */
-export function HouseScene(props: P) {
+/** Casinha/Tarefas: casa, varal ao vento, vassoura — e os moradores na frente. */
+export function HouseScene({ people, ...props }: P & { people?: ScenePerson[] }) {
   return (
     <Frame skyClass="fill-rose-100 dark:fill-slate-800" {...props}>
       <path d="M0 72 Q200 58 400 72 L400 92 L0 92 Z" className="fill-emerald-300 dark:fill-emerald-950" />
@@ -246,6 +410,23 @@ export function HouseScene(props: P) {
         <path d="M-16 -8 h12 l-1.6 9 h-8.8 Z" className="fill-slate-400 dark:fill-slate-500" />
         <path d="M-15 -8 a5 5 0 0 1 10 0" fill="none" strokeWidth="1.2" className="stroke-slate-500" />
       </g>
+      {/* gato no telhado */}
+      <g transform="translate(112 34)">
+        <g className="animate-tail">
+          <path d="M4 -0.6 q4 -1.4 3.2 -5.2" fill="none" strokeWidth="1.3" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+        </g>
+        <ellipse cx="0" cy="0" rx="4.2" ry="2.7" className="fill-slate-700 dark:fill-slate-400" />
+        <circle cx="-4" cy="-2.6" r="2.3" className="fill-slate-700 dark:fill-slate-400" />
+        <path d="M-5.8 -4.4 l0.9 -1.8 l1.2 1.4 Z M-3.2 -4.7 l1 -1.6 l0.9 1.8 Z" className="fill-slate-700 dark:fill-slate-400" />
+        <circle cx="-4.7" cy="-2.8" r="0.35" className="fill-amber-300" />
+        <circle cx="-3.1" cy="-2.8" r="0.35" className="fill-amber-300" />
+      </g>
+      {/* moradores do lar na frente da casinha (avatares como personas) */}
+      {(people ?? []).slice(0, 4).map((person, i) => (
+        <PersonaFigure key={person.id} person={person} x={150 + i * 22} y={56} flip={i % 2 === 1} />
+      ))}
+      {/* alguém passa varrendo a calçada */}
+      <Passerby shirt="fill-amber-600" hair="fill-slate-800" duration="40s" delay="9s" y={70} />
     </Frame>
   );
 }

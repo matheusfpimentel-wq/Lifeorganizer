@@ -2,6 +2,52 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Fundo do casal, vila viva e interativa, agenda completa
+
+### Added
+- **Contas › Fundo do casal**: aba nova para registrar aportes num pote
+  conjunto (tabela `fundContributions`) — total, quanto cada um já pôs,
+  editar/excluir aportes.
+- **Ícone por conta**: o formulário de despesa troca o seletor de categoria
+  por uma fileira de ícones antes da descrição; a marcação de "conta fixa"
+  ficou ao lado do valor; a lista mostra o ícone de cada despesa.
+- **Agenda**: hora de fim é opcional (evento sem fim mostra só o início) e a
+  visão Agenda lista todos os eventos futuros (1 ano+, não mais 45 dias).
+- **Vila interativa**: tocar nos moradores gera reação — o cervo sai em
+  disparada, o pato mergulha, o esquilo some árvore acima, o maromba fica
+  nervoso, o pescador perde a vara; o demônio agora está quase sempre
+  escondido à noite, cada visita atrás de uma moita diferente, e foge ao ser
+  descoberto. Baú misterioso aparece de vez em quando na beira do rio (e
+  abre!). Vizinhos passeiam de mãos dadas.
+- **Vila mais viva**: cervo perambula pelo cenário; pescador fisga peixe de
+  tempos em tempos e à noite pesca de barquinho; barcos cruzam o rio; lago
+  cresce com o nível da vila até ganhar fonte; flores com pétalas de verdade;
+  trilhas ramificadas até o lago, a doca e o rio; moinho girando de verdade
+  (a pá rodava errado).
+- **Moradores no mapa e no banner**: os avatares escolhidos aparecem como
+  personas passeando pela vila (coração ao tocar) e na frente da casinha no
+  banner de Tarefas.
+- **Banners vivos**: Contas ganhou cofre, dono do banco conferindo o cofre,
+  clientes na fila e um ladrão fugindo com a polícia atrás; Mercado tem
+  feirante e clientes com sacolas; Agenda tem crianças correndo e velhinhos
+  namorando no banco; Tarefas tem gato no telhado; Academia tem corredor.
+- **6 avatares novos**: Ninja, Pirata, Fada, Vampirinho, Panda e Sereia.
+- **6 cores de tema novas** (Tomate, Pitaya, Lavanda, Lima, Mel, Grafite) e o
+  seletor agora mostra a cor crua, sem degradê.
+- **Membros**: convites pendentes separados dos ativos, com e-mail, data do
+  convite e aviso de que cancelar convite antigo não afeta quem já está no
+  lar.
+- `docs/travel-mode-plan.md` (plano do Modo Viagem) e
+  `docs/feature-ideas.md` (recibos por QR da NFC-e, import OFX/CSV de cartão
+  e backlog de funções úteis).
+
+### Changed
+- Texto explicativo da divisão proporcional recolhido atrás de um "?".
+- `schema-hotfix` agora cria tabelas ausentes (continua nunca apagando nada).
+
+### Removed
+- Seção "Acertos sugeridos" de Contas (o registro de pagamento continua).
+
 ## [Unreleased] — Editar/excluir em tudo + Home em 2 colunas
 
 ### Added

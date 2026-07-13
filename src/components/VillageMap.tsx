@@ -1,8 +1,18 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCentsBRL } from '@/lib/format';
+import { BuiltinAvatar } from '@/components/avatars';
+
+interface VillagePerson {
+  id: string;
+  name: string;
+  avatar?: string | null;
+  color?: string | null;
+}
 
 interface VillageMapProps {
+  /** Moradores do lar — aparecem passeando e interagindo pela vila. */
+  people?: VillagePerson[];
   /** Saldo do usuário em centavos; null enquanto carrega. */
   balanceCents: number | null;
   /** Itens pendentes na lista de compras. */
@@ -23,7 +33,17 @@ interface VillageMapProps {
   weather?: 'clear' | 'cloudy' | 'rain' | 'storm' | 'fog' | null;
 }
 
-type Egg = 'ufo' | 'monster' | 'alien' | 'walker' | null;
+type Egg = 'ufo' | 'monster' | 'alien' | 'walker' | 'neighbors' | 'chest' | null;
+
+/** Esconderijos do demônio: cada visita ele está atrás de uma moita diferente. */
+const HIDE_SPOTS: Array<[number, number]> = [
+  [24, 138], [116, 166], [286, 165], [56, 232], [352, 232], [148, 262],
+];
+
+/** Cantos onde os moradores podem estar (sorteados a cada visita). */
+const PEOPLE_SPOTS: Array<{ x: number; y: number; flip?: boolean }> = [
+  [168, 262], [246, 260], [104, 240], [305, 238], [136, 200], [268, 200],
+].map(([x, y], i) => ({ x, y, flip: i % 2 === 1 }));
 
 /** vento: gira em torno da base do elemento */
 const SWAY: CSSProperties = { transformBox: 'fill-box', transformOrigin: '50% 100%' };
@@ -62,6 +82,29 @@ interface Spot {
   aria: string;
 }
 
+/** Florzinha com caule, folha e 4 pétalas em volta do miolo. */
+function Flower({ x, y, petals, wilted }: { x: number; y: number; petals: string; wilted: boolean }) {
+  if (wilted) {
+    return (
+      <g transform={`translate(${x} ${y})`}>
+        <path d="M0 2.6 Q0.6 0.6 0 -1 Q-1.4 -2 -2 -2.6" fill="none" strokeWidth="0.7" strokeLinecap="round" className="stroke-emerald-700/50" />
+        <circle cx="-2" cy="-2.6" r="1" className="fill-slate-400/60" />
+      </g>
+    );
+  }
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <path d="M0 2.6 V-1.2" strokeWidth="0.7" strokeLinecap="round" className="stroke-emerald-700 dark:stroke-emerald-600" />
+      <path d="M0 1 Q1.6 0.6 2 -0.6 Q0.6 -0.4 0 0.4 Z" className="fill-emerald-500 dark:fill-emerald-700" />
+      <circle cx="0" cy="-2.6" r="1.1" className={petals} />
+      <circle cx="0" cy="-0.2" r="1.1" className={petals} />
+      <circle cx="-1.2" cy="-1.4" r="1.1" className={petals} />
+      <circle cx="1.2" cy="-1.4" r="1.1" className={petals} />
+      <circle cx="0" cy="-1.4" r="0.8" className="fill-amber-300" />
+    </g>
+  );
+}
+
 /**
  * Mapa ilustrado da vila: a casinha no centro e caminhos para os lugares do
  * dia a dia. Cada construção navega para o módulo correspondente. De dia tem
@@ -87,13 +130,48 @@ export default function VillageMap(props: VillageMapProps) {
   const egg = useMemo<Egg>(() => {
     if (props.eggOverride !== undefined) return props.eggOverride;
     const roll = Math.random();
-    if (roll < 0.1) return 'ufo';
-    if (roll < 0.2) return 'monster';
-    if (roll < 0.3) return 'alien';
-    if (roll < 0.55) return 'walker';
+    if (roll < 0.09) return 'ufo';
+    if (roll < 0.18) return 'alien';
+    if (roll < 0.4) return 'walker';
+    if (roll < 0.56) return 'neighbors';
+    if (roll < 0.66) return 'chest';
     return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.eggOverride]);
+
+  // demônio: quase sempre presente à noite, raro de dia — sempre escondido,
+  // cada visita atrás de uma moita diferente; clicado, foge pra outra
+  const demonHere = useMemo(
+    () => props.eggOverride === 'monster' || Math.random() < (phase === 'night' ? 0.85 : 0.3),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [props.eggOverride],
+  );
+  const [demonSpot, setDemonSpot] = useState(() => Math.floor(Math.random() * HIDE_SPOTS.length));
+
+  // interações de clique dos moradores (one-shot, resetam ao fim da animação)
+  const [deerFleeing, setDeerFleeing] = useState(false);
+  const [duckDiving, setDuckDiving] = useState(false);
+  const [squirrelDarting, setSquirrelDarting] = useState(false);
+  const [marombaNervous, setMarombaNervous] = useState(false);
+  const [rodDropped, setRodDropped] = useState(false);
+  const [chestOpen, setChestOpen] = useState(false);
+  const [heartOn, setHeartOn] = useState<string | null>(null);
+
+  // moradores espalhados pela vila (cantos sorteados por visita)
+  const peopleSpots = useMemo(() => {
+    const spots = [...PEOPLE_SPOTS];
+    for (let i = spots.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [spots[i], spots[j]] = [spots[j], spots[i]];
+    }
+    return spots;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [(props.people ?? []).map((p) => p.id).join(',')]);
+
+  const poke = (fn: () => void) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    fn();
+  };
 
   const go = (spot: Spot) => ({
     role: 'link' as const,
@@ -249,13 +327,12 @@ export default function VillageMap(props: VillageMapProps) {
           <path d="M2.5 0 L4.4 -22 L6 0 Z" className="fill-stone-400/70 dark:fill-stone-700" />
           <path d="M-5.4 -22 L0 -28 L5.4 -22 Z" className="fill-rose-500 dark:fill-rose-700" />
           <rect x="-1.6" y="-14" width="3.2" height="4.4" rx="1" className={windowGlass} />
-          <g
-            className="animate-mill"
-            style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-            transform="translate(0 -25)"
-          >
-            <path d="M0 0 L2 -14 L-2 -14 Z M0 0 L14 2 L14 -2 Z M0 0 L-2 14 L2 14 Z M0 0 L-14 -2 L-14 2 Z" className="fill-amber-100 stroke-amber-700" strokeWidth="0.7" />
-            <circle cx="0" cy="0" r="1.6" className="fill-amber-800" />
+          {/* posição no g externo; rotação no g interno (CSS clobbera o atributo) */}
+          <g transform="translate(0 -25)">
+            <g className="animate-mill" style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
+              <path d="M0 0 L2 -14 L-2 -14 Z M0 0 L14 2 L14 -2 Z M0 0 L-2 14 L2 14 Z M0 0 L-14 -2 L-14 2 Z" className="fill-amber-100 stroke-amber-700" strokeWidth="0.7" />
+              <circle cx="0" cy="0" r="1.6" className="fill-amber-800" />
+            </g>
           </g>
         </g>
 
@@ -270,12 +347,19 @@ export default function VillageMap(props: VillageMapProps) {
             <path d="M203 196 C 238 210, 244 172, 276 180 C 302 186, 304 158, 326 151" />
             <path d="M196 198 C 178 228, 138 216, 120 236 C 106 251, 96 244, 82 253" />
             <path d="M204 198 C 228 226, 264 212, 282 232 C 296 247, 306 242, 318 253" />
+            {/* ramais: casinha ao lago, pracinha à doca, academia ao rio */}
+            <path d="M200 200 C 202 218, 196 230, 200 241" />
+            <path d="M322 260 C 314 276, 306 288, 300 300" />
+            <path d="M80 262 C 88 276, 102 284, 118 292" />
           </g>
           <g strokeWidth="3" className="stroke-amber-200/60 dark:stroke-amber-900/40">
             <path d="M197 196 C 168 208, 158 174, 128 182 C 102 189, 98 160, 74 151" />
             <path d="M203 196 C 238 210, 244 172, 276 180 C 302 186, 304 158, 326 151" />
             <path d="M196 198 C 178 228, 138 216, 120 236 C 106 251, 96 244, 82 253" />
             <path d="M204 198 C 228 226, 264 212, 282 232 C 296 247, 306 242, 318 253" />
+            <path d="M200 200 C 202 218, 196 230, 200 241" />
+            <path d="M322 260 C 314 276, 306 288, 300 300" />
+            <path d="M80 262 C 88 276, 102 284, 118 292" />
           </g>
         </g>
 
@@ -295,42 +379,112 @@ export default function VillageMap(props: VillageMapProps) {
           <path d="M0 311 Q100 305 200 311 T400 307" fill="none" strokeWidth="2" strokeDasharray="14 12" className="animate-flow stroke-sky-100/80 dark:stroke-sky-600/70" />
           <path d="M0 320 Q120 315 240 320 T400 317" fill="none" strokeWidth="1.6" strokeDasharray="10 14" className="animate-flow stroke-sky-100/60 dark:stroke-sky-700/70" style={{ animationDuration: '4.2s' }} />
         </g>
-        {/* doca de madeira com pescador */}
+        {/* barquinho a vela cruza o rio de vez em quando */}
+        <g className="animate-sail">
+          <g transform="translate(0 312)">
+            <path d="M-9 0 Q0 5 9 0 L7 -2 L-7 -2 Z" className="fill-amber-800 dark:fill-amber-900" />
+            <rect x="-0.5" y="-12" width="1" height="10" className="fill-stone-500" />
+            <path d="M0.5 -12 L7.5 -4 L0.5 -4 Z" className="fill-rose-300 dark:fill-rose-400" />
+          </g>
+        </g>
+
+        {/* doca de madeira; o pescador fisga um peixe de tempos em tempos */}
         <g transform="translate(300 304)">
           <path d="M-16 0 v8 M14 0 v8" strokeWidth="2.4" className="stroke-amber-900" />
           <rect x="-22" y="-2.6" width="44" height="3.4" rx="1.4" className="fill-amber-700 dark:fill-amber-800" />
-          <g transform="translate(6 -3)">
-            <circle cx="0" cy="-10.6" r="2.6" fill="#fcd9b8" />
-            <path d="M-2.6 -11.6 a2.6 2.6 0 0 1 5.2 0 l-0.6 -0.9 h-4 Z" className="fill-emerald-800" />
-            <circle cx="1" cy="-10.8" r="0.35" className="fill-slate-900" />
-            <path d="M-2.4 -8.2 L2.4 -8.2 L1.8 -1.6 L-1.8 -1.6 Z" className="fill-orange-600" />
-            <path d="M1.8 -7 L12 -14" strokeWidth="0.9" strokeLinecap="round" className="stroke-amber-900" />
-            <path d="M12 -14 L14 4" strokeWidth="0.5" className="stroke-slate-400" />
-          </g>
-          <circle cx="320" cy="0" r="0" fill="none" />
+          {phase !== 'night' && (
+            <g
+              transform="translate(6 -3)"
+              className="cursor-pointer"
+              aria-hidden
+              onClick={poke(() => setRodDropped(true))}
+            >
+              <circle cx="0" cy="-10.6" r="2.6" fill="#fcd9b8" />
+              <path d="M-2.6 -11.6 a2.6 2.6 0 0 1 5.2 0 l-0.6 -0.9 h-4 Z" className="fill-emerald-800" />
+              <circle cx="1" cy="-10.8" r="0.35" className="fill-slate-900" />
+              <path d="M-2.4 -8.2 L2.4 -8.2 L1.8 -1.6 L-1.8 -1.6 Z" className="fill-orange-600" />
+              {/* vara: fisga de tempos em tempos; clicando, escapa da mão */}
+              <g
+                key={rodDropped ? 'dropping' : 'fishing'}
+                className={rodDropped ? 'animate-roddrop' : 'animate-cast'}
+                style={{ transformBox: 'fill-box', transformOrigin: '0% 100%' }}
+                onAnimationEnd={(e) => {
+                  if (e.animationName === 'rodDrop') setRodDropped(false);
+                }}
+              >
+                <path d="M1.8 -7 L12 -14" strokeWidth="0.9" strokeLinecap="round" className="stroke-amber-900" />
+                <path d="M12 -14 L14 4" strokeWidth="0.5" className="stroke-slate-400" />
+              </g>
+              {!rodDropped && (
+                <g transform="translate(14 -1)">
+                  <g className="animate-hook" style={{ opacity: 0 }}>
+                    <ellipse cx="0" cy="0" rx="2.2" ry="1.2" transform="rotate(-70)" className="fill-orange-400" />
+                    <path d="M-0.8 -2 l-1.2 -1.8 l2 0.4 Z" className="fill-orange-500" />
+                  </g>
+                </g>
+              )}
+            </g>
+          )}
         </g>
-        <circle cx="314" cy="308" r="1.4" className="animate-bob fill-rose-500" />
+        {phase !== 'night' && <circle cx="314" cy="308" r="1.4" className="animate-bob fill-rose-500" />}
 
-        {/* laguinho com água ondulando */}
-        <g>
-          <ellipse cx="200" cy="247" rx="19" ry="6.5" className="fill-sky-300 dark:fill-sky-900" />
-          <ellipse cx="200" cy="246" rx="14" ry="4.5" className="fill-sky-200 dark:fill-sky-800" />
-          <path d="M192 245 q3 -1.5 6 0 q3 1.5 6 0" fill="none" strokeWidth="0.8" className="stroke-sky-400 dark:stroke-sky-700" />
+        {/* à noite o pescador troca a doca por um barquinho a remo */}
+        {phase === 'night' && (
+          <g transform="translate(120 311)">
+            <g className="animate-bob" style={{ animationDuration: '4s' }}>
+              <path d="M-11 0 Q0 6 11 0 L9 -2.6 L-9 -2.6 Z" className="fill-amber-900" />
+              <circle cx="0" cy="-6.4" r="2.4" fill="#fcd9b8" />
+              <path d="M-2.4 -7.4 a2.4 2.4 0 0 1 4.8 0 l-0.5 -0.8 h-3.8 Z" className="fill-emerald-800" />
+              <path d="M-2.2 -4 L2.2 -4 L1.7 -0.4 L-1.7 -0.4 Z" className="fill-orange-600" />
+              <path d="M2 -3 L9 -8" strokeWidth="0.8" strokeLinecap="round" className="stroke-amber-900" />
+              <path d="M9 -8 L10.5 1" strokeWidth="0.45" className="stroke-slate-400" />
+              <circle cx="0" cy="-9.8" r="0.9" className="fill-amber-300 motion-safe:animate-pulse" />
+            </g>
+          </g>
+        )}
+
+        {/* laguinho: cresce com a natureza da vila, até ganhar uma fonte */}
+        <g transform={`translate(200 246.5) scale(${1 + 0.22 * prog.nature})`}>
+          <ellipse cx="0" cy="0.5" rx="19" ry="6.5" className="fill-sky-300 dark:fill-sky-900" />
+          <ellipse cx="0" cy="-0.5" rx="14" ry="4.5" className="fill-sky-200 dark:fill-sky-800" />
+          <path d="M-8 -1.5 q3 -1.5 6 0 q3 1.5 6 0" fill="none" strokeWidth="0.8" className="stroke-sky-400 dark:stroke-sky-700" />
           <ellipse
-            cx="200" cy="246.5" rx="11" ry="3.6" fill="none" strokeWidth="0.9"
+            cx="0" cy="0" rx="11" ry="3.6" fill="none" strokeWidth="0.9"
             className="animate-ripple stroke-sky-50/90 dark:stroke-sky-600"
             style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
           />
           <ellipse
-            cx="197" cy="247.5" rx="8" ry="2.6" fill="none" strokeWidth="0.8"
+            cx="-3" cy="1" rx="8" ry="2.6" fill="none" strokeWidth="0.8"
             className="animate-ripple stroke-sky-100/80 dark:stroke-sky-700"
             style={{ transformBox: 'fill-box', transformOrigin: 'center', animationDelay: '2s' }}
           />
+          {/* fonte no meio do lago (vila madura) */}
+          {prog.nature >= 3 && (
+            <g transform="translate(0 -1.5)">
+              <ellipse cx="0" cy="1.6" rx="4.2" ry="1.5" className="fill-stone-300 dark:fill-stone-600" />
+              <rect x="-0.9" y="-3.4" width="1.8" height="5" className="fill-stone-400 dark:fill-stone-500" />
+              <circle cx="0" cy="-4.4" r="1.1" className="fill-sky-100 motion-safe:animate-pulse" />
+              <path d="M-1 -4 q-2 1.4 -2.6 3.4 M1 -4 q2 1.4 2.6 3.4" fill="none" strokeWidth="0.6" className="stroke-sky-100/90 dark:stroke-sky-400/80" />
+              <circle cx="-2.8" cy="-1" r="0.55" className="fill-sky-100" opacity="0.85" />
+              <circle cx="2.8" cy="-1" r="0.55" className="fill-sky-100" opacity="0.85" />
+            </g>
+          )}
         </g>
 
-        {/* patinho no lago (morador fixo) */}
-        <g transform="translate(206 244)">
-          <g className="animate-bob">
+        {/* patinho no lago (morador fixo) — cutucado, dá um mergulho */}
+        <g
+          transform="translate(206 244)"
+          className="cursor-pointer"
+          aria-hidden
+          onClick={poke(() => setDuckDiving(true))}
+        >
+          <g
+            key={duckDiving ? 'dive' : 'float'}
+            className={duckDiving ? 'animate-dive' : 'animate-bob'}
+            onAnimationEnd={(e) => {
+              if (e.animationName === 'diveDown') setDuckDiving(false);
+            }}
+          >
             <ellipse cx="0" cy="0" rx="3.2" ry="2.2" className="fill-amber-300" />
             <circle cx="2.8" cy="-2.4" r="1.7" className="fill-amber-300" />
             <path d="M4.4 -2.4 l2 0.6 l-2 0.7 Z" className="fill-orange-500" />
@@ -338,19 +492,31 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         </g>
 
-        {/* cervo bebendo na beira do lago */}
+        {/* cervo: perambula pelo cenário e pára para beber; clicado, dispara */}
         <g transform="translate(228 241)">
-          <path d="M-3 2.6 v4 M0.5 2.6 v4 M3.4 2.4 v4 M5.6 2.2 v4" strokeWidth="1.1" strokeLinecap="round" className="stroke-amber-800 dark:stroke-amber-900" />
-          <ellipse cx="1.4" cy="0" rx="5.4" ry="3" className="fill-amber-600 dark:fill-amber-700" />
-          <path d="M6.4 -1.4 q2 -0.6 2.4 -2.4" strokeWidth="1.4" strokeLinecap="round" fill="none" className="stroke-amber-600 dark:stroke-amber-700" />
-          <g className="animate-drink" style={{ transformBox: 'fill-box', transformOrigin: '100% 20%' }}>
-            <path d="M-3.6 -1.6 L-8.4 1.2" strokeWidth="2.2" strokeLinecap="round" className="stroke-amber-600 dark:stroke-amber-700" />
-            <ellipse cx="-9.4" cy="1.8" rx="2.1" ry="1.5" className="fill-amber-600 dark:fill-amber-700" />
-            <circle cx="-9.8" cy="1.4" r="0.35" className="fill-slate-900" />
-            <path d="M-8.6 -0.2 l-0.6 -2 M-9.6 0 l-1.4 -1.6" strokeWidth="0.7" strokeLinecap="round" className="stroke-amber-800" />
+          <g className="animate-wander">
+            <g
+              key={deerFleeing ? 'flee' : 'calm'}
+              className={`cursor-pointer ${deerFleeing ? 'animate-flee' : ''}`}
+              aria-hidden
+              onClick={poke(() => setDeerFleeing(true))}
+              onAnimationEnd={(e) => {
+                if (e.animationName === 'flee') setDeerFleeing(false);
+              }}
+            >
+              <path d="M-3 2.6 v4 M0.5 2.6 v4 M3.4 2.4 v4 M5.6 2.2 v4" strokeWidth="1.1" strokeLinecap="round" className="stroke-amber-800 dark:stroke-amber-900" />
+              <ellipse cx="1.4" cy="0" rx="5.4" ry="3" className="fill-amber-600 dark:fill-amber-700" />
+              <path d="M6.4 -1.4 q2 -0.6 2.4 -2.4" strokeWidth="1.4" strokeLinecap="round" fill="none" className="stroke-amber-600 dark:stroke-amber-700" />
+              <g className="animate-drink" style={{ transformBox: 'fill-box', transformOrigin: '100% 20%' }}>
+                <path d="M-3.6 -1.6 L-8.4 1.2" strokeWidth="2.2" strokeLinecap="round" className="stroke-amber-600 dark:stroke-amber-700" />
+                <ellipse cx="-9.4" cy="1.8" rx="2.1" ry="1.5" className="fill-amber-600 dark:fill-amber-700" />
+                <circle cx="-9.8" cy="1.4" r="0.35" className="fill-slate-900" />
+                <path d="M-8.6 -0.2 l-0.6 -2 M-9.6 0 l-1.4 -1.6" strokeWidth="0.7" strokeLinecap="round" className="stroke-amber-800" />
+              </g>
+              <circle cx="4.6" cy="-1.6" r="0.7" className="fill-orange-100" opacity="0.8" />
+              <circle cx="2.2" cy="1" r="0.6" className="fill-orange-100" opacity="0.7" />
+            </g>
           </g>
-          <circle cx="4.6" cy="-1.6" r="0.7" className="fill-orange-100" opacity="0.8" />
-          <circle cx="2.2" cy="1" r="0.6" className="fill-orange-100" opacity="0.7" />
         </g>
 
         {/* peixinho saltando do lago */}
@@ -363,9 +529,21 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         </g>
 
-        {/* esquilo na copa da árvore do mercado */}
-        <g transform="translate(268 109)">
-        <g className="animate-bob" style={{ animationDuration: '3.8s' }}>
+        {/* esquilo na copa da árvore do mercado — clicado, some pra cima */}
+        <g
+          transform="translate(268 109)"
+          className="cursor-pointer"
+          aria-hidden
+          onClick={poke(() => setSquirrelDarting(true))}
+        >
+        <g
+          key={squirrelDarting ? 'dart' : 'chill'}
+          className={squirrelDarting ? 'animate-dart' : 'animate-bob'}
+          style={squirrelDarting ? undefined : { animationDuration: '3.8s' }}
+          onAnimationEnd={(e) => {
+            if (e.animationName === 'dartUp') setSquirrelDarting(false);
+          }}
+        >
           <path d="M2.2 -0.6 q3 -3.4 1 -5.6 q3.4 0.6 2.4 4.4 q-0.6 2 -2.6 2.4 Z" className="fill-amber-700 dark:fill-amber-800" />
           <ellipse cx="0" cy="0" rx="2.4" ry="2" className="fill-amber-600 dark:fill-amber-700" />
           <circle cx="-2" cy="-1.4" r="1.5" className="fill-amber-600 dark:fill-amber-700" />
@@ -422,21 +600,6 @@ export default function VillageMap(props: VillageMapProps) {
             <circle cx="264" cy="119" r="9" className="fill-emerald-500 dark:fill-emerald-800" />
             <circle cx="270" cy="125" r="6" className="fill-emerald-400 dark:fill-emerald-700" />
           </g>
-
-          {/* easter egg: monstrinho espiando atrás do pinheiro grande */}
-          {egg === 'monster' && (
-            <g transform="translate(24 128)">
-              <g className="animate-peek">
-                <circle cx="0" cy="0" r="5.2" className="fill-violet-500" />
-                <path d="M-3.4 -3.8 l-1.6 -3 l3 0.8 Z M3.4 -3.8 l1.6 -3 l-3 0.8 Z" className="fill-violet-700" />
-                <circle cx="-1.9" cy="-0.8" r="1.7" fill="#fff" />
-                <circle cx="1.9" cy="-0.8" r="1.7" fill="#fff" />
-                <circle cx="-1.9" cy="-0.6" r="0.8" className="fill-slate-900" />
-                <circle cx="1.9" cy="-0.6" r="0.8" className="fill-slate-900" />
-                <path d="M-1.6 2.2 q1.6 1.4 3.2 0" fill="none" strokeWidth="0.8" strokeLinecap="round" className="stroke-violet-900" />
-              </g>
-            </g>
-          )}
 
           <g transform="translate(34 118)">
             <g className="animate-sway" style={{ ...SWAY, animationDelay: '0.7s' }}>
@@ -511,19 +674,39 @@ export default function VillageMap(props: VillageMapProps) {
 
           {/* jardim vivo: murcha com atrasos, floresce com tudo em dia */}
           {BASE_FLOWERS.map(([cx, cy, color], i) => (
-            <circle
-              key={`f${i}`}
-              cx={cx}
-              cy={cy}
-              r={garden === 'wilted' ? 1.4 : 2}
-              className={garden === 'wilted' ? 'fill-slate-400/60' : color}
-            />
+            <Flower key={`f${i}`} x={cx} y={cy} petals={color} wilted={garden === 'wilted'} />
           ))}
           {garden === 'blooming' &&
             EXTRA_FLOWERS.map(([cx, cy, color], i) => (
-              <circle key={`x${i}`} cx={cx} cy={cy} r="2" className={color} />
+              <Flower key={`x${i}`} x={cx} y={cy} petals={color} wilted={false} />
             ))}
         </g>
+
+        {/* demônio da vila: sempre escondido, cada hora numa moita diferente;
+            clicado, foge e reaparece em outro esconderijo */}
+        {demonHere && (
+          <g
+            key={`demon-${demonSpot}`}
+            transform={`translate(${HIDE_SPOTS[demonSpot][0]} ${HIDE_SPOTS[demonSpot][1]})`}
+            className="cursor-pointer"
+            aria-hidden
+            onClick={poke(() => setDemonSpot((s) => (s + 1 + Math.floor(Math.random() * (HIDE_SPOTS.length - 1))) % HIDE_SPOTS.length))}
+          >
+            {/* ele espia por trás da moita (a moita cobre por ser desenhada depois) */}
+            <g className="animate-peek">
+              <circle cx="0" cy="-4" r="4.6" className="fill-violet-600" />
+              <path d="M-3 -7.4 l-1.4 -3 l2.8 0.8 Z M3 -7.4 l1.4 -3 l-2.8 0.8 Z" className="fill-violet-800" />
+              <circle cx="-1.7" cy="-4.6" r="1.5" fill="#fff" />
+              <circle cx="1.7" cy="-4.6" r="1.5" fill="#fff" />
+              <circle cx="-1.7" cy="-4.4" r="0.7" className={phase === 'night' ? 'fill-rose-500' : 'fill-slate-900'} />
+              <circle cx="1.7" cy="-4.4" r="0.7" className={phase === 'night' ? 'fill-rose-500' : 'fill-slate-900'} />
+              <path d="M-1.4 -1.8 q1.4 1.2 2.8 0" fill="none" strokeWidth="0.7" strokeLinecap="round" className="stroke-violet-950" />
+            </g>
+            <circle cx="-3" cy="1.5" r="4.6" className="fill-emerald-500 dark:fill-emerald-800" />
+            <circle cx="3.4" cy="2" r="3.8" className="fill-emerald-400 dark:fill-emerald-700" />
+            <circle cx="0.4" cy="3.4" r="3.4" className="fill-emerald-600 dark:fill-emerald-900" />
+          </g>
+        )}
 
         {/* Banco -> Contas */}
         <g transform="translate(70 150)" {...go({ route: '/contas', aria: 'Banco: abrir Contas' })}>
@@ -696,19 +879,45 @@ export default function VillageMap(props: VillageMapProps) {
           <rect x="-19" y="-19" width="12" height="2" className="fill-slate-700 dark:fill-slate-800" />
           <rect x="8" y="-19" width="12" height="8" rx="1" className={windowGlass} />
           <rect x="-6" y="-14" width="12" height="14" rx="1" className="fill-violet-700" />
-          {/* maromba treinando ao lado da porta */}
-          <g transform="translate(-15.5 0)">
-            <path d="M-1.4 -2.2 l-0.7 2.2 M1.4 -2.2 l0.7 2.2" strokeWidth="1.5" strokeLinecap="round" className="stroke-slate-800 dark:stroke-slate-900" />
-            <path d="M-3.2 -8.8 L3.2 -8.8 L2 -2 L-2 -2 Z" className="fill-rose-600 dark:fill-rose-700" />
-            <circle cx="0" cy="-10.8" r="2.2" fill="#fcd9b8" />
-            <path d="M-2.2 -11.4 a2.2 2.2 0 0 1 4.4 0 l-0.5 -0.7 h-3.4 Z" className="fill-slate-900" />
-            <circle cx="-0.7" cy="-10.9" r="0.28" className="fill-slate-900" />
-            <circle cx="0.7" cy="-10.9" r="0.28" className="fill-slate-900" />
-            <g className="animate-lift">
-              <path d="M-2.8 -9.4 L-4.8 -13.2 M2.8 -9.4 L4.8 -13.2" strokeWidth="1.3" strokeLinecap="round" stroke="#fcd9b8" fill="none" />
-              <rect x="-7.6" y="-14.6" width="15.2" height="1.3" rx="0.65" className="fill-slate-700 dark:fill-slate-300" />
-              <circle cx="-7.8" cy="-14" r="2" className="fill-slate-500 dark:fill-slate-400" />
-              <circle cx="7.8" cy="-14" r="2" className="fill-slate-500 dark:fill-slate-400" />
+          {/* maromba treinando no gramado ao lado (fora da fachada);
+              cutucado no meio da série, fica nervoso */}
+          <g
+            transform="translate(-36 2)"
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMarombaNervous(true);
+            }}
+          >
+            <g
+              key={marombaNervous ? 'grr' : 'trainin'}
+              className={marombaNervous ? 'animate-shake' : ''}
+              style={{ transformBox: 'fill-box', transformOrigin: '50% 100%' }}
+              onAnimationEnd={(e) => {
+                if (e.animationName === 'shake') setMarombaNervous(false);
+              }}
+            >
+              <path d="M-1.4 -2.2 l-0.7 2.2 M1.4 -2.2 l0.7 2.2" strokeWidth="1.5" strokeLinecap="round" className="stroke-slate-800 dark:stroke-slate-900" />
+              <path d="M-3.2 -8.8 L3.2 -8.8 L2 -2 L-2 -2 Z" className="fill-rose-600 dark:fill-rose-700" />
+              <circle cx="0" cy="-10.8" r="2.2" fill={marombaNervous ? '#f9b4a3' : '#fcd9b8'} />
+              <path d="M-2.2 -11.4 a2.2 2.2 0 0 1 4.4 0 l-0.5 -0.7 h-3.4 Z" className="fill-slate-900" />
+              {marombaNervous ? (
+                <>
+                  <path d="M-1.2 -11.4 l1 0.6 M1.2 -11.4 l-1 0.6" strokeWidth="0.4" className="stroke-slate-900" />
+                  <path d="M-0.9 -9.8 h1.8" strokeWidth="0.4" className="stroke-slate-900" />
+                </>
+              ) : (
+                <>
+                  <circle cx="-0.7" cy="-10.9" r="0.28" className="fill-slate-900" />
+                  <circle cx="0.7" cy="-10.9" r="0.28" className="fill-slate-900" />
+                </>
+              )}
+              <g className="animate-lift">
+                <path d="M-2.8 -9.4 L-4.8 -13.2 M2.8 -9.4 L4.8 -13.2" strokeWidth="1.3" strokeLinecap="round" stroke="#fcd9b8" fill="none" />
+                <rect x="-7.6" y="-14.6" width="15.2" height="1.3" rx="0.65" className="fill-slate-700 dark:fill-slate-300" />
+                <circle cx="-7.8" cy="-14" r="2" className="fill-slate-500 dark:fill-slate-400" />
+                <circle cx="7.8" cy="-14" r="2" className="fill-slate-500 dark:fill-slate-400" />
+              </g>
             </g>
           </g>
           {/* nível 1: bandeirola no teto */}
@@ -946,6 +1155,91 @@ export default function VillageMap(props: VillageMapProps) {
             </g>
           </g>
         )}
+        {/* easter egg: os vizinhos passeando de mãos dadas */}
+        {egg === 'neighbors' && (
+          <g className="animate-walk" style={{ animationDuration: '58s' }}>
+            <g transform="translate(0 282)">
+              <circle cx="0" cy="0" r="2.6" fill="#f0c8a0" />
+              <path d="M-2.6 -0.6 a2.6 2.6 0 0 1 5.2 0 l-0.6 -1.4 h-4 Z" className="fill-slate-700" />
+              <rect x="-2.2" y="2.4" width="4.4" height="7" rx="2" className="fill-emerald-700" />
+              <path d="M-1.2 9.4 l-1 4.4 M1.2 9.4 l1 4.4" strokeWidth="1.6" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+              <g transform="translate(9 0.5)">
+                <circle cx="0" cy="0" r="2.4" fill="#fcd9b8" />
+                <path d="M-2.4 -0.8 a2.4 2.4 0 0 1 4.8 0 q0.6 2 1.4 3 l-2 -0.6 Z" className="fill-stone-300" />
+                <path d="M-2.4 2.2 h4.8 l-0.8 7 h-3.2 Z" className="fill-rose-500" />
+                <path d="M-0.9 9.2 l-0.8 4 M0.9 9.2 l0.8 4" strokeWidth="1.4" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+              </g>
+              <path d="M2.2 5 Q4.5 6.4 6.8 5.4" fill="none" strokeWidth="1.1" strokeLinecap="round" className="stroke-slate-600 dark:stroke-slate-400" />
+              <path d="M4.5 1 c-0.5 -0.9 -1.9 -0.7 -1.9 0.3 c0 0.8 1.2 1.4 1.9 2 c0.7 -0.6 1.9 -1.2 1.9 -2 c0 -1 -1.4 -1.2 -1.9 -0.3 Z" className="animate-heart fill-rose-400" />
+            </g>
+          </g>
+        )}
+
+        {/* easter egg: baú misterioso meio enterrado na beira do rio */}
+        {egg === 'chest' && (
+          <g
+            transform="translate(56 297)"
+            className="cursor-pointer"
+            aria-hidden
+            onClick={poke(() => setChestOpen(true))}
+          >
+            {chestOpen ? (
+              <g>
+                <rect x="-5" y="-3.4" width="10" height="5" rx="1" className="fill-amber-800" />
+                <rect x="-5.6" y="-7.8" width="11.2" height="3.4" rx="1.2" className="fill-amber-700" transform="rotate(-24 -5 -5)" />
+                <ellipse cx="0" cy="-3.2" rx="3.6" ry="1.4" fill="url(#vmGold)" />
+                <circle cx="-2" cy="-5" r="0.8" fill="url(#vmGold)" className="motion-safe:animate-pulse" />
+                <circle cx="1.6" cy="-6" r="0.7" fill="url(#vmGold)" className="motion-safe:animate-pulse" style={{ animationDelay: '0.4s' }} />
+                <path d="M-6 -9 l0.9 1.6 M6 -9.4 l-0.9 1.6 M0 -10.6 v1.8" strokeWidth="0.6" strokeLinecap="round" className="stroke-amber-300" />
+              </g>
+            ) : (
+              <g>
+                <rect x="-5" y="-4.6" width="10" height="6" rx="1" className="fill-amber-800" />
+                <path d="M-5 -4.6 a5 3.4 0 0 1 10 0 Z" className="fill-amber-700" />
+                <rect x="-0.9" y="-3.4" width="1.8" height="2.6" rx="0.5" fill="url(#vmGold)" />
+                <path d="M-6.5 1.2 Q0 3.4 6.5 1.2" className="fill-emerald-300 dark:fill-emerald-900" />
+                <circle cx="4.6" cy="-6.8" r="0.7" className="fill-amber-300 motion-safe:animate-pulse" />
+              </g>
+            )}
+          </g>
+        )}
+
+        {/* moradores do lar passeando pela vila (avatares como personas) */}
+        {(props.people ?? []).slice(0, 6).map((person, i) => {
+          const spot = peopleSpots[i % peopleSpots.length];
+          return (
+            <g
+              key={person.id}
+              transform={`translate(${spot.x} ${spot.y})${spot.flip ? ' scale(-1 1)' : ''}`}
+              className="cursor-pointer"
+              aria-label={`${person.name} passeando pela vila`}
+              onClick={poke(() => setHeartOn(person.id))}
+            >
+              <g className="animate-bob" style={{ animationDuration: `${3 + (i % 3) * 0.7}s` }}>
+                <ellipse cx="0" cy="9.6" rx="4" ry="1.1" className="fill-emerald-900/20 dark:fill-black/40" />
+                <rect x="-2.6" y="0" width="5.2" height="7.6" rx="2.2" style={{ fill: person.color ?? '#0ea5e9' }} />
+                <path d="M-1.4 7.4 l-0.8 2.6 M1.4 7.4 l0.8 2.6" strokeWidth="1.4" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+                <path d="M-2.6 2 l-2 2.4 M2.6 2 l2 2.4" strokeWidth="1.2" strokeLinecap="round" style={{ stroke: person.color ?? '#0ea5e9' }} />
+                {person.avatar ? (
+                  <BuiltinAvatar slug={person.avatar} x={-4.2} y={-8.6} width={8.4} height={8.4} />
+                ) : (
+                  <>
+                    <circle cx="0" cy="-3.4" r="3.4" fill="#fcd9b8" />
+                    <path d="M-3.4 -4.2 a3.4 3.4 0 0 1 6.8 0 l-0.8 -1.4 h-5.2 Z" className="fill-amber-900" />
+                  </>
+                )}
+                {heartOn === person.id && (
+                  <path
+                    d="M0 -11.4 c-0.9 -1.6 -3.4 -1.2 -3.4 0.5 c0 1.4 2.2 2.5 3.4 3.5 c1.2 -1 3.4 -2.1 3.4 -3.5 c0 -1.7 -2.5 -2.1 -3.4 -0.5 Z"
+                    className="animate-heart-once fill-rose-500"
+                    onAnimationEnd={() => setHeartOn(null)}
+                  />
+                )}
+              </g>
+            </g>
+          );
+        })}
+
         {/* chuva obedecendo à previsão */}
         {rainy &&
           Array.from({ length: 16 }, (_, i) => {

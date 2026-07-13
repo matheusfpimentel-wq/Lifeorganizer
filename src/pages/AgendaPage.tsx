@@ -159,7 +159,13 @@ export default function AgendaPage() {
           occurrences={expandEventOccurrences(
             visibleEvents as unknown as EventInput[],
             now,
-            new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000),
+            // todos os eventos: 1 ano à frente, ou até o último evento avulso
+            new Date(
+              Math.max(
+                now.getTime() + 365 * 24 * 60 * 60 * 1000,
+                ...visibleEvents.filter((e) => !e.rrule).map((e) => new Date(e.endAt).getTime() + 24 * 60 * 60 * 1000),
+              ),
+            ),
           )}
           eventById={eventById}
           eventColor={eventColor}
@@ -233,7 +239,11 @@ function OccurrenceItem({
       <button type="button" className="min-w-0 flex-1 text-left" aria-label={`Editar ${event?.title ?? 'evento'}`} onClick={onEdit}>
         <span className="block truncate font-medium">{event?.title ?? 'Evento'}</span>
         <span className="block truncate text-sm text-slate-500">
-          {event?.allDay ? 'Dia inteiro' : `${formatTime(o.startAt)}–${formatTime(o.endAt)}`}
+          {event?.allDay
+            ? 'Dia inteiro'
+            : o.endAt.getTime() === o.startAt.getTime()
+              ? formatTime(o.startAt)
+              : `${formatTime(o.startAt)}–${formatTime(o.endAt)}`}
           {event?.location ? ` · ${event.location}` : ''}
           {event?.rrule ? ' · repete' : ''}
         </span>
@@ -374,7 +384,13 @@ function MonthView({
                     <span className="h-8 w-1 rounded-full" style={{ backgroundColor: e ? eventColor(e) : '#0ea5e9' }} />
                     <button type="button" className="min-w-0 flex-1 text-left" aria-label={`Editar ${e?.title ?? 'evento'}`} onClick={() => onEdit(o.eventId)}>
                       <span className="block truncate font-medium">{e?.title ?? 'Evento'}</span>
-                      <span className="block text-sm text-slate-500">{e?.allDay ? 'Dia inteiro' : `${formatTime(o.startAt)}–${formatTime(o.endAt)}`}</span>
+                      <span className="block text-sm text-slate-500">
+                        {e?.allDay
+                          ? 'Dia inteiro'
+                          : o.endAt.getTime() === o.startAt.getTime()
+                            ? formatTime(o.startAt)
+                            : `${formatTime(o.startAt)}–${formatTime(o.endAt)}`}
+                      </span>
                     </button>
                   </li>
                 );
