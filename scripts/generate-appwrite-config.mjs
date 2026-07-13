@@ -374,6 +374,19 @@ const tables = [
   ),
 
   table(
+    'fundContributions',
+    'Fund Contributions',
+    [
+      id('householdId', req),
+      id('memberId', req), // quem aportou
+      int('amountCents', { ...req, min: 1 }),
+      dt('date', req),
+      str('note', 200),
+    ],
+    [idx('idx_householdId', ['householdId']), idx('idx_date', ['date'])],
+  ),
+
+  table(
     'tasks',
     'Tasks',
     [

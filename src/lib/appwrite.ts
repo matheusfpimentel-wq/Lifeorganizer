@@ -40,6 +40,7 @@ export const TABLES = {
   staples: 'staples',
   expenses: 'expenses',
   settlements: 'settlements',
+  fundContributions: 'fundContributions',
   tasks: 'tasks',
   taskOccurrences: 'taskOccurrences',
 } as const;
