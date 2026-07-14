@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useActiveHousehold, useHouseholdPeople } from '@/features/households/hooks';
 import { useCreateExpense, useExpenses } from '@/features/expenses/hooks';
@@ -174,10 +175,10 @@ export default function QuickAdd() {
         <Icon.Plus className="h-6 w-6" />
       </button>
 
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Registro rápido">
           <button aria-label="Fechar" className="absolute inset-0 bg-black/40" onClick={close} />
-          <div className="absolute inset-x-0 bottom-0 mx-auto max-w-3xl rounded-t-3xl bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-2xl dark:bg-slate-900">
+          <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[85vh] max-w-3xl overflow-y-auto rounded-t-3xl bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-2xl dark:bg-slate-900">
             <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-300 dark:bg-slate-700" />
 
             {kind === null ? (
@@ -309,7 +310,8 @@ export default function QuickAdd() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

@@ -2,6 +2,13 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+### Fixed
+- **Folha do "+" abria no lugar errado**: o `backdrop-blur` do header criava
+  um bloco de contenção que prendia o modal ao topo; agora ele é renderizado
+  via portal no `body` e ancora no rodapé (com rolagem se ficar alto).
+- **Header sobrepunha a barra de status do iPhone**: o cabeçalho agora
+  respeita `env(safe-area-inset-top)`.
+
 ## [Unreleased] — Mini-games da vila (fase G1)
 
 ### Added

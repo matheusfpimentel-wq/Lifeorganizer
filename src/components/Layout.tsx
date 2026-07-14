@@ -43,7 +43,7 @@ export default function Layout() {
         className="pointer-events-none fixed inset-0 -z-10"
         style={{ background: 'radial-gradient(900px 520px at 50% -140px, rgb(var(--brand-300) / 0.32), transparent 70%)' }}
       />
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-white/70 px-4 py-3 backdrop-blur-xl dark:bg-slate-950/70">
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-white/70 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-xl dark:bg-slate-950/70">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="relative shrink-0">
             <button
