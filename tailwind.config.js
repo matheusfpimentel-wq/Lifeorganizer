@@ -1,9 +1,15 @@
+import defaultTheme from 'tailwindcss/defaultTheme';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // fonte arredondada e amistosa (cartunesca sem perder legibilidade)
+      fontFamily: {
+        sans: ['"Nunito Variable"', ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         // acento configurável: variáveis CSS definidas em index.css e trocadas
         // em tempo real pelo seletor de cor do tema (stores/ui.ts)

@@ -2,6 +2,36 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Personas de corpo inteiro, NFC-e por item, aeroporto e visual cartunesco
+
+### Added
+- **Nota fiscal pelo QR (NFC-e)**: em Contas, "Escanear nota fiscal (QR)"
+  abre a câmera (ou aceita o link colado), a function `api` busca os itens na
+  SEFAZ (rota nova `/nfce`, só portais .gov.br, autenticada) e cada item pode
+  ser marcado como do Casal ou de uma pessoa — vira uma despesa única com
+  divisão exata por item.
+- **Aeroporto na vila**: pista, torre, biruta e aviãozinho — leva para a
+  página nova **Modo Viagem** (portão de embarque com o que vem por aí e
+  atalho para o Modo férias).
+- `docs/minigames-plan.md`: plano completo de mini-games — um jogo por
+  personagem do mapa (acerta o pássaro, pescaria, esconde-esconde do demônio,
+  série perfeita do maromba, corrida de patos…), com recordes do casal e
+  recompensas estéticas na vila.
+
+### Changed
+- **Moradores agora são personagens de corpo inteiro** no tema do avatar
+  (mago de túnica e cajado, astronauta de traje, panda, sereia, fantasminha…)
+  em vez de rosto redondo sobre um corpo genérico — no mapa e no banner de
+  Tarefas.
+- **Alvos de toque bem maiores** em tudo que é clicável na vila (círculos
+  invisíveis de ~2,5× o personagem).
+- **Quem anda/corre agora tem pernas de verdade**: pernas alternam da coxa e
+  o tronco quica a cada passo (pedestres, crianças, ladrão e polícia,
+  vizinhos) — acabou a flutuação.
+- **Visual mais amistoso/cartunesco**: fonte arredondada Nunito no app todo,
+  cards com cantos maiores e sombra macia, botões "fofos" com relevo e
+  apertar físico.
+
 ## [Unreleased] — Fundo do casal, vila viva e interativa, agenda completa
 
 ### Added

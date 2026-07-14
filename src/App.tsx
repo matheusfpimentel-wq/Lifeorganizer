@@ -19,6 +19,7 @@ const GymPage = lazy(() => import('@/pages/GymPage'));
 const MembersPage = lazy(() => import('@/pages/misc').then((m) => ({ default: m.MembersPage })));
 const ProfilePage = lazy(() => import('@/pages/misc').then((m) => ({ default: m.ProfilePage })));
 const SettingsPage = lazy(() => import('@/pages/misc').then((m) => ({ default: m.SettingsPage })));
+const TravelPage = lazy(() => import('@/pages/TravelPage'));
 
 function FullScreenSpinner() {
   return (
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="/staples" element={<StaplesPage />} />
         <Route path="/configuracoes" element={<SettingsPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
+        <Route path="/viagem" element={<TravelPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

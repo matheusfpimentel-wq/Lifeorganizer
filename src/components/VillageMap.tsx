@@ -1,7 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCentsBRL } from '@/lib/format';
-import { BuiltinAvatar } from '@/components/avatars';
+import { MiniPersona } from '@/components/personas';
 
 interface VillagePerson {
   id: string;
@@ -399,6 +399,7 @@ export default function VillageMap(props: VillageMapProps) {
               aria-hidden
               onClick={poke(() => setRodDropped(true))}
             >
+              <circle cx="3" cy="-7" r="13" fill="transparent" />
               <circle cx="0" cy="-10.6" r="2.6" fill="#fcd9b8" />
               <path d="M-2.6 -11.6 a2.6 2.6 0 0 1 5.2 0 l-0.6 -0.9 h-4 Z" className="fill-emerald-800" />
               <circle cx="1" cy="-10.8" r="0.35" className="fill-slate-900" />
@@ -478,6 +479,7 @@ export default function VillageMap(props: VillageMapProps) {
           aria-hidden
           onClick={poke(() => setDuckDiving(true))}
         >
+          <circle cx="0" cy="-2" r="10" fill="transparent" />
           <g
             key={duckDiving ? 'dive' : 'float'}
             className={duckDiving ? 'animate-dive' : 'animate-bob'}
@@ -504,6 +506,7 @@ export default function VillageMap(props: VillageMapProps) {
                 if (e.animationName === 'flee') setDeerFleeing(false);
               }}
             >
+              <circle cx="-1" cy="0" r="12" fill="transparent" />
               <path d="M-3 2.6 v4 M0.5 2.6 v4 M3.4 2.4 v4 M5.6 2.2 v4" strokeWidth="1.1" strokeLinecap="round" className="stroke-amber-800 dark:stroke-amber-900" />
               <ellipse cx="1.4" cy="0" rx="5.4" ry="3" className="fill-amber-600 dark:fill-amber-700" />
               <path d="M6.4 -1.4 q2 -0.6 2.4 -2.4" strokeWidth="1.4" strokeLinecap="round" fill="none" className="stroke-amber-600 dark:stroke-amber-700" />
@@ -536,6 +539,7 @@ export default function VillageMap(props: VillageMapProps) {
           aria-hidden
           onClick={poke(() => setSquirrelDarting(true))}
         >
+          <circle cx="0" cy="-1" r="10" fill="transparent" />
         <g
           key={squirrelDarting ? 'dart' : 'chill'}
           className={squirrelDarting ? 'animate-dart' : 'animate-bob'}
@@ -692,6 +696,7 @@ export default function VillageMap(props: VillageMapProps) {
             aria-hidden
             onClick={poke(() => setDemonSpot((s) => (s + 1 + Math.floor(Math.random() * (HIDE_SPOTS.length - 1))) % HIDE_SPOTS.length))}
           >
+            <circle cx="0" cy="-3" r="12" fill="transparent" />
             {/* ele espia por trás da moita (a moita cobre por ser desenhada depois) */}
             <g className="animate-peek">
               <circle cx="0" cy="-4" r="4.6" className="fill-violet-600" />
@@ -889,6 +894,7 @@ export default function VillageMap(props: VillageMapProps) {
               setMarombaNervous(true);
             }}
           >
+            <circle cx="0" cy="-8" r="12" fill="transparent" />
             <g
               key={marombaNervous ? 'grr' : 'trainin'}
               className={marombaNervous ? 'animate-shake' : ''}
@@ -971,6 +977,41 @@ export default function VillageMap(props: VillageMapProps) {
           <text x="0" y="16" textAnchor="middle" fontSize="11" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">
             {prog.park >= 3 ? 'Grande parque' : 'Pracinha'}
           </text>
+        </g>
+
+        {/* Aeroporto -> Modo Viagem */}
+        <g transform="translate(32 288)" {...go({ route: '/viagem', aria: 'Aeroporto: abrir o Modo Viagem' })}>
+          <circle cx="0" cy="-8" r="18" fill="transparent" />
+          {/* pista */}
+          <rect x="-24" y="-2.6" width="48" height="5.2" rx="2.4" className="fill-slate-400 dark:fill-slate-600" />
+          <path d="M-19 0 h6 M-9 0 h6 M1 0 h6 M11 0 h6" strokeWidth="1" strokeDasharray="3 3" className="stroke-white/80" />
+          {/* torre de controle */}
+          <g transform="translate(17 -3)">
+            <rect x="-1.6" y="-8" width="3.2" height="8" className="fill-stone-400 dark:fill-stone-500" />
+            <rect x="-3.4" y="-12.4" width="6.8" height="4.8" rx="1.6" className="fill-sky-200 dark:fill-sky-800" />
+            <path d="M-3.4 -12.6 h6.8" strokeWidth="1.2" className="stroke-slate-500" />
+            <circle cx="0" cy="-14" r="0.8" className="fill-rose-500 motion-safe:animate-pulse" />
+          </g>
+          {/* biruta ao vento */}
+          <g transform="translate(-20 -4)">
+            <path d="M0 0 v-6" strokeWidth="0.9" className="stroke-stone-500" />
+            <g className="animate-sway" style={{ transformBox: 'fill-box', transformOrigin: '0% 50%' }}>
+              <path d="M0 -6 l6 0.8 l0 1.6 l-6 0.8 Z" className="fill-orange-500" />
+            </g>
+          </g>
+          {/* aviãozinho na pista */}
+          <g className="animate-bob" style={{ animationDuration: '3.2s' }}>
+            <g transform="translate(-4 -6)">
+              <ellipse cx="0" cy="0" rx="8.4" ry="2.4" className="fill-white dark:fill-slate-300" />
+              <path d="M6 -0.6 L9.4 -0.6 L7.6 1.4 Z" className="fill-rose-500" />
+              <path d="M-0.6 -0.6 L-5 -5.4 L-2 -0.6 Z" className="fill-rose-400" />
+              <path d="M-0.6 0.6 L-5 5 L-2 0.6 Z" className="fill-rose-400" />
+              <path d="M-6.6 -0.6 L-9.2 -3.4 L-7.6 0 Z" className="fill-rose-500" />
+              <circle cx="2.6" cy="-0.7" r="0.7" className="fill-sky-300" />
+              <circle cx="0.2" cy="-0.7" r="0.7" className="fill-sky-300" />
+            </g>
+          </g>
+          <text x="0" y="14" textAnchor="middle" fontSize="9" fontWeight="700" className="fill-slate-600 dark:fill-slate-300">Aeroporto</text>
         </g>
 
         {/* pracinha nível 1+: balanço ao lado do coreto */}
@@ -1138,7 +1179,8 @@ export default function VillageMap(props: VillageMapProps) {
               <circle cx="0" cy="0" r="2.6" fill="#fcd9b8" />
               <path d="M-1.6 -1 a2.6 2.6 0 0 1 3.2 -1.4 l-0.4 1.2 Z" className="fill-amber-900" />
               <rect x="-2.2" y="2.4" width="4.4" height="7" rx="2" className="fill-sky-600" />
-              <path d="M-1.2 9.4 l-1 4.4 M1.2 9.4 l1 4.4" strokeWidth="1.6" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+              <path d="M-1.2 9.4 L-1.8 13.8" strokeWidth="1.6" strokeLinecap="round" fill="none" className="animate-leg-a stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
+              <path d="M1.2 9.4 L1.8 13.8" strokeWidth="1.6" strokeLinecap="round" fill="none" className="animate-leg-b stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
               <path d="M2.2 4.4 l2.6 2" strokeWidth="1.3" strokeLinecap="round" className="stroke-sky-600" />
               {/* cachorrinho na coleira */}
               <path d="M4.8 6.4 L9 10.2" strokeWidth="0.6" className="stroke-slate-500" fill="none" />
@@ -1162,12 +1204,14 @@ export default function VillageMap(props: VillageMapProps) {
               <circle cx="0" cy="0" r="2.6" fill="#f0c8a0" />
               <path d="M-2.6 -0.6 a2.6 2.6 0 0 1 5.2 0 l-0.6 -1.4 h-4 Z" className="fill-slate-700" />
               <rect x="-2.2" y="2.4" width="4.4" height="7" rx="2" className="fill-emerald-700" />
-              <path d="M-1.2 9.4 l-1 4.4 M1.2 9.4 l1 4.4" strokeWidth="1.6" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+              <path d="M-1.2 9.4 L-1.8 13.8" strokeWidth="1.6" strokeLinecap="round" fill="none" className="animate-leg-a stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
+              <path d="M1.2 9.4 L1.8 13.8" strokeWidth="1.6" strokeLinecap="round" fill="none" className="animate-leg-b stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
               <g transform="translate(9 0.5)">
                 <circle cx="0" cy="0" r="2.4" fill="#fcd9b8" />
                 <path d="M-2.4 -0.8 a2.4 2.4 0 0 1 4.8 0 q0.6 2 1.4 3 l-2 -0.6 Z" className="fill-stone-300" />
                 <path d="M-2.4 2.2 h4.8 l-0.8 7 h-3.2 Z" className="fill-rose-500" />
-                <path d="M-0.9 9.2 l-0.8 4 M0.9 9.2 l0.8 4" strokeWidth="1.4" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+                <path d="M-0.9 9.2 L-1.4 13.2" strokeWidth="1.4" strokeLinecap="round" fill="none" className="animate-leg-b stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
+                <path d="M0.9 9.2 L1.4 13.2" strokeWidth="1.4" strokeLinecap="round" fill="none" className="animate-leg-a stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
               </g>
               <path d="M2.2 5 Q4.5 6.4 6.8 5.4" fill="none" strokeWidth="1.1" strokeLinecap="round" className="stroke-slate-600 dark:stroke-slate-400" />
               <path d="M4.5 1 c-0.5 -0.9 -1.9 -0.7 -1.9 0.3 c0 0.8 1.2 1.4 1.9 2 c0.7 -0.6 1.9 -1.2 1.9 -2 c0 -1 -1.4 -1.2 -1.9 -0.3 Z" className="animate-heart fill-rose-400" />
@@ -1183,6 +1227,7 @@ export default function VillageMap(props: VillageMapProps) {
             aria-hidden
             onClick={poke(() => setChestOpen(true))}
           >
+            <circle cx="0" cy="-3" r="11" fill="transparent" />
             {chestOpen ? (
               <g>
                 <rect x="-5" y="-3.4" width="10" height="5" rx="1" className="fill-amber-800" />
@@ -1204,7 +1249,8 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         )}
 
-        {/* moradores do lar passeando pela vila (avatares como personas) */}
+        {/* moradores do lar passeando pela vila — personagem inteiro no tema
+            do avatar (mago de túnica, panda peludo…), sem fundo de bolinha */}
         {(props.people ?? []).slice(0, 6).map((person, i) => {
           const spot = peopleSpots[i % peopleSpots.length];
           return (
@@ -1215,22 +1261,14 @@ export default function VillageMap(props: VillageMapProps) {
               aria-label={`${person.name} passeando pela vila`}
               onClick={poke(() => setHeartOn(person.id))}
             >
+              {/* alvo de toque generoso (invisível) */}
+              <circle cx="0" cy="-11" r="15" fill="transparent" />
+              <ellipse cx="0" cy="0.8" rx="4.6" ry="1.2" className="fill-emerald-900/20 dark:fill-black/40" />
               <g className="animate-bob" style={{ animationDuration: `${3 + (i % 3) * 0.7}s` }}>
-                <ellipse cx="0" cy="9.6" rx="4" ry="1.1" className="fill-emerald-900/20 dark:fill-black/40" />
-                <rect x="-2.6" y="0" width="5.2" height="7.6" rx="2.2" style={{ fill: person.color ?? '#0ea5e9' }} />
-                <path d="M-1.4 7.4 l-0.8 2.6 M1.4 7.4 l0.8 2.6" strokeWidth="1.4" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
-                <path d="M-2.6 2 l-2 2.4 M2.6 2 l2 2.4" strokeWidth="1.2" strokeLinecap="round" style={{ stroke: person.color ?? '#0ea5e9' }} />
-                {person.avatar ? (
-                  <BuiltinAvatar slug={person.avatar} x={-4.2} y={-8.6} width={8.4} height={8.4} />
-                ) : (
-                  <>
-                    <circle cx="0" cy="-3.4" r="3.4" fill="#fcd9b8" />
-                    <path d="M-3.4 -4.2 a3.4 3.4 0 0 1 6.8 0 l-0.8 -1.4 h-5.2 Z" className="fill-amber-900" />
-                  </>
-                )}
+                <MiniPersona slug={person.avatar} color={person.color} />
                 {heartOn === person.id && (
                   <path
-                    d="M0 -11.4 c-0.9 -1.6 -3.4 -1.2 -3.4 0.5 c0 1.4 2.2 2.5 3.4 3.5 c1.2 -1 3.4 -2.1 3.4 -3.5 c0 -1.7 -2.5 -2.1 -3.4 -0.5 Z"
+                    d="M0 -28 c-0.9 -1.6 -3.4 -1.2 -3.4 0.5 c0 1.4 2.2 2.5 3.4 3.5 c1.2 -1 3.4 -2.1 3.4 -3.5 c0 -1.7 -2.5 -2.1 -3.4 -0.5 Z"
                     className="animate-heart-once fill-rose-500"
                     onAnimationEnd={() => setHeartOn(null)}
                   />

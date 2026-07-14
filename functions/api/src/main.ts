@@ -4,6 +4,8 @@
  * GET  /health        — status.
  * GET  /ical/{token}  — feed iCalendar por token secreto revogável.
  * POST /push/test     — push de teste para o usuário autenticado.
+ * POST /nfce          — proxy da NFC-e: busca a página da SEFAZ (o QR do
+ *                       cupom) e devolve os itens da nota em JSON.
  *
  * Execute permission é `any`: o token do iCal é a autenticação da rota;
  * /push/test confia no header x-appwrite-user-id, que o Appwrite injeta
@@ -181,6 +183,106 @@ async function handlePushTest(
 }
 
 // ---------------------------------------------------------------------------
+// NFC-e: lê a página pública da SEFAZ (URL do QR do cupom) e extrai os itens.
+// O layout "consulta do consumidor" é comum a vários estados (tabResult):
+// spans txtTit (nome), Rqtd (Qtde.), RvlUnit (Vl. Unit.) e valor (total).
+// ---------------------------------------------------------------------------
+function brlToCents(raw: string): number {
+  const normalized = raw.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+  const value = Number(normalized);
+  return Number.isFinite(value) ? Math.round(value * 100) : 0;
+}
+
+function stripTags(html: string): string {
+  return html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+export interface NfceItem {
+  name: string;
+  qty: number;
+  totalCents: number;
+}
+
+export function parseNfce(html: string): { store: string | null; totalCents: number | null; items: NfceItem[] } {
+  const items: NfceItem[] = [];
+  // cada item vem numa <tr>; procuramos os pares txtTit/valor por bloco
+  const rowRegex = /<span[^>]*class="[^"]*txtTit[^"]*"[^>]*>([\s\S]*?)<\/span>([\s\S]*?)<span[^>]*class="[^"]*valor[^"]*"[^>]*>([\s\S]*?)<\/span>/g;
+  let match: RegExpExecArray | null;
+  while ((match = rowRegex.exec(html)) !== null) {
+    const name = stripTags(match[1]);
+    const middle = match[2];
+    const qtyMatch = /Qtde\.?:?<\/strong>\s*([\d.,]+)/i.exec(middle) ?? /Qtde\.?:?\s*([\d.,]+)/i.exec(stripTags(middle));
+    const qty = qtyMatch ? Number(qtyMatch[1].replace(/\./g, '').replace(',', '.')) : 1;
+    const totalCents = brlToCents(stripTags(match[3]));
+    if (name && totalCents > 0) items.push({ name, qty: Number.isFinite(qty) && qty > 0 ? qty : 1, totalCents });
+  }
+
+  const storeMatch = /class="[^"]*txtTopo[^"]*"[^>]*>([\s\S]*?)<\//.exec(html);
+  const totalMatch = /class="[^"]*totalNumb\s+txtMax[^"]*"[^>]*>([\s\S]*?)<\/span>/.exec(html)
+    ?? /Valor a pagar[\s\S]{0,200}?class="[^"]*totalNumb[^"]*"[^>]*>([\s\S]*?)<\/span>/.exec(html);
+
+  return {
+    store: storeMatch ? stripTags(storeMatch[1]) : null,
+    totalCents: totalMatch ? brlToCents(stripTags(totalMatch[1])) : null,
+    items,
+  };
+}
+
+async function handleNfce(body: unknown, res: AppwriteContext['res'], log: (m: string) => void) {
+  let payload: { url?: string } = {};
+  try {
+    payload = typeof body === 'string' ? JSON.parse(body || '{}') : ((body ?? {}) as { url?: string });
+  } catch {
+    return res.json({ ok: false, error: 'Corpo inválido' }, 400);
+  }
+  const rawUrl = payload.url?.trim();
+  if (!rawUrl) return res.json({ ok: false, error: 'Informe a URL do QR da nota' }, 400);
+
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return res.json({ ok: false, error: 'URL inválida' }, 400);
+  }
+  // só portais oficiais (o QR da NFC-e sempre aponta para *.gov.br)
+  if (!/\.gov\.br$/i.test(url.hostname)) {
+    return res.json({ ok: false, error: 'A URL não é de um portal oficial (.gov.br)' }, 400);
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20_000);
+  try {
+    const response = await fetch(url.toString(), {
+      signal: controller.signal,
+      redirect: 'follow',
+      headers: { 'user-agent': 'Mozilla/5.0 (compatible; MinhaCasinha/1.0)' },
+    });
+    const html = await response.text();
+    if (!response.ok) {
+      log(`nfce: SEFAZ respondeu ${response.status}`);
+      return res.json({ ok: false, error: `A SEFAZ respondeu ${response.status}. Tente de novo em instantes.` }, 502);
+    }
+    const parsed = parseNfce(html);
+    if (parsed.items.length === 0) {
+      return res.json(
+        {
+          ok: false,
+          error:
+            'Não consegui ler os itens desta nota — o portal deste estado pode ter outro layout ou exigir captcha.',
+        },
+        422,
+      );
+    }
+    return res.json({ ok: true, ...parsed });
+  } catch (err) {
+    log(`nfce: ${String(err)}`);
+    return res.json({ ok: false, error: 'Falha ao buscar a nota na SEFAZ.' }, 502);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ---------------------------------------------------------------------------
 export default async ({ req, res, log, error }: AppwriteContext) => {
   const tables = createTables(req);
   try {
@@ -191,6 +293,14 @@ export default async ({ req, res, log, error }: AppwriteContext) => {
     const icalMatch = req.path.match(/^\/ical\/([A-Za-z0-9_-]{16,64})$/);
     if (req.method === 'GET' && icalMatch) {
       return handleIcal(tables, icalMatch[1], res);
+    }
+
+    if (req.method === 'POST' && req.path === '/nfce') {
+      // exige usuário autenticado (o Appwrite injeta o header e descarta os externos)
+      if (!req.headers['x-appwrite-user-id']) {
+        return res.json({ ok: false, error: 'Não autenticado' }, 401);
+      }
+      return handleNfce(req.body, res, log);
     }
 
     if (req.method === 'POST' && req.path === '/push/test') {

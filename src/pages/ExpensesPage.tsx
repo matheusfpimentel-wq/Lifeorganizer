@@ -15,6 +15,7 @@ import {
 } from '@/features/expenses/hooks';
 import ExpenseForm from '@/features/expenses/ExpenseForm';
 import FundPanel from '@/features/expenses/FundPanel';
+import ReceiptScanner from '@/features/expenses/ReceiptScanner';
 import MonthlyClosing from '@/features/expenses/MonthlyClosing';
 import { categoryIcon } from '@/features/expenses/categoryIcons';
 import { expenseCategoryLabels } from '@/shared/labels';
@@ -42,6 +43,7 @@ export default function ExpensesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ExpenseRow | null>(null);
   const [showPayment, setShowPayment] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   function openEditor(expense: ExpenseRow) {
     setEditing(expense);
@@ -114,6 +116,21 @@ export default function ExpensesPage() {
       )}
       {(createExpense.isError || updateExpense.isError) && (
         <p className="text-sm text-red-600">{((createExpense.error ?? updateExpense.error) as Error).message}</p>
+      )}
+
+      {!showScanner && !showForm && !editing && (
+        <button className="btn-secondary" onClick={() => setShowScanner(true)}>
+          <Icon.Receipt className="h-4 w-4" />
+          Escanear nota fiscal (QR) e dividir por item
+        </button>
+      )}
+      {showScanner && user && (
+        <ReceiptScanner
+          householdId={householdId}
+          currentUserId={user.$id}
+          members={memberOptions}
+          onClose={() => setShowScanner(false)}
+        />
       )}
 
       <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">

@@ -7,6 +7,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import App from './App';
 import { AuthProvider } from '@/features/auth/AuthContext';
 import { applyAccent, applyTheme, useUiStore } from '@/stores/ui';
+import '@fontsource-variable/nunito';
 import './index.css';
 
 // leitura offline: cache do TanStack Query persistido (ADR-005)

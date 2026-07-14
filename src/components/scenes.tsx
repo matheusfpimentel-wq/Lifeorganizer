@@ -6,7 +6,7 @@ import type { CSSProperties, ReactNode, SVGProps } from 'react';
  * Animações leves (motion-safe) reutilizam as keyframes globais do index.css.
  */
 
-import { BuiltinAvatar } from '@/components/avatars';
+import { MiniPersona } from '@/components/personas';
 
 type P = SVGProps<SVGSVGElement>;
 
@@ -18,7 +18,9 @@ export interface ScenePerson {
   color?: string | null;
 }
 
-/** Pessoinha genérica que atravesa a cena andando (roupa/cabelo variam). */
+const LEG_SWING: CSSProperties = { transformBox: 'fill-box', transformOrigin: '50% 0%' };
+
+/** Pessoinha que atravessa a cena ANDANDO de verdade (pernas alternam). */
 function Passerby({ shirt, hair, delay, duration, y = 66, bag }: {
   shirt: string;
   hair: string;
@@ -30,32 +32,25 @@ function Passerby({ shirt, hair, delay, duration, y = 66, bag }: {
   return (
     <g className="animate-stroll" style={{ animationDelay: delay, animationDuration: duration }}>
       <g transform={`translate(0 ${y})`}>
-        <circle cx="0" cy="-14" r="3.4" fill="#fcd9b8" />
-        <path d="M-3.4 -15 a3.4 3.4 0 0 1 6.8 0 l-0.8 -1.6 h-5.2 Z" className={hair} />
-        <rect x="-3" y="-10.4" width="6" height="9" rx="2.4" className={shirt} />
-        <path d="M-1.6 -1.6 l-1.2 5.6 M1.6 -1.6 l1.2 5.6" strokeWidth="1.8" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
-        {bag && <path d="M3 -6 l3 1.4 l-0.6 4.6 l-3.4 -1.2 Z" className="fill-amber-300" />}
+        <path d="M-1.4 -2 L-2 4" strokeWidth="1.8" strokeLinecap="round" fill="none" className="animate-leg-a stroke-slate-700 dark:stroke-slate-400" style={LEG_SWING} />
+        <path d="M1.4 -2 L2 4" strokeWidth="1.8" strokeLinecap="round" fill="none" className="animate-leg-b stroke-slate-700 dark:stroke-slate-400" style={LEG_SWING} />
+        <g className="animate-trot">
+          <circle cx="0" cy="-14" r="3.4" fill="#fcd9b8" />
+          <path d="M-3.4 -15 a3.4 3.4 0 0 1 6.8 0 l-0.8 -1.6 h-5.2 Z" className={hair} />
+          <rect x="-3" y="-10.4" width="6" height="8.6" rx="2.4" className={shirt} />
+          {bag && <path d="M3 -6 l3 1.4 l-0.6 4.6 l-3.4 -1.2 Z" className="fill-amber-300" />}
+        </g>
       </g>
     </g>
   );
 }
 
-/** Morador do lar em pé na cena, com o avatar escolhido como rosto. */
+/** Morador do lar em pé na cena — personagem inteiro no tema do avatar. */
 function PersonaFigure({ person, x, y, flip }: { person: ScenePerson; x: number; y: number; flip?: boolean }) {
   return (
-    <g transform={`translate(${x} ${y})${flip ? ' scale(-1 1)' : ''}`}>
+    <g transform={`translate(${x} ${y + 13})${flip ? ' scale(-1 1)' : ''}`}>
       <g className="animate-bob" style={{ animationDuration: '3.4s' }}>
-        <rect x="-3.4" y="0" width="6.8" height="10" rx="2.8" style={{ fill: person.color ?? '#0ea5e9' }} />
-        <path d="M-1.8 9.6 l-1 3.6 M1.8 9.6 l1 3.6" strokeWidth="1.8" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
-        <path d="M-3.4 2.6 l-2.6 3 M3.4 2.6 l2.6 3" strokeWidth="1.5" strokeLinecap="round" style={{ stroke: person.color ?? '#0ea5e9' }} />
-        {person.avatar ? (
-          <BuiltinAvatar slug={person.avatar} x={-5.5} y={-11.4} width={11} height={11} />
-        ) : (
-          <>
-            <circle cx="0" cy="-4.6" r="4.4" fill="#fcd9b8" />
-            <path d="M-4.4 -5.6 a4.4 4.4 0 0 1 8.8 0 l-1 -1.8 h-6.8 Z" className="fill-amber-900" />
-          </>
-        )}
+        <MiniPersona slug={person.avatar} color={person.color} />
       </g>
     </g>
   );
@@ -158,7 +153,8 @@ export function BankScene(props: P) {
             <circle cx="1.6" cy="-14.2" r="0.55" fill="#fff" />
             <path d="M-3.4 -17 a3.4 3.4 0 0 1 6.8 0 Z" className="fill-slate-700" />
             <rect x="-3" y="-10.6" width="6" height="9" rx="2.4" className="fill-slate-700" />
-            <path d="M-1.6 -1.8 l-2.6 4.6 M1.6 -1.8 l2.8 4" strokeWidth="1.8" strokeLinecap="round" className="stroke-slate-800 dark:stroke-slate-400" />
+            <path d="M-1.4 -2 L-2.4 3.4" strokeWidth="1.8" strokeLinecap="round" fill="none" className="animate-leg-a-run stroke-slate-800 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
+            <path d="M1.4 -2 L2.4 3.4" strokeWidth="1.8" strokeLinecap="round" fill="none" className="animate-leg-b-run stroke-slate-800 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
             <path d="M3 -9 q4 -2.4 5.6 -0.4" fill="none" strokeWidth="1.6" strokeLinecap="round" stroke="#fcd9b8" />
             <circle cx="10" cy="-8.4" r="3.2" className="fill-amber-200" />
             <path d="M8.6 -10.8 l1.4 -1.4 l1.4 1.4" fill="none" strokeWidth="0.9" className="stroke-amber-700" />
@@ -169,7 +165,8 @@ export function BankScene(props: P) {
             <path d="M-3.8 -15.2 h7.6 l-0.8 -2.4 a3.4 3.4 0 0 0 -6 0 Z" className="fill-sky-900" />
             <rect x="-1.4" y="-19.2" width="2.8" height="1.6" rx="0.7" className="fill-sky-900" />
             <rect x="-3" y="-10.6" width="6" height="9" rx="2.4" className="fill-sky-800" />
-            <path d="M-1.6 -1.8 l-2.8 4.2 M1.6 -1.8 l2.6 4.4" strokeWidth="1.8" strokeLinecap="round" className="stroke-slate-800 dark:stroke-slate-400" />
+            <path d="M-1.4 -2 L-2.4 3.4" strokeWidth="1.8" strokeLinecap="round" fill="none" className="animate-leg-a-run stroke-slate-800 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
+            <path d="M1.4 -2 L2.4 3.4" strokeWidth="1.8" strokeLinecap="round" fill="none" className="animate-leg-b-run stroke-slate-800 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
             <path d="M3 -8.6 l4 -2.6" strokeWidth="1.6" strokeLinecap="round" stroke="#f0c8a0" />
           </g>
         </g>
@@ -358,14 +355,16 @@ export function ParkScene(props: P) {
             <circle cx="0" cy="-10.4" r="2.8" fill="#fcd9b8" />
             <path d="M-2.8 -11.4 a2.8 2.8 0 0 1 5.6 0 l-0.6 -1.2 h-4.4 Z" className="fill-amber-800" />
             <rect x="-2.4" y="-7.4" width="4.8" height="6" rx="2" className="fill-sky-500" />
-            <path d="M-1.2 -1.6 l-1.8 3.2 M1.2 -1.6 l2 2.8" strokeWidth="1.5" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+            <path d="M-1 -1.6 L-1.8 2.6" strokeWidth="1.5" strokeLinecap="round" fill="none" className="animate-leg-a-run stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
+            <path d="M1 -1.6 L1.8 2.6" strokeWidth="1.5" strokeLinecap="round" fill="none" className="animate-leg-b-run stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
           </g>
           <g transform="translate(-14 0) rotate(8)">
             <circle cx="0" cy="-10.4" r="2.8" fill="#f0c8a0" />
             <path d="M-2.8 -11 a2.8 2.8 0 0 1 5.6 0 Z" className="fill-slate-900" />
             <path d="M0 -13.4 v-1.6" strokeWidth="0.8" strokeLinecap="round" className="stroke-slate-900" />
             <rect x="-2.4" y="-7.4" width="4.8" height="6" rx="2" className="fill-amber-500" />
-            <path d="M-1.2 -1.6 l-2 2.8 M1.2 -1.6 l1.8 3.2" strokeWidth="1.5" strokeLinecap="round" className="stroke-slate-700 dark:stroke-slate-400" />
+            <path d="M-1 -1.6 L-1.8 2.6" strokeWidth="1.5" strokeLinecap="round" fill="none" className="animate-leg-b-run stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
+            <path d="M1 -1.6 L1.8 2.6" strokeWidth="1.5" strokeLinecap="round" fill="none" className="animate-leg-a-run stroke-slate-700 dark:stroke-slate-400" style={{ transformBox: 'fill-box', transformOrigin: '50% 0%' }} />
           </g>
         </g>
       </g>
