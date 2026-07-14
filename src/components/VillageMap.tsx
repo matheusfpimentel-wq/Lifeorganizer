@@ -31,8 +31,8 @@ interface VillageMapProps {
   eggOverride?: Egg;
   /** Clima real (Open-Meteo): a vila obedece à previsão. */
   weather?: 'clear' | 'cloudy' | 'rain' | 'storm' | 'fog' | null;
-  /** Abre um mini-game (pássaros no céu, pescador na doca). */
-  onPlay?: (game: 'passaros' | 'pescaria') => void;
+  /** Abre um mini-game a partir de um elemento da vila. */
+  onPlay?: (game: 'passaros' | 'pescaria' | 'barco' | 'peixe' | 'nave') => void;
 }
 
 type Egg = 'ufo' | 'monster' | 'alien' | 'walker' | 'neighbors' | 'chest' | null;
@@ -319,10 +319,16 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         )}
 
-        {/* easter egg: disco voador */}
+        {/* easter egg: disco voador — tocar abre a Fuga alienígena */}
         {egg === 'ufo' && (
           <g className="animate-ufo">
-            <g transform="translate(0 46)">
+            <g
+              transform="translate(0 46)"
+              className={props.onPlay ? 'cursor-pointer' : undefined}
+              aria-label="Nave: jogar Fuga alienígena"
+              onClick={props.onPlay ? poke(() => props.onPlay!('nave')) : undefined}
+            >
+              <circle cx="0" cy="0" r="14" fill="transparent" />
               <path d="M-5 -2.5 a5 4.6 0 0 1 10 0 Z" className="fill-sky-300/90" />
               <ellipse cx="0" cy="0" rx="11" ry="3.6" className="fill-slate-400 dark:fill-slate-500" />
               <circle cx="-6" cy="0.6" r="1" className="fill-amber-300 motion-safe:animate-pulse" />
@@ -390,9 +396,15 @@ export default function VillageMap(props: VillageMapProps) {
           <path d="M0 311 Q100 305 200 311 T400 307" fill="none" strokeWidth="2" strokeDasharray="14 12" className="animate-flow stroke-sky-100/80 dark:stroke-sky-600/70" />
           <path d="M0 320 Q120 315 240 320 T400 317" fill="none" strokeWidth="1.6" strokeDasharray="10 14" className="animate-flow stroke-sky-100/60 dark:stroke-sky-700/70" style={{ animationDuration: '4.2s' }} />
         </g>
-        {/* barquinho a vela cruza o rio de vez em quando */}
+        {/* barquinho a vela cruza o rio — tocar abre a Corredeira */}
         <g className="animate-sail">
-          <g transform="translate(0 312)">
+          <g
+            transform="translate(0 312)"
+            className={props.onPlay ? 'cursor-pointer' : undefined}
+            aria-label="Barquinho: jogar Corredeira"
+            onClick={props.onPlay ? poke(() => props.onPlay!('barco')) : undefined}
+          >
+            <circle cx="0" cy="-4" r="14" fill="transparent" />
             <path d="M-9 0 Q0 5 9 0 L7 -2 L-7 -2 Z" className="fill-amber-800 dark:fill-amber-900" />
             <rect x="-0.5" y="-12" width="1" height="10" className="fill-stone-500" />
             <path d="M0.5 -12 L7.5 -4 L0.5 -4 Z" className="fill-rose-300 dark:fill-rose-400" />
@@ -539,8 +551,14 @@ export default function VillageMap(props: VillageMapProps) {
           </g>
         </g>
 
-        {/* peixinho saltando do lago */}
-        <g transform="translate(193 243)">
+        {/* peixinho saltando do lago — tocar na água abre o Peixe voador */}
+        <g
+          transform="translate(193 243)"
+          className={props.onPlay ? 'cursor-pointer' : undefined}
+          aria-label="Peixe: jogar Peixe voador"
+          onClick={props.onPlay ? poke(() => props.onPlay!('peixe')) : undefined}
+        >
+          <circle cx="6" cy="4" r="12" fill="transparent" />
           {/* opacity 0 na base: sem animação (movimento reduzido) o peixe fica submerso */}
           <g className="animate-fish" style={{ transformBox: 'fill-box', transformOrigin: 'center', opacity: 0 }}>
             <ellipse cx="0" cy="0" rx="2.6" ry="1.4" className="fill-orange-400" />

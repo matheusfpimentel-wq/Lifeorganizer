@@ -74,7 +74,7 @@ function Frame({ skyClass, children, ...props }: P & { skyClass: string; childre
 }
 
 /** Banco: bancário no balcão com moedas, fachada de colunas ao fundo. */
-export function BankScene(props: P) {
+export function BankScene({ onThief, ...props }: P & { onThief?: () => void }) {
   return (
     <Frame skyClass="fill-sky-200 dark:fill-slate-800" {...props}>
       <path d="M0 70 Q200 56 400 70 L400 92 L0 92 Z" className="fill-emerald-300 dark:fill-emerald-950" />
@@ -145,8 +145,14 @@ export function BankScene(props: P) {
       {/* ladrão em disparada com a polícia logo atrás */}
       <g className="animate-stroll" style={{ animationDuration: '44s', animationDelay: '6s' }}>
         <g transform="translate(0 66)">
-          {/* ladrão: máscara e saco de moedas */}
-          <g transform="rotate(8)">
+          {/* ladrão: máscara e saco de moedas — tocar abre Explosão no banco */}
+          <g
+            transform="rotate(8)"
+            className={onThief ? 'cursor-pointer' : undefined}
+            aria-label={onThief ? 'Ladrão: jogar Explosão no banco' : undefined}
+            onClick={onThief ? (e) => { e.stopPropagation(); onThief(); } : undefined}
+          >
+            {onThief && <circle cx="2" cy="-8" r="16" fill="transparent" />}
             <circle cx="0" cy="-14" r="3.4" fill="#fcd9b8" />
             <rect x="-3.4" y="-15.4" width="6.8" height="2.6" rx="1.2" className="fill-slate-900" />
             <circle cx="-1.2" cy="-14.2" r="0.55" fill="#fff" />

@@ -17,6 +17,11 @@ import { useWeather } from '@/features/weather/hooks';
 // mini-games da vila (carregados só quando alguém joga)
 const BirdGame = lazy(() => import('@/games/BirdGame'));
 const FishingGame = lazy(() => import('@/games/FishingGame'));
+const BoatGame = lazy(() => import('@/games/BoatGame'));
+const FishFlappyGame = lazy(() => import('@/games/FishFlappyGame'));
+const AlienEscapeGame = lazy(() => import('@/games/AlienEscapeGame'));
+
+type MapGame = 'passaros' | 'pescaria' | 'barco' | 'peixe' | 'nave';
 
 export default function TodayPage() {
   const { user } = useAuth();
@@ -54,7 +59,7 @@ export default function TodayPage() {
 
   const [pickingDay, setPickingDay] = useState(false);
   const [shoppingDay, setShoppingDay] = useState('');
-  const [activeGame, setActiveGame] = useState<'passaros' | 'pescaria' | null>(null);
+  const [activeGame, setActiveGame] = useState<MapGame | null>(null);
 
   const { start, end } = saoPauloDayBoundsUtc();
   const todayOccurrences = (occurrences.data ?? []).filter(
@@ -189,11 +194,11 @@ export default function TodayPage() {
 
       {activeGame && (
         <Suspense fallback={<div className="fixed inset-0 z-50 bg-slate-950/80" />}>
-          {activeGame === 'passaros' ? (
-            <BirdGame householdId={householdId} onClose={() => setActiveGame(null)} />
-          ) : (
-            <FishingGame householdId={householdId} onClose={() => setActiveGame(null)} />
-          )}
+          {activeGame === 'passaros' && <BirdGame householdId={householdId} onClose={() => setActiveGame(null)} />}
+          {activeGame === 'pescaria' && <FishingGame householdId={householdId} onClose={() => setActiveGame(null)} />}
+          {activeGame === 'barco' && <BoatGame householdId={householdId} onClose={() => setActiveGame(null)} />}
+          {activeGame === 'peixe' && <FishFlappyGame householdId={householdId} onClose={() => setActiveGame(null)} />}
+          {activeGame === 'nave' && <AlienEscapeGame householdId={householdId} onClose={() => setActiveGame(null)} />}
         </Suspense>
       )}
 

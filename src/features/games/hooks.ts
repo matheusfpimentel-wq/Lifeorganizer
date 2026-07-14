@@ -9,11 +9,15 @@ import { listAllRows } from '@/lib/pagination';
 import { withHouseholdPermissions } from '@/lib/permissions';
 import { useAuth } from '@/features/auth/AuthContext';
 
-export type GameSlug = 'passaros' | 'pescaria';
+export type GameSlug = 'passaros' | 'pescaria' | 'barco' | 'peixe' | 'nave' | 'ladrao';
 
 export const GAME_LABELS: Record<GameSlug, string> = {
   passaros: 'Acerta o pássaro',
   pescaria: 'Pescaria',
+  barco: 'Corredeira',
+  peixe: 'Peixe voador',
+  nave: 'Fuga alienígena',
+  ladrao: 'Explosão no banco',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

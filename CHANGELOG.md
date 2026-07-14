@@ -2,6 +2,19 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+### Added
+- **4 mini-games novos**, cada um saindo de um personagem da vila:
+  - **Corredeira** (barquinho no rio): estilo Subway Surfers — 3 raias, toque
+    esquerda/direita para desviar de pedras e troncos e pegar moedas; acelera.
+  - **Peixe voador** (peixinho do lago): estilo Flappy Bird — toque para
+    subir e passe pelas frestas entre os juncos.
+  - **Fuga alienígena** (disco voador): arraste para fugir da nave que
+    persegue, das bombas de raio e das colunas de abdução que piscam antes
+    de disparar.
+  - **Explosão no banco** (ladrão no banner de Contas): estilo Bomberman —
+    plante bombas para estourar caixotes e guardas e avance de andar.
+  - Todos usam a mesma tabela `gameScores` e a moldura com placar do casal.
+
 ### Fixed
 - **Folha do "+" abria no lugar errado**: o `backdrop-blur` do header criava
   um bloco de contenção que prendia o modal ao topo; agora ele é renderizado

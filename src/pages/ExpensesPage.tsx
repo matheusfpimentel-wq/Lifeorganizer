@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useActiveHousehold, useHouseholdMeta, useHouseholdPeople } from '@/features/households/hooks';
 import {
@@ -23,6 +23,8 @@ import { formatCentsBRL, formatDate, parseBRLToCents } from '@/lib/format';
 import { Icon } from '@/components/icons';
 import { BankScene, ModuleHero } from '@/components/scenes';
 
+const BombGame = lazy(() => import('@/games/BombGame'));
+
 type Tab = 'summary' | 'fund' | 'closing';
 
 export default function ExpensesPage() {
@@ -40,6 +42,7 @@ export default function ExpensesPage() {
   const meta = useHouseholdMeta(householdId);
 
   const [tab, setTab] = useState<Tab>('summary');
+  const [playingBomb, setPlayingBomb] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ExpenseRow | null>(null);
   const [showPayment, setShowPayment] = useState(false);
@@ -78,7 +81,7 @@ export default function ExpensesPage() {
   return (
     <div className="flex flex-col gap-4">
       <ModuleHero
-        scene={<BankScene className="h-24 w-full" />}
+        scene={<BankScene className="h-24 w-full" onThief={() => setPlayingBomb(true)} />}
         title="Contas"
         action={
           <button
@@ -92,6 +95,12 @@ export default function ExpensesPage() {
           </button>
         }
       />
+
+      {playingBomb && (
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-slate-950/80" />}>
+          <BombGame householdId={householdId} onClose={() => setPlayingBomb(false)} />
+        </Suspense>
+      )}
 
       {(showForm || editing) && user && (
         <ExpenseForm
