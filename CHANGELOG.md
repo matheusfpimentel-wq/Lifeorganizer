@@ -2,6 +2,20 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Mini-games da vila (fase G1)
+
+### Added
+- **Acerta o pássaro**: toque nos pássaros do céu da vila para abrir o jogo —
+  pássaros cruzam a tela cada vez mais rápido, 3 escapadas encerram, e a cada
+  3 acertos seguidos o ponto vale em dobro.
+- **Pescaria**: toque no pescador da doca (ou no barquinho, à noite) —
+  espere a bóia afundar e puxe na hora certa; puxar cedo arrebenta a linha,
+  a janela encurta a cada captura e há peixes raros (dourado, tesouro… e a
+  bota velha).
+- **Recordes do casal**: tabela nova `gameScores`; a tela de fim de jogo
+  mostra o placar dos dois com coroa pra quem lidera, e a moldura dos jogos
+  (tela cheia, vidas, placar, sair) é compartilhada para os próximos da fila.
+
 ## [Unreleased] — Personas de corpo inteiro, NFC-e por item, aeroporto e visual cartunesco
 
 ### Added

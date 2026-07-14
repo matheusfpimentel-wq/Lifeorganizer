@@ -1598,6 +1598,67 @@
       ]
     },
     {
+      "$id": "gameScores",
+      "databaseId": "morada",
+      "name": "Game Scores",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "memberId",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "game",
+          "type": "string",
+          "size": 40,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "score",
+          "type": "integer",
+          "required": true,
+          "min": 0,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "playedAt",
+          "type": "datetime",
+          "required": true,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_household_game",
+          "type": "key",
+          "columns": [
+            "householdId",
+            "game"
+          ]
+        }
+      ]
+    },
+    {
       "$id": "tasks",
       "databaseId": "morada",
       "name": "Tasks",

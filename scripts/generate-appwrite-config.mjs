@@ -387,6 +387,19 @@ const tables = [
   ),
 
   table(
+    'gameScores',
+    'Game Scores',
+    [
+      id('householdId', req),
+      id('memberId', req),
+      str('game', 40, req), // slug do mini-game (ex.: passaros, pescaria)
+      int('score', { ...req, min: 0 }),
+      dt('playedAt', req),
+    ],
+    [idx('idx_household_game', ['householdId', 'game'])],
+  ),
+
+  table(
     'tasks',
     'Tasks',
     [

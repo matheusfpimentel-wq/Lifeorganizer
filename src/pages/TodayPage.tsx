@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useActiveHousehold, useHouseholdMeta, useHouseholdPeople, useMyProfile } from '@/features/households/hooks';
@@ -13,6 +13,10 @@ import { Icon } from '@/components/icons';
 import VillageMap from '@/components/VillageMap';
 import { useVillageProgress } from '@/features/village/hooks';
 import { useWeather } from '@/features/weather/hooks';
+
+// mini-games da vila (carregados só quando alguém joga)
+const BirdGame = lazy(() => import('@/games/BirdGame'));
+const FishingGame = lazy(() => import('@/games/FishingGame'));
 
 export default function TodayPage() {
   const { user } = useAuth();
@@ -50,6 +54,7 @@ export default function TodayPage() {
 
   const [pickingDay, setPickingDay] = useState(false);
   const [shoppingDay, setShoppingDay] = useState('');
+  const [activeGame, setActiveGame] = useState<'passaros' | 'pescaria' | null>(null);
 
   const { start, end } = saoPauloDayBoundsUtc();
   const todayOccurrences = (occurrences.data ?? []).filter(
@@ -179,7 +184,18 @@ export default function TodayPage() {
         progress={villageProgress.data}
         weather={weather.data?.kind ?? null}
         people={villagePeople}
+        onPlay={setActiveGame}
       />
+
+      {activeGame && (
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-slate-950/80" />}>
+          {activeGame === 'passaros' ? (
+            <BirdGame householdId={householdId} onClose={() => setActiveGame(null)} />
+          ) : (
+            <FishingGame householdId={householdId} onClose={() => setActiveGame(null)} />
+          )}
+        </Suspense>
+      )}
 
       {/* cards da home em 2 colunas */}
       <div className="grid grid-cols-2 items-start gap-3">

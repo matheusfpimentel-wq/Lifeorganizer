@@ -31,6 +31,8 @@ interface VillageMapProps {
   eggOverride?: Egg;
   /** Clima real (Open-Meteo): a vila obedece à previsão. */
   weather?: 'clear' | 'cloudy' | 'rain' | 'storm' | 'fog' | null;
+  /** Abre um mini-game (pássaros no céu, pescador na doca). */
+  onPlay?: (game: 'passaros' | 'pescaria') => void;
 }
 
 type Egg = 'ufo' | 'monster' | 'alien' | 'walker' | 'neighbors' | 'chest' | null;
@@ -300,9 +302,18 @@ export default function VillageMap(props: VillageMapProps) {
           <path d="M162 44 l-10 18 h7 l-9 17 16 -13 h-6 l9 -14 Z" className="animate-flash fill-amber-200" />
         )}
 
-        {/* passarinhos cruzando o céu (se recolhem na chuva) */}
+        {/* passarinhos cruzando o céu (se recolhem na chuva);
+            tocar neles abre o mini-game Acerta o pássaro */}
         {phase !== 'night' && !rainy && (
-          <g className="animate-fly" fill="none" strokeWidth="1.2" strokeLinecap="round">
+          <g
+            className={`animate-fly ${props.onPlay ? 'cursor-pointer' : ''}`}
+            fill="none"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            aria-label="Pássaros: jogar Acerta o pássaro"
+            onClick={props.onPlay ? poke(() => props.onPlay!('passaros')) : undefined}
+          >
+            <circle cx="13" cy="52" r="16" fill="transparent" stroke="none" />
             <path d="M0 56 q3 -3.2 6 0 q3 -3.2 6 0" className="stroke-slate-500/70 dark:stroke-slate-300/50" />
             <path d="M16 49 q2.6 -2.8 5.2 0 q2.6 -2.8 5.2 0" className="stroke-slate-500/60 dark:stroke-slate-300/40" />
           </g>
@@ -396,8 +407,8 @@ export default function VillageMap(props: VillageMapProps) {
             <g
               transform="translate(6 -3)"
               className="cursor-pointer"
-              aria-hidden
-              onClick={poke(() => setRodDropped(true))}
+              aria-label="Pescador: jogar Pescaria"
+              onClick={poke(() => (props.onPlay ? props.onPlay('pescaria') : setRodDropped(true)))}
             >
               <circle cx="3" cy="-7" r="13" fill="transparent" />
               <circle cx="0" cy="-10.6" r="2.6" fill="#fcd9b8" />
@@ -431,7 +442,13 @@ export default function VillageMap(props: VillageMapProps) {
 
         {/* à noite o pescador troca a doca por um barquinho a remo */}
         {phase === 'night' && (
-          <g transform="translate(120 311)">
+          <g
+            transform="translate(120 311)"
+            className={props.onPlay ? 'cursor-pointer' : undefined}
+            aria-label="Pescador noturno: jogar Pescaria"
+            onClick={props.onPlay ? poke(() => props.onPlay!('pescaria')) : undefined}
+          >
+            <circle cx="0" cy="-4" r="14" fill="transparent" />
             <g className="animate-bob" style={{ animationDuration: '4s' }}>
               <path d="M-11 0 Q0 6 11 0 L9 -2.6 L-9 -2.6 Z" className="fill-amber-900" />
               <circle cx="0" cy="-6.4" r="2.4" fill="#fcd9b8" />

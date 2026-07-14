@@ -41,6 +41,7 @@ export const TABLES = {
   expenses: 'expenses',
   settlements: 'settlements',
   fundContributions: 'fundContributions',
+  gameScores: 'gameScores',
   tasks: 'tasks',
   taskOccurrences: 'taskOccurrences',
 } as const;
