@@ -4,9 +4,10 @@
  * offline-first (store local + fila de sync) e reaproveita as tabelas da Academia.
  */
 import { useMemo } from 'react';
-import { ID } from 'appwrite';
-import { useQueryClient } from '@tanstack/react-query';
-import { TABLES } from '@/lib/appwrite';
+import { ID, Query } from 'appwrite';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { DB_ID, TABLES, tablesDB } from '@/lib/appwrite';
+import { listAllRows } from '@/lib/pagination';
 import { withHouseholdReadOwnerWrite } from '@/lib/permissions';
 import {
   expandWorkout,
@@ -176,6 +177,32 @@ export function useLiveSession(householdId: string | null) {
 
 export function guidedSessionSets(session: SessionRow, allSets: SetRow[]): SetRow[] {
   return allSets.filter((s) => s.sessionId === session.$id);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type BodyweightRow = Record<string, any> & { $id: string };
+
+/** Registros de peso corporal do membro, mais antigos primeiro. */
+export function useBodyweight(householdId: string | null, memberId: string | null) {
+  return useQuery({
+    queryKey: ['bodyweight', householdId, memberId],
+    enabled: !!householdId && !!memberId,
+    queryFn: async () => {
+      const rows = await listAllRows<BodyweightRow>(TABLES.bodyweightLogs, [
+        Query.equal('householdId', householdId!),
+        Query.equal('memberId', memberId!),
+      ]);
+      return rows.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    },
+  });
+}
+
+export function useDeleteBodyweight(householdId: string | null, memberId: string | null) {
+  const queryClient = useQueryClient();
+  return async (id: string) => {
+    await tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.bodyweightLogs, rowId: id });
+    void queryClient.invalidateQueries({ queryKey: ['bodyweight', householdId, memberId] });
+  };
 }
 
 /** Registra peso corporal (offline-first via fila). */

@@ -2,6 +2,17 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Módulo Treino (F4: histórico, gráficos e peso)
+
+### Added
+- **Peso corporal** na aba Progresso: registro rápido e gráfico da tendência
+  com os pontos brutos + **média móvel de 7 dias** (núcleo puro
+  `movingAverageByDate`, testado), variação desde o início e lista de registros.
+- **Histórico recente** na home do Programa: últimos treinos guiados com data,
+  nome, nº de séries e tonelagem.
+- O histórico e o progresso agora reconhecem os exercícios do programa (nome
+  correto nos gráficos de volume e de 1RM estimado).
+
 ## [Unreleased] — Módulo Treino (F2: player ao vivo)
 
 ### Added

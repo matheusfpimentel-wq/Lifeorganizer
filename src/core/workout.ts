@@ -88,6 +88,33 @@ export function prTimeline(sets: DatedSet[]): { date: string; est1RM: number }[]
  * `sessionTopSets` = melhor série do exercício em cada sessão, da mais
  * recente para a mais antiga. Retorna a carga sugerida ou null.
  */
+export interface DatedValue {
+  date: string; // ISO ou 'YYYY-MM-DD'
+  value: number;
+}
+
+/**
+ * Média móvel por janela de dias (trailing): para cada ponto, média de todos os
+ * pontos dentro de [data − janela, data]. Suaviza o ruído diário do peso
+ * corporal. Entrada ordenada asc por data na saída.
+ */
+export function movingAverageByDate(points: DatedValue[], windowDays: number): { date: string; avg: number }[] {
+  const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
+  const windowMs = windowDays * 86_400_000;
+  return sorted.map((p, i) => {
+    const end = new Date(p.date).getTime();
+    let sum = 0;
+    let count = 0;
+    for (let j = i; j >= 0; j--) {
+      const t = new Date(sorted[j].date).getTime();
+      if (end - t > windowMs) break;
+      sum += sorted[j].value;
+      count += 1;
+    }
+    return { date: p.date, avg: Math.round((sum / count) * 100) / 100 };
+  });
+}
+
 export function suggestNextLoad(
   sessionTopSets: { reps: number; loadKg: number }[],
   repRangeTop: number,

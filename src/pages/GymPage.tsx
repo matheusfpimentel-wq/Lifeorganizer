@@ -40,6 +40,8 @@ import {
 import RestTimer from '@/features/gym/RestTimer';
 import GuidedHome from '@/features/gym/guided/GuidedHome';
 import SessionPlayer from '@/features/gym/guided/SessionPlayer';
+import BodyweightCard from '@/features/gym/guided/BodyweightCard';
+import { PROGRAM_EXERCISES } from '@/features/gym/program';
 import { useTrainingStore } from '@/stores/training';
 import { GymScene, ModuleHero } from '@/components/scenes';
 import { bestSetByExercise, estimate1RM, prTimeline, suggestNextLoad, volumeKg, weeklyVolume } from '@/core/workout';
@@ -67,7 +69,7 @@ export default function GymPage() {
     () => (allSets.data ?? []).filter((s) => mySessionIds.has(s.sessionId)),
     [allSets.data, mySessionIds],
   );
-  const exName = (id: string) => byId(id)?.name ?? 'Exercício';
+  const exName = (id: string) => byId(id)?.name ?? PROGRAM_EXERCISES.get(id)?.name ?? 'Exercício';
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'programa', label: 'Programa' },
@@ -118,7 +120,12 @@ export default function GymPage() {
       {tab === 'history' && (
         <HistoryTab householdId={householdId} sessions={sessions.data ?? []} mySets={mySets} exName={exName} />
       )}
-      {tab === 'progress' && <ProgressTab mySets={mySets} exName={exName} />}
+      {tab === 'progress' && (
+        <div className="flex flex-col gap-4">
+          <BodyweightCard householdId={householdId} memberId={memberId} />
+          <ProgressTab mySets={mySets} exName={exName} />
+        </div>
+      )}
     </div>
   );
 }

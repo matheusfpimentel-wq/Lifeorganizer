@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   bestSetByExercise,
   estimate1RM,
+  movingAverageByDate,
   prTimeline,
   suggestNextLoad,
   volumeKg,
@@ -96,5 +97,22 @@ describe('suggestNextLoad', () => {
   it('exige histórico de pelo menos 2 sessões e faixa válida', () => {
     expect(suggestNextLoad([{ reps: 12, loadKg: 40 }], 12)).toBeNull();
     expect(suggestNextLoad([{ reps: 12, loadKg: 40 }, { reps: 12, loadKg: 40 }], 0)).toBeNull();
+  });
+});
+
+describe('movingAverageByDate', () => {
+  it('média trailing dentro da janela de dias', () => {
+    const pts = [
+      { date: '2026-01-01', value: 80 },
+      { date: '2026-01-02', value: 82 },
+      { date: '2026-01-10', value: 84 }, // fora da janela de 7d dos anteriores
+    ];
+    const ma = movingAverageByDate(pts, 7);
+    expect(ma[0].avg).toBe(80);
+    expect(ma[1].avg).toBe(81); // (80+82)/2
+    expect(ma[2].avg).toBe(84); // só ele na janela
+  });
+  it('ordena por data e não quebra com lista vazia', () => {
+    expect(movingAverageByDate([], 7)).toEqual([]);
   });
 });

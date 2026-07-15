@@ -6,8 +6,10 @@
 import { useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
 import { rirTarget } from '@/core/program';
-import { MUSCLE_LABELS, PROGRAM, PROGRAM_EXERCISES } from '../program';
-import { useProgramState, useLiveSession } from '../trainingHooks';
+import { MUSCLE_LABELS, PROGRAM, PROGRAM_EXERCISES, WORKOUTS_BY_KEY } from '../program';
+import { useProgramState, useLiveSession, useGuidedSessions } from '../trainingHooks';
+import { useSessionSets } from '../hooks';
+import { formatDate } from '@/lib/format';
 import CueModal from './CueModal';
 import { Icon } from '@/components/icons';
 
@@ -22,8 +24,19 @@ export default function GuidedHome({ householdId }: { householdId: string | null
   const memberId = user?.$id ?? null;
   const { week, phase, nextWorkout, isLoading } = useProgramState(householdId, memberId);
   const live = useLiveSession(householdId);
+  const { guided } = useGuidedSessions(householdId, memberId);
+  const allSets = useSessionSets(householdId, memberId);
   const [deload, setDeload] = useState(false);
   const [cue, setCue] = useState<string | null>(null);
+
+  const recent = [...guided]
+    .sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)))
+    .slice(0, 4)
+    .map((s) => {
+      const sets = (allSets.data ?? []).filter((x) => x.sessionId === s.$id);
+      const tonnage = Math.round(sets.reduce((acc, x) => acc + x.reps * x.loadKg, 0));
+      return { id: s.$id, name: WORKOUTS_BY_KEY.get(s.templateKey)?.name ?? s.templateKey, date: s.startedAt, sets: sets.length, tonnage, done: !!s.finishedAt };
+    });
 
   const deloadSuggested = week === 6 || week === 12;
 
@@ -106,6 +119,21 @@ export default function GuidedHome({ householdId }: { householdId: string | null
           </div>
         ))}
       </section>
+
+      {recent.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Histórico recente</h2>
+          {recent.map((r) => (
+            <div key={r.id} className="card flex items-center justify-between gap-2 py-3">
+              <div>
+                <p className="font-medium">{r.name}{!r.done && <span className="ml-2 text-xs text-amber-600">em aberto</span>}</p>
+                <p className="text-sm text-slate-500">{formatDate(r.date)}</p>
+              </div>
+              <p className="shrink-0 text-sm text-slate-500">{r.sets} série{r.sets === 1 ? '' : 's'} · {r.tonnage} kg</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       {cue && <CueModal exerciseKey={cue} onClose={() => setCue(null)} />}
     </div>
