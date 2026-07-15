@@ -33,5 +33,13 @@ exercícios/sessões/séries e adicionando por cima o programa de 12 semanas.
   histórico por exercício/sessão, gráficos de carga e de peso (média móvel),
   registro de peso corporal (máx. 1×/sem), deload nas semanas 6 e 12.
 - **F5 — Lembretes passivos:** proteína ~180 g/dia, cardio Zona 2 2–4×/sem.
-- **F6 (opcional) — Revisão semanal com LLM:** fora do treino, agrega a semana
-  e pede nota de coach; tolerante a falha, nunca na sessão ao vivo.
+- **F6 (feito) — Revisão semanal com LLM:** fora do treino, agrega a semana
+  (`src/core/weeklyReview.ts`, testado) e pede a nota de coach via a rota
+  `/coach-review` da function `api` (Anthropic), tolerante a falha.
+
+## Configuração da revisão semanal (F6)
+
+Para ativar a revisão por IA, configure na **function `api`** do Appwrite a
+variável de ambiente **`ANTHROPIC_API_KEY`** (chave da API da Anthropic).
+Opcional: `COACH_MODEL` (padrão `claude-haiku-4-5-20251001`). Sem a chave, o
+card mostra um aviso e o resto do app segue normal — nada quebra.

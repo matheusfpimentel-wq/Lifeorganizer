@@ -46,11 +46,21 @@ const DEFAULT_SETTINGS: TrainingSettings = {
   proteinTargetG: 180,
 };
 
+export interface CoachReview {
+  resumo: string;
+  progredir: string[];
+  estagnou: string[];
+  deload: boolean;
+  nudge: string;
+}
+
 interface TrainingState {
   active: ActiveSession | null;
   settings: TrainingSettings;
   /** aviso de peso corporal: ISO da última vez que sugerimos (máx 1×/semana). */
   lastBodyweightPromptAt: string | null;
+  /** revisão de coach mais recente, com a semana a que se refere. */
+  lastReview: { week: number; at: string; review: CoachReview } | null;
   start: (s: Omit<ActiveSession, 'index' | 'logs'>) => void;
   logSet: (l: LoggedSet) => void;
   goTo: (index: number) => void;
@@ -58,6 +68,7 @@ interface TrainingState {
   cancel: () => void;
   setSettings: (patch: Partial<TrainingSettings>) => void;
   markBodyweightPrompt: (iso: string) => void;
+  setReview: (week: number, review: CoachReview) => void;
 }
 
 export const useTrainingStore = create<TrainingState>()(
@@ -66,6 +77,7 @@ export const useTrainingStore = create<TrainingState>()(
       active: null,
       settings: DEFAULT_SETTINGS,
       lastBodyweightPromptAt: null,
+      lastReview: null,
       start: (s) => set({ active: { ...s, index: 0, logs: [] } }),
       logSet: (l) =>
         set((state) =>
@@ -78,6 +90,7 @@ export const useTrainingStore = create<TrainingState>()(
       cancel: () => set({ active: null }),
       setSettings: (patch) => set((state) => ({ settings: { ...state.settings, ...patch } })),
       markBodyweightPrompt: (iso) => set({ lastBodyweightPromptAt: iso }),
+      setReview: (week, review) => set({ lastReview: { week, at: new Date().toISOString(), review } }),
     }),
     { name: 'training' },
   ),

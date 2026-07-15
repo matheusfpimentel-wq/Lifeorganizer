@@ -4,10 +4,11 @@
  * offline-first (store local + fila de sync) e reaproveita as tabelas da Academia.
  */
 import { useMemo } from 'react';
-import { ID, Query } from 'appwrite';
+import { ExecutionMethod, ID, Query } from 'appwrite';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DB_ID, TABLES, tablesDB } from '@/lib/appwrite';
+import { DB_ID, functions, TABLES, tablesDB } from '@/lib/appwrite';
 import { listAllRows } from '@/lib/pagination';
+import { buildWeeklyAggregate, type TopSet } from '@/core/weeklyReview';
 import { withHouseholdReadOwnerWrite } from '@/lib/permissions';
 import {
   expandWorkout,
@@ -203,6 +204,94 @@ export function useDeleteBodyweight(householdId: string | null, memberId: string
     await tablesDB.deleteRow({ databaseId: DB_ID, tableId: TABLES.bodyweightLogs, rowId: id });
     void queryClient.invalidateQueries({ queryKey: ['bodyweight', householdId, memberId] });
   };
+}
+
+/** Monta o resumo da semana e chama a revisão de coach (LLM) na function `api`. */
+export function useWeeklyReview(householdId: string | null, memberId: string | null) {
+  const { guided, isLoading } = useGuidedSessions(householdId, memberId);
+  const allSets = useSessionSets(householdId, memberId);
+  const bodyweight = useBodyweight(householdId, memberId);
+
+  const aggregate = useMemo(() => {
+    const sorted = [...guided].sort((a, b) => String(a.startedAt).localeCompare(String(b.startedAt)));
+    const anchor = sorted[0]?.startedAt ?? new Date().toISOString();
+    const now = new Date().toISOString();
+    const currentWeek = weekNumber(anchor, now, PROGRAM.weeks);
+    const phase = PROGRAM.phases.find((p) => currentWeek >= p.weekStart && currentWeek <= p.weekEnd) ?? PROGRAM.phases[0];
+
+    const setsBySession = new Map<string, SetRow[]>();
+    for (const s of allSets.data ?? []) {
+      if (!setsBySession.has(s.sessionId)) setsBySession.set(s.sessionId, []);
+      setsBySession.get(s.sessionId)!.push(s);
+    }
+
+    // sessões da semana atual do programa
+    const weekSessions = guided.filter((s) => weekNumber(anchor, s.startedAt, PROGRAM.weeks) === currentWeek);
+    const weekSets = weekSessions.flatMap((s) => setsBySession.get(s.$id) ?? []);
+    const aggSets = weekSets.map((s) => ({
+      muscle: PROGRAM_EXERCISES.get(s.templateExKey)?.muscle ?? 'outro',
+      reps: s.reps,
+      loadKg: s.loadKg,
+    }));
+
+    // top set por sessão de cada exercício (para detectar estagnação), recente→antigo
+    const byExercise = new Map<string, { at: string; top: TopSet }[]>();
+    const sessionsNewest = [...guided].sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
+    for (const session of sessionsNewest) {
+      const sets = setsBySession.get(session.$id) ?? [];
+      const perEx = new Map<string, TopSet>();
+      for (const st of sets) {
+        const cur = perEx.get(st.templateExKey);
+        if (!cur || st.loadKg > cur.loadKg || (st.loadKg === cur.loadKg && st.reps > cur.reps)) {
+          perEx.set(st.templateExKey, { reps: st.reps, loadKg: st.loadKg });
+        }
+      }
+      for (const [key, top] of perEx) {
+        if (!byExercise.has(key)) byExercise.set(key, []);
+        byExercise.get(key)!.push({ at: session.startedAt, top });
+      }
+    }
+    const recentByExercise: Record<string, TopSet[]> = {};
+    for (const [key, list] of byExercise) {
+      recentByExercise[PROGRAM_EXERCISES.get(key)?.name ?? key] = list.slice(0, 4).map((x) => x.top);
+    }
+
+    const weekBw = (bodyweight.data ?? []).filter(
+      (b) => weekNumber(anchor, String(b.date), PROGRAM.weeks) === currentWeek,
+    );
+
+    return buildWeeklyAggregate({
+      week: currentWeek,
+      phase: phase.name,
+      sets: aggSets,
+      sessionsDone: weekSessions.length,
+      planned: PROGRAM.rotation.length,
+      bodyweightStart: weekBw[0]?.weightKg ?? null,
+      bodyweightEnd: weekBw[weekBw.length - 1]?.weightKg ?? null,
+      recentByExercise,
+    });
+  }, [guided, allSets.data, bodyweight.data]);
+
+  async function generate(): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const exec = await functions.createExecution({
+        functionId: 'api',
+        body: JSON.stringify(aggregate),
+        async: false,
+        xpath: '/coach-review',
+        method: ExecutionMethod.POST,
+      });
+      const parsed = exec.responseBody ? JSON.parse(exec.responseBody) : {};
+      if (!parsed.ok) return { ok: false, error: parsed.error ?? 'Falha na revisão.' };
+      useTrainingStore.getState().setReview(aggregate.week, parsed.review);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: (err as Error).message };
+    }
+  }
+
+  const hasData = aggregate.byMuscle.length > 0 || aggregate.adherence.done > 0;
+  return { aggregate, generate, hasData, isLoading: isLoading || allSets.isLoading };
 }
 
 /** Registra peso corporal (offline-first via fila). */

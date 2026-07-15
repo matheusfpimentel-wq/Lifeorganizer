@@ -11,6 +11,7 @@ import { useProgramState, useLiveSession, useGuidedSessions } from '../trainingH
 import { useSessionSets } from '../hooks';
 import { formatDate } from '@/lib/format';
 import CueModal from './CueModal';
+import WeeklyReviewCard from './WeeklyReviewCard';
 import { Icon } from '@/components/icons';
 
 const PHASE_TINT: Record<string, string> = {
@@ -119,6 +120,8 @@ export default function GuidedHome({ householdId }: { householdId: string | null
           </div>
         ))}
       </section>
+
+      <WeeklyReviewCard householdId={householdId} />
 
       {recent.length > 0 && (
         <section className="flex flex-col gap-2">

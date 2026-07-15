@@ -6,6 +6,8 @@
  * POST /push/test     — push de teste para o usuário autenticado.
  * POST /nfce          — proxy da NFC-e: busca a página da SEFAZ (o QR do
  *                       cupom) e devolve os itens da nota em JSON.
+ * POST /coach-review  — revisão semanal do Treino: recebe o resumo agregado
+ *                       da semana e devolve a nota de coach (LLM) em JSON.
  *
  * Execute permission é `any`: o token do iCal é a autenticação da rota;
  * /push/test confia no header x-appwrite-user-id, que o Appwrite injeta
@@ -283,6 +285,74 @@ async function handleNfce(body: unknown, res: AppwriteContext['res'], log: (m: s
 }
 
 // ---------------------------------------------------------------------------
+// Revisão semanal do Treino (LLM). Fora da sessão ao vivo; tolerante a falha.
+// ---------------------------------------------------------------------------
+const COACH_SYSTEM =
+  'Você é um treinador com viés científico em hipertrofia. Com base nos dados da semana, ' +
+  'responda APENAS com um JSON válido, sem markdown, no formato:\n' +
+  '{\n' +
+  '  "resumo": "1-2 frases objetivas sobre a semana",\n' +
+  '  "progredir": ["exercícios/pontos onde subir carga ou volume"],\n' +
+  '  "estagnou": ["o que travou e a provável causa"],\n' +
+  '  "deload": true|false,\n' +
+  '  "nudge": "1 lembrete comportamental curto (sono, proteína, aderência)"\n' +
+  '}\n' +
+  'Seja honesto sobre força de evidência; não invente. Priorize consistência e progressão.';
+
+async function handleCoachReview(body: unknown, res: AppwriteContext['res'], log: (m: string) => void) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return res.json({ ok: false, error: 'Revisão indisponível: falta a chave da IA (ANTHROPIC_API_KEY) na function.' }, 503);
+  }
+  let payload: unknown;
+  try {
+    payload = typeof body === 'string' ? JSON.parse(body || '{}') : body ?? {};
+  } catch {
+    return res.json({ ok: false, error: 'Corpo inválido' }, 400);
+  }
+  const model = process.env.COACH_MODEL ?? 'claude-haiku-4-5-20251001';
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 25_000);
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 512,
+        system: COACH_SYSTEM,
+        messages: [{ role: 'user', content: `Dados da semana: ${JSON.stringify(payload)}` }],
+      }),
+    });
+    if (!resp.ok) {
+      log(`coach-review: anthropic ${resp.status}`);
+      return res.json({ ok: false, error: `A IA respondeu ${resp.status}. Tente mais tarde.` }, 502);
+    }
+    const data = (await resp.json()) as { content?: { type: string; text?: string }[] };
+    const text = (data.content ?? []).filter((b) => b.type === 'text').map((b) => b.text ?? '').join('').trim();
+    // extrai o JSON (caso o modelo embrulhe em texto)
+    const jsonStr = text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
+    let review: unknown;
+    try {
+      review = JSON.parse(jsonStr);
+    } catch {
+      return res.json({ ok: false, error: 'A IA não devolveu um JSON válido.' }, 502);
+    }
+    return res.json({ ok: true, review });
+  } catch (err) {
+    log(`coach-review: ${String(err)}`);
+    return res.json({ ok: false, error: 'Falha ao falar com a IA.' }, 502);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ---------------------------------------------------------------------------
 export default async ({ req, res, log, error }: AppwriteContext) => {
   const tables = createTables(req);
   try {
@@ -301,6 +371,13 @@ export default async ({ req, res, log, error }: AppwriteContext) => {
         return res.json({ ok: false, error: 'Não autenticado' }, 401);
       }
       return handleNfce(req.body, res, log);
+    }
+
+    if (req.method === 'POST' && req.path === '/coach-review') {
+      if (!req.headers['x-appwrite-user-id']) {
+        return res.json({ ok: false, error: 'Não autenticado' }, 401);
+      }
+      return handleCoachReview(req.body, res, log);
     }
 
     if (req.method === 'POST' && req.path === '/push/test') {

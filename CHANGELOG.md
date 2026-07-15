@@ -2,6 +2,18 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Módulo Treino (F6: revisão semanal com IA)
+
+### Added
+- **Revisão da semana** na home do Programa (fora do treino): agrega a semana
+  no cliente — séries e tonelagem por músculo, aderência, tendência de peso e
+  exercícios estagnados (núcleo puro `weeklyReview.ts`, 5 testes) — e pede uma
+  nota de coach em JSON (resumo, progredir, estagnou, deload, nudge).
+- **Rota `/coach-review` na function `api`**: chama a API da Anthropic com a
+  chave server-side (`ANTHROPIC_API_KEY`; modelo em `COACH_MODEL`), extrai o
+  JSON e devolve. Tolerante a falha — sem chave/rede o card avisa e o app segue.
+  A última revisão fica em cache local, marcando a semana a que se refere.
+
 ## [Unreleased] — Módulo Treino (F4: histórico, gráficos e peso)
 
 ### Added
