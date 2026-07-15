@@ -253,6 +253,12 @@ const tables = [
       dt('startedAt', req),
       dt('finishedAt'),
       str('notes', 500),
+      // programa guiado (Treino): null = sessão livre (Academia clássica)
+      str('templateKey', 40), // qual treino do programa (ex.: upper_a)
+      int('weekNumber', { min: 1, max: 52 }),
+      str('phaseName', 40),
+      bool('deload', { default: false }),
+      dbl('totalTonnageKg', { min: 0 }),
     ],
     [
       idx('idx_memberId', ['memberId']),
@@ -272,6 +278,8 @@ const tables = [
       int('reps', { ...req, min: 0 }), // 0 quando a série é por tempo
       dbl('loadKg', { ...req, min: 0 }),
       dbl('rpe', { min: 0, max: 10 }),
+      int('rir', { min: 0, max: 10 }), // reps na reserva (programa guiado)
+      str('templateExKey', 40), // exercício do programa (ex.: supino_reto) p/ progressão
       int('durationSeconds', { min: 0 }), // séries por tempo (prancha, isometria, cardio)
       // técnica de intensidade aplicada à série
       enm('technique', ['normal', 'aquecimento', 'dropset', 'restPause', 'falha', 'superset', 'isometria']),
@@ -279,7 +287,20 @@ const tables = [
     [
       idx('idx_sessionId', ['sessionId']),
       idx('idx_exercise_load', ['exerciseId', 'loadKg']), // PR por exercício
+      idx('idx_templateExKey', ['templateExKey']), // histórico por exercício do programa
     ],
+  ),
+
+  table(
+    'bodyweightLogs',
+    'Bodyweight Logs',
+    [
+      id('householdId', req),
+      id('memberId', req),
+      dt('date', req),
+      dbl('weightKg', { ...req, min: 0 }),
+    ],
+    [idx('idx_household_member', ['householdId', 'memberId']), idx('idx_date', ['date'])],
   ),
 
   table(

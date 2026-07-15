@@ -2,6 +2,23 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Módulo Treino (F1: fundação)
+
+### Added
+- **Programa guiado de 12 semanas** como definição estática no bundle
+  (`src/features/gym/program.ts`): 26 exercícios com cues, 4 treinos
+  (Upper/Lower A/B) com blocos e superséries, 3 fases (Reacender, Construir,
+  Intensificar) e rotação — offline por natureza, sem coleção nova.
+- **Núcleo de coach puro e testado** (`src/core/program.ts`, 15 testes): fase
+  por semana, RIR-alvo com viés composto/isolador, séries por fase, expansão de
+  blocos em passos (supersérie ↔ série direta na fase Reacender), dupla
+  progressão e deload.
+- Schema para a sessão ao vivo (reaproveitando a Academia): `workoutSessions`
+  ganhou `templateKey`, `weekNumber`, `phaseName`, `deload`, `totalTonnageKg`;
+  `workoutSessionSets` ganhou `rir` e `templateExKey`; nova tabela
+  `bodyweightLogs`.
+- `docs/training-module-plan.md` com a arquitetura e as fases F1–F6.
+
 ### Added
 - **4 mini-games novos**, cada um saindo de um personagem da vila:
   - **Corredeira** (barquinho no rio): estilo Subway Surfers — 3 raias, toque

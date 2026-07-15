@@ -855,6 +855,46 @@
           "array": false,
           "required": false,
           "default": null
+        },
+        {
+          "key": "templateKey",
+          "type": "string",
+          "size": 40,
+          "array": false,
+          "required": false,
+          "default": null
+        },
+        {
+          "key": "weekNumber",
+          "type": "integer",
+          "min": 1,
+          "max": 52,
+          "array": false,
+          "required": false,
+          "default": null
+        },
+        {
+          "key": "phaseName",
+          "type": "string",
+          "size": 40,
+          "array": false,
+          "required": false,
+          "default": null
+        },
+        {
+          "key": "deload",
+          "type": "boolean",
+          "default": false,
+          "array": false,
+          "required": false
+        },
+        {
+          "key": "totalTonnageKg",
+          "type": "double",
+          "min": 0,
+          "array": false,
+          "required": false,
+          "default": null
         }
       ],
       "indexes": [
@@ -949,6 +989,23 @@
           "default": null
         },
         {
+          "key": "rir",
+          "type": "integer",
+          "min": 0,
+          "max": 10,
+          "array": false,
+          "required": false,
+          "default": null
+        },
+        {
+          "key": "templateExKey",
+          "type": "string",
+          "size": 40,
+          "array": false,
+          "required": false,
+          "default": null
+        },
+        {
           "key": "durationSeconds",
           "type": "integer",
           "min": 0,
@@ -989,6 +1046,73 @@
           "columns": [
             "exerciseId",
             "loadKg"
+          ]
+        },
+        {
+          "key": "idx_templateExKey",
+          "type": "key",
+          "columns": [
+            "templateExKey"
+          ]
+        }
+      ]
+    },
+    {
+      "$id": "bodyweightLogs",
+      "databaseId": "morada",
+      "name": "Bodyweight Logs",
+      "enabled": true,
+      "rowSecurity": true,
+      "$permissions": [
+        "create(\"users\")"
+      ],
+      "columns": [
+        {
+          "key": "householdId",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "memberId",
+          "type": "string",
+          "size": 36,
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "date",
+          "type": "datetime",
+          "required": true,
+          "array": false,
+          "default": null
+        },
+        {
+          "key": "weightKg",
+          "type": "double",
+          "required": true,
+          "min": 0,
+          "array": false,
+          "default": null
+        }
+      ],
+      "indexes": [
+        {
+          "key": "idx_household_member",
+          "type": "key",
+          "columns": [
+            "householdId",
+            "memberId"
+          ]
+        },
+        {
+          "key": "idx_date",
+          "type": "key",
+          "columns": [
+            "date"
           ]
         }
       ]

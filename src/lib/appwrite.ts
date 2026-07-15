@@ -35,6 +35,7 @@ export const TABLES = {
   workoutPlanExercises: 'workoutPlanExercises',
   workoutSessions: 'workoutSessions',
   workoutSessionSets: 'workoutSessionSets',
+  bodyweightLogs: 'bodyweightLogs',
   shoppingLists: 'shoppingLists',
   shoppingItems: 'shoppingItems',
   staples: 'staples',
