@@ -2,6 +2,15 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Treino: programa como um plano entre os seus
+
+### Changed
+- O **programa guiado** agora aparece como **um plano na aba "Planos"** (card
+  expansível com as fases, a semana e os 4 treinos), junto dos planos livres —
+  em vez de parecer um modo à parte. A aba **Programa** continua como a visão do
+  dia (o que tem pra hoje + iniciar) e o **Livre** segue para lançar o treino do
+  dia na hora.
+
 ## [Unreleased] — Módulo Treino (F6: revisão semanal com IA)
 
 ### Added

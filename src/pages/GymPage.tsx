@@ -41,6 +41,7 @@ import RestTimer from '@/features/gym/RestTimer';
 import GuidedHome from '@/features/gym/guided/GuidedHome';
 import SessionPlayer from '@/features/gym/guided/SessionPlayer';
 import BodyweightCard from '@/features/gym/guided/BodyweightCard';
+import ProgramPlanCard from '@/features/gym/guided/ProgramPlanCard';
 import { PROGRAM_EXERCISES } from '@/features/gym/program';
 import { useTrainingStore } from '@/stores/training';
 import { GymScene, ModuleHero } from '@/components/scenes';
@@ -115,7 +116,7 @@ export default function GymPage() {
         />
       )}
       {tab === 'plans' && (
-        <PlansTab householdId={householdId} memberId={memberId} plans={plans.data ?? []} library={library} exName={exName} />
+        <PlansTab householdId={householdId} memberId={memberId} plans={plans.data ?? []} library={library} exName={exName} onOpenProgram={() => setTab('programa')} />
       )}
       {tab === 'history' && (
         <HistoryTab householdId={householdId} sessions={sessions.data ?? []} mySets={mySets} exName={exName} />
@@ -469,12 +470,14 @@ function PlansTab({
   plans,
   library,
   exName,
+  onOpenProgram,
 }: {
   householdId: string | null;
   memberId: string | null;
   plans: PlanRow[];
   library: { id: string; name: string }[];
   exName: (id: string) => string;
+  onOpenProgram: () => void;
 }) {
   const createPlan = useCreatePlan(householdId, memberId);
   const updatePlan = useUpdatePlan(householdId);
@@ -489,16 +492,19 @@ function PlansTab({
 
   return (
     <div className="flex flex-col gap-3">
+      {/* o programa guiado como um plano entre os seus */}
+      <ProgramPlanCard householdId={householdId} onOpen={onOpenProgram} />
+
       <form
         className="card flex gap-2"
         onSubmit={(e) => { e.preventDefault(); if (name.trim()) createPlan.mutate({ name: name.trim() }, { onSuccess: () => setName('') }); }}
       >
-        <input className="input flex-1" placeholder="Nome do plano (ex.: ABC)" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="input flex-1" placeholder="Novo plano livre (ex.: ABC)" value={name} onChange={(e) => setName(e.target.value)} />
         <button className="btn-primary" disabled={createPlan.isPending}>Criar</button>
       </form>
 
       {plans.length === 0 ? (
-        <div className="card text-center text-slate-500">Nenhum plano ainda.</div>
+        <div className="card text-center text-sm text-slate-500">Seus planos livres aparecem aqui. O programa guiado fica no card acima.</div>
       ) : (
         plans.map((p) => (
           <section key={p.$id} className="card">
