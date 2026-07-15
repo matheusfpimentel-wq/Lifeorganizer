@@ -38,13 +38,16 @@ import {
   type SetRow,
 } from '@/features/gym/hooks';
 import RestTimer from '@/features/gym/RestTimer';
+import GuidedHome from '@/features/gym/guided/GuidedHome';
+import SessionPlayer from '@/features/gym/guided/SessionPlayer';
+import { useTrainingStore } from '@/stores/training';
 import { GymScene, ModuleHero } from '@/components/scenes';
 import { bestSetByExercise, estimate1RM, prTimeline, suggestNextLoad, volumeKg, weeklyVolume } from '@/core/workout';
 import { techniqueLabels } from '@/shared/labels';
 import { formatDate } from '@/lib/format';
 import { Icon } from '@/components/icons';
 
-type Tab = 'train' | 'plans' | 'history' | 'progress';
+type Tab = 'programa' | 'train' | 'plans' | 'history' | 'progress';
 
 export default function GymPage() {
   const { user } = useAuth();
@@ -55,8 +58,9 @@ export default function GymPage() {
   const plans = useWorkoutPlans(householdId, memberId);
   const sessions = useSessions(householdId, memberId);
   const allSets = useSessionSets(householdId, memberId);
+  const activeSession = useTrainingStore((s) => s.active);
 
-  const [tab, setTab] = useState<Tab>('train');
+  const [tab, setTab] = useState<Tab>('programa');
 
   const mySessionIds = useMemo(() => new Set((sessions.data ?? []).map((s) => s.$id)), [sessions.data]);
   const mySets = useMemo(
@@ -66,16 +70,26 @@ export default function GymPage() {
   const exName = (id: string) => byId(id)?.name ?? 'Exercício';
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'train', label: 'Treinar' },
+    { id: 'programa', label: 'Programa' },
+    { id: 'train', label: 'Livre' },
     { id: 'plans', label: 'Planos' },
     { id: 'history', label: 'Histórico' },
     { id: 'progress', label: 'Progresso' },
   ];
 
+  // sessão guiada ao vivo toma a tela inteira do módulo
+  if (activeSession) {
+    return (
+      <div className="flex flex-col gap-4">
+        <SessionPlayer householdId={householdId} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <ModuleHero scene={<GymScene className="h-24 w-full" />} title="Academia" />
-      <div className="grid grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+      <div className="grid grid-cols-5 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -86,6 +100,8 @@ export default function GymPage() {
           </button>
         ))}
       </div>
+
+      {tab === 'programa' && <GuidedHome householdId={householdId} />}
 
       {tab === 'train' && (
         <TrainTab

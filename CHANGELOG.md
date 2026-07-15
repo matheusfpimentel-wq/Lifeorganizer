@@ -2,6 +2,27 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Módulo Treino (F2: player ao vivo)
+
+### Added
+- **Aba "Programa" na Academia** (padrão): mostra o próximo treino da rotação,
+  a fase e a semana atuais, um toggle de deload (sugerido nas semanas 6 e 12) e
+  a prévia dos blocos com séries×reps e RIR-alvo por exercício.
+- **Player da sessão ao vivo**: passo a passo pelos blocos, com o RIR-alvo
+  correto por tipo (composto mira a ponta conservadora), carga **pré-preenchida**
+  pela dupla progressão (ou pela série anterior da própria sessão), campos de
+  carga/reps/RIR, e o fluxo de supersérie (emenda A→B sem descanso) vs série
+  direta. Descrição do exercício **sob demanda** (toque no nome).
+- **Cronômetro de descanso** em tela cheia: contagem grande, −15s/+15s, pular,
+  **som (WebAudio) + vibração** ao zerar e **Screen Wake Lock** para a tela não
+  apagar — tudo respeitando as preferências.
+- **Resumo da sessão**: séries, tonelagem, tempo e melhores séries (1RM
+  estimado), com sugestão passiva de registrar **peso corporal** (máx. 1×/sem) e
+  lembrete de proteína/cardio.
+- **Offline-first de verdade**: a sessão vive no `localStorage` (sobrevive a
+  refresh/queda) e as gravações entram numa **fila de sync** com rowId gerado no
+  cliente, que drena para o Appwrite ao reconectar (nada trava sem rede).
+
 ## [Unreleased] — Módulo Treino (F1: fundação)
 
 ### Added

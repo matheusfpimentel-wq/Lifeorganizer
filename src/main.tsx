@@ -7,6 +7,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import App from './App';
 import { AuthProvider } from '@/features/auth/AuthContext';
 import { applyAccent, applyTheme, useUiStore } from '@/stores/ui';
+import { startAutoFlush } from '@/features/gym/syncQueue';
 import '@fontsource-variable/nunito';
 import './index.css';
 
@@ -25,6 +26,8 @@ const persister = createSyncStoragePersister({ storage: window.localStorage });
 
 applyTheme(useUiStore.getState().theme);
 applyAccent(useUiStore.getState().accent);
+// drena a fila de sync do Treino (sessões/séries gravadas offline)
+startAutoFlush();
 window
   .matchMedia('(prefers-color-scheme: dark)')
   .addEventListener('change', () => applyTheme(useUiStore.getState().theme));
