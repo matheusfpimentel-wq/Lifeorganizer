@@ -12,6 +12,8 @@ import { useSessionSets } from '../hooks';
 import { formatDate } from '@/lib/format';
 import CueModal from './CueModal';
 import WeeklyReviewCard from './WeeklyReviewCard';
+import ExerciseListModal from './ExerciseListModal';
+import TrainingSettingsCard from './TrainingSettingsCard';
 import { Icon } from '@/components/icons';
 
 const PHASE_TINT: Record<string, string> = {
@@ -29,6 +31,7 @@ export default function GuidedHome({ householdId }: { householdId: string | null
   const allSets = useSessionSets(householdId, memberId);
   const [deload, setDeload] = useState(false);
   const [cue, setCue] = useState<string | null>(null);
+  const [showExercises, setShowExercises] = useState(false);
 
   const recent = [...guided]
     .sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)))
@@ -79,6 +82,11 @@ export default function GuidedHome({ householdId }: { householdId: string | null
       >
         <Icon.Play className="h-5 w-5" />
         Iniciar treino
+      </button>
+
+      <button className="btn-secondary" onClick={() => setShowExercises(true)}>
+        <Icon.List className="h-4 w-4" />
+        Ver exercícios do programa
       </button>
 
       {/* prévia dos blocos */}
@@ -138,7 +146,10 @@ export default function GuidedHome({ householdId }: { householdId: string | null
         </section>
       )}
 
+      <TrainingSettingsCard />
+
       {cue && <CueModal exerciseKey={cue} onClose={() => setCue(null)} />}
+      {showExercises && <ExerciseListModal onClose={() => setShowExercises(false)} />}
     </div>
   );
 }

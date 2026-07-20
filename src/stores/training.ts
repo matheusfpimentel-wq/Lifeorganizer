@@ -7,12 +7,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface LoggedSet {
+  setId: string; // rowId no Appwrite (para desfazer/sincronizar)
   stepIndex: number;
   exerciseKey: string;
   setNumber: number;
   weight: number;
   reps: number;
   rir: number | null;
+  technique?: string | null; // técnica intensa aplicada (fase Intensificar)
   at: string; // ISO
 }
 
@@ -63,6 +65,7 @@ interface TrainingState {
   lastReview: { week: number; at: string; review: CoachReview } | null;
   start: (s: Omit<ActiveSession, 'index' | 'logs'>) => void;
   logSet: (l: LoggedSet) => void;
+  undoLast: () => LoggedSet | null;
   goTo: (index: number) => void;
   finish: () => void;
   cancel: () => void;
@@ -73,7 +76,7 @@ interface TrainingState {
 
 export const useTrainingStore = create<TrainingState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       active: null,
       settings: DEFAULT_SETTINGS,
       lastBodyweightPromptAt: null,
@@ -85,6 +88,13 @@ export const useTrainingStore = create<TrainingState>()(
             ? { active: { ...state.active, logs: [...state.active.logs, l], index: state.active.index + 1 } }
             : state,
         ),
+      undoLast: () => {
+        const active = get().active;
+        if (!active || active.logs.length === 0) return null;
+        const last = active.logs[active.logs.length - 1];
+        set({ active: { ...active, logs: active.logs.slice(0, -1), index: last.stepIndex } });
+        return last;
+      },
       goTo: (index) => set((state) => (state.active ? { active: { ...state.active, index } } : state)),
       finish: () => set({ active: null }),
       cancel: () => set({ active: null }),

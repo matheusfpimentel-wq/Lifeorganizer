@@ -70,7 +70,10 @@ export default function SessionPlayer({ householdId }: { householdId: string | n
   }
   if (!step || !exercise || !workout) return null;
 
+  const phase = PROGRAM.phases.find((p) => p.name === phaseName) ?? PROGRAM.phases[0];
   const target = rirForStep(exercise.isCompound, phaseName, active.deload);
+  // fase Intensificar: última série dos isoladores pede técnica intensa
+  const intense = phase.intensityTechnique && !exercise.isCompound && step.setNumber === step.totalSets;
   const isLast = index >= steps.length - 1;
   const blocksTotal = workout.blocks.length;
   const currentBlock = step.blockOrder;
@@ -87,8 +90,14 @@ export default function SessionPlayer({ householdId }: { householdId: string | n
       weight: w,
       reps: r,
       rir: rir === '' ? null : Math.max(0, Math.min(10, Number(rir))),
+      technique: intense ? 'restPause' : null,
     });
     if (!isLast && step.restSecondsAfter > 0) timer.start(step.restSecondsAfter);
+  }
+
+  function undo() {
+    timer.stop();
+    live.undoLast();
   }
 
   return (
@@ -130,6 +139,12 @@ export default function SessionPlayer({ householdId }: { householdId: string | n
           </span>
         </div>
 
+        {intense && (
+          <p className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-300">
+            🔥 Última série: aplique uma técnica intensa (rest-pause ou dropset) — leve à falha com pausas curtas.
+          </p>
+        )}
+
         {inSession.length > 0 && (
           <ol className="flex flex-wrap gap-1 text-sm">
             {inSession.map((l, i) => (
@@ -159,6 +174,11 @@ export default function SessionPlayer({ householdId }: { householdId: string | n
           <Icon.Check className="h-5 w-5" />
           {step.toSupersetPartner ? 'Concluir e emendar' : isLast ? 'Concluir e finalizar' : 'Concluir série'}
         </button>
+        {active.logs.length > 0 && (
+          <button className="text-sm text-slate-500 underline-offset-2 hover:underline" onClick={undo}>
+            Desfazer última série ({active.logs[active.logs.length - 1].reps}×{active.logs[active.logs.length - 1].weight}{units})
+          </button>
+        )}
       </section>
 
       {/* cronômetro de descanso (overlay) */}

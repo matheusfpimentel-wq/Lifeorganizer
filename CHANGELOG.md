@@ -2,6 +2,19 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Treino: pontas soltas
+
+### Added
+- **Preferências do treino** (na aba Programa): unidade kg/lb, som e vibração
+  do descanso, incrementos de carga (composto/isolador) e meta de proteína —
+  salvas no aparelho e usadas na progressão e nos lembretes.
+- **Técnica intensa na fase Intensificar**: a última série dos isoladores
+  ganha um aviso 🔥 no player (rest-pause/dropset) e fica marcada na série.
+- **Lista de exercícios do programa** pesquisável (por nome ou músculo) com a
+  descrição de execução de cada um.
+- **Desfazer última série** no player guiado: corrige um erro de digitação
+  na hora, removendo a série local e a linha sincronizada.
+
 ## [Unreleased] — Treino: programa como um plano entre os seus
 
 ### Changed

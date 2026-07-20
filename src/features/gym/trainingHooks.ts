@@ -131,12 +131,12 @@ export function useLiveSession(householdId: string | null) {
     });
   }
 
-  function logSet(input: Omit<LoggedSet, 'at'>) {
+  function logSet(input: Omit<LoggedSet, 'at' | 'setId'>) {
     const active = store.active;
     if (!active || !householdId) return;
     const at = new Date().toISOString();
-    store.logSet({ ...input, at });
     const setId = ID.unique();
+    store.logSet({ ...input, setId, at });
     enqueue({
       key: `set-create-${setId}`,
       table: TABLES.workoutSessionSets,
@@ -151,9 +151,24 @@ export function useLiveSession(householdId: string | null) {
         reps: input.reps,
         loadKg: input.weight,
         rir: input.rir ?? undefined,
+        technique: input.technique ?? undefined,
       },
       permissions: withHouseholdReadOwnerWrite(householdId, active.memberId),
     });
+  }
+
+  /** Desfaz a última série registrada: remove do estado e apaga a linha. */
+  function undoLast() {
+    const removed = store.undoLast();
+    if (removed && householdId) {
+      enqueue({
+        key: `set-delete-${removed.setId}`,
+        table: TABLES.workoutSessionSets,
+        rowId: removed.setId,
+        op: 'delete',
+      });
+    }
+    return removed;
   }
 
   function finish() {
@@ -173,7 +188,7 @@ export function useLiveSession(householdId: string | null) {
     store.finish();
   }
 
-  return { start, logSet, finish, goTo: store.goTo, cancel: store.cancel };
+  return { start, logSet, undoLast, finish, goTo: store.goTo, cancel: store.cancel };
 }
 
 export function guidedSessionSets(session: SessionRow, allSets: SetRow[]): SetRow[] {

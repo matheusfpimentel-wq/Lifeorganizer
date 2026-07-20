@@ -10,8 +10,8 @@ interface QueueOp {
   key: string; // idempotência local
   table: TableId;
   rowId: string;
-  op: 'create' | 'update';
-  data: Record<string, unknown>;
+  op: 'create' | 'update' | 'delete';
+  data?: Record<string, unknown>;
   permissions?: string[];
 }
 
@@ -57,11 +57,13 @@ export async function flush(): Promise<void> {
             databaseId: DB_ID,
             tableId: op.table,
             rowId: op.rowId,
-            data: op.data,
+            data: op.data ?? {},
             permissions: op.permissions,
           });
+        } else if (op.op === 'update') {
+          await tablesDB.updateRow({ databaseId: DB_ID, tableId: op.table, rowId: op.rowId, data: op.data ?? {} });
         } else {
-          await tablesDB.updateRow({ databaseId: DB_ID, tableId: op.table, rowId: op.rowId, data: op.data });
+          await tablesDB.deleteRow({ databaseId: DB_ID, tableId: op.table, rowId: op.rowId });
         }
       } catch (err) {
         const code = (err as { code?: number }).code;
