@@ -14,6 +14,8 @@ import CueModal from './CueModal';
 import WeeklyReviewCard from './WeeklyReviewCard';
 import ExerciseListModal from './ExerciseListModal';
 import TrainingSettingsCard from './TrainingSettingsCard';
+import PastSessionEditor from './PastSessionEditor';
+import type { SessionRow } from '../hooks';
 import { Icon } from '@/components/icons';
 
 const PHASE_TINT: Record<string, string> = {
@@ -32,6 +34,7 @@ export default function GuidedHome({ householdId }: { householdId: string | null
   const [deload, setDeload] = useState(false);
   const [cue, setCue] = useState<string | null>(null);
   const [showExercises, setShowExercises] = useState(false);
+  const [editingSession, setEditingSession] = useState<SessionRow | null>(null);
 
   const recent = [...guided]
     .sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)))
@@ -39,7 +42,7 @@ export default function GuidedHome({ householdId }: { householdId: string | null
     .map((s) => {
       const sets = (allSets.data ?? []).filter((x) => x.sessionId === s.$id);
       const tonnage = Math.round(sets.reduce((acc, x) => acc + x.reps * x.loadKg, 0));
-      return { id: s.$id, name: WORKOUTS_BY_KEY.get(s.templateKey)?.name ?? s.templateKey, date: s.startedAt, sets: sets.length, tonnage, done: !!s.finishedAt };
+      return { session: s, id: s.$id, name: WORKOUTS_BY_KEY.get(s.templateKey)?.name ?? s.templateKey, date: s.startedAt, sets: sets.length, tonnage, done: !!s.finishedAt };
     });
 
   const deloadSuggested = week === 6 || week === 12;
@@ -82,6 +85,10 @@ export default function GuidedHome({ householdId }: { householdId: string | null
       >
         <Icon.Play className="h-5 w-5" />
         Iniciar treino
+      </button>
+      <button className="btn-secondary" onClick={() => setShowExercises(true)}>
+        <Icon.List className="h-4 w-4" />
+        Ver todos os exercícios
       </button>
 
       <button className="btn-secondary" onClick={() => setShowExercises(true)}>
@@ -134,14 +141,18 @@ export default function GuidedHome({ householdId }: { householdId: string | null
       {recent.length > 0 && (
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Histórico recente</h2>
+          <p className="-mt-1 text-xs text-slate-400">Toque num treino para editar as séries.</p>
           {recent.map((r) => (
-            <div key={r.id} className="card flex items-center justify-between gap-2 py-3">
-              <div>
-                <p className="font-medium">{r.name}{!r.done && <span className="ml-2 text-xs text-amber-600">em aberto</span>}</p>
-                <p className="text-sm text-slate-500">{formatDate(r.date)}</p>
-              </div>
-              <p className="shrink-0 text-sm text-slate-500">{r.sets} série{r.sets === 1 ? '' : 's'} · {r.tonnage} kg</p>
-            </div>
+            <button key={r.id} className="card flex items-center justify-between gap-2 py-3 text-left" onClick={() => setEditingSession(r.session)}>
+              <span>
+                <span className="block font-medium">{r.name}{!r.done && <span className="ml-2 text-xs text-amber-600">em aberto</span>}</span>
+                <span className="block text-sm text-slate-500">{formatDate(r.date)}</span>
+              </span>
+              <span className="flex shrink-0 items-center gap-2 text-sm text-slate-500">
+                {r.sets} série{r.sets === 1 ? '' : 's'} · {r.tonnage} kg
+                <Icon.Edit className="h-4 w-4 text-slate-400" />
+              </span>
+            </button>
           ))}
         </section>
       )}
@@ -150,6 +161,14 @@ export default function GuidedHome({ householdId }: { householdId: string | null
 
       {cue && <CueModal exerciseKey={cue} onClose={() => setCue(null)} />}
       {showExercises && <ExerciseListModal onClose={() => setShowExercises(false)} />}
+      {editingSession && (
+        <PastSessionEditor
+          householdId={householdId}
+          session={editingSession}
+          sets={(allSets.data ?? []).filter((x) => x.sessionId === editingSession.$id)}
+          onClose={() => setEditingSession(null)}
+        />
+      )}
     </div>
   );
 }

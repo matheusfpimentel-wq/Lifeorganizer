@@ -317,6 +317,16 @@ export function useDeleteSet(householdId: string | null) {
   });
 }
 
+export function useUpdateSet(householdId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mutationFn: async ({ setId, data }: { setId: string; data: Record<string, any> }) =>
+      tablesDB.updateRow({ databaseId: DB_ID, tableId: TABLES.workoutSessionSets, rowId: setId, data }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['sessionSets', householdId] }),
+  });
+}
+
 /** Exclui a sessão de treino com todas as suas séries. */
 export function useDeleteSession(householdId: string | null) {
   const queryClient = useQueryClient();
