@@ -16,7 +16,8 @@
     "aw:push": "npm run functions:build && appwrite push all --force",
     "aw:pull": "appwrite pull",
     "seed": "node --env-file=.env --import tsx scripts/seed.ts",
-    "test:isolation": "node --env-file=.env --import tsx scripts/isolation-test.ts"
+    "test:isolation": "node --env-file=.env --import tsx scripts/isolation-test.ts",
+    "keepalive": "node --env-file=.env scripts/keepalive.mjs"
   },
   "dependencies": {
     "@fontsource-variable/nunito": "^5.2.7",

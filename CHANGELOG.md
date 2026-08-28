@@ -2,6 +2,19 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Keepalive do Appwrite Free (anti-pausa por inatividade)
+
+### Added
+- **Keepalive do Appwrite** (`scripts/keepalive.mjs` + workflow
+  `.github/workflows/keepalive.yml`): cron no GitHub Actions a cada ~5 dias faz
+  uma requisição autenticada ao projeto, evitando a pausa automática do plano
+  Free por 7 dias de inatividade (política de 27/02/2026). Independe de o app
+  ser aberto e da função `tick`. API key só como secret de CI.
+  - Padrão: leitura (`listRows`), sem schema novo nem escrita.
+  - Modo-escrita opcional via `KEEPALIVE_TABLE` (upsert idempotente).
+  - Só passa a disparar por agenda depois de estar na `main` (limitação do
+    GitHub Actions), e requer o secret `APPWRITE_API_KEY`.
+
 ## [Unreleased] — Treino: pontas soltas + editar sessões passadas
 
 ### Added

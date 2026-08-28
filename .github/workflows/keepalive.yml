@@ -1,0 +1,45 @@
+name: Appwrite keepalive
+
+# Evita a pausa por inatividade do plano Free (7 dias). Roda a cada ~5 dias
+# (folga de 2 dias caso um agendamento atrase/falhe) e também sob demanda.
+#
+# ATENÇÃO: workflows agendados só disparam a partir do branch padrão (main).
+# Então isto passa a valer depois que este arquivo estiver na main.
+#
+# Secrets/variáveis necessários (Settings > Secrets and variables > Actions):
+#   - APPWRITE_API_KEY   (secret; API key server-side com escopo de databases)
+#   - endpoint/projeto: reaproveita os já usados no deploy
+#     (VITE_APPWRITE_ENDPOINT / VITE_APPWRITE_PROJECT_ID), ou defina
+#     APPWRITE_ENDPOINT / APPWRITE_PROJECT_ID.
+#   - KEEPALIVE_TABLE    (opcional; se definido, liga o modo-escrita)
+
+on:
+  schedule:
+    - cron: '0 6 */5 * *' # 06:00 UTC a cada 5 dias
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: appwrite-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install node-appwrite
+        run: npm install node-appwrite@^26 --no-save --no-audit --no-fund
+      - name: Ping Appwrite
+        env:
+          APPWRITE_ENDPOINT: ${{ vars.APPWRITE_ENDPOINT || secrets.APPWRITE_ENDPOINT || vars.VITE_APPWRITE_ENDPOINT || secrets.VITE_APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ vars.APPWRITE_PROJECT_ID || secrets.APPWRITE_PROJECT_ID || vars.VITE_APPWRITE_PROJECT_ID || secrets.VITE_APPWRITE_PROJECT_ID }}
+          APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || secrets.VITE_APPWRITE_DATABASE_ID || 'morada' }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          KEEPALIVE_TABLE: ${{ vars.KEEPALIVE_TABLE }}
+        run: node scripts/keepalive.mjs
