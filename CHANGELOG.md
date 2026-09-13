@@ -2,18 +2,23 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
-## [Unreleased] — Keepalive do Appwrite Free (anti-pausa por inatividade)
+## [Unreleased] — Anti-pausa do Appwrite Free: descoberta e reversão
 
-### Added
-- **Keepalive do Appwrite** (`scripts/keepalive.mjs` + workflow
-  `.github/workflows/keepalive.yml`): cron no GitHub Actions a cada ~5 dias faz
-  uma requisição autenticada ao projeto, evitando a pausa automática do plano
-  Free por 7 dias de inatividade (política de 27/02/2026). Independe de o app
-  ser aberto e da função `tick`. API key só como secret de CI.
-  - Padrão: leitura (`listRows`), sem schema novo nem escrita.
-  - Modo-escrita opcional via `KEEPALIVE_TABLE` (upsert idempotente).
-  - Só passa a disparar por agenda depois de estar na `main` (limitação do
-    GitHub Actions), e requer o secret `APPWRITE_API_KEY`.
+### Removed
+- **Keepalive por API revertido** (`scripts/keepalive.mjs` + workflow
+  `keepalive.yml`). Os runs provaram que **não funciona**: o log retorna
+  "Project is paused due to inactivity" e, num ciclo, o ping teve sucesso e o
+  projeto pausou mesmo assim em ≤5 dias. Como a função `tick` já grava a cada
+  5 min sem impedir a pausa, ficou claro que o contador de inatividade do plano
+  Free **não conta tráfego de API** (leitura/escrita, cliente ou função) — só
+  atividade de desenvolvimento no Console. Depois de pausado, só restaura pelo
+  Console.
+
+### Changed
+- Estratégia anti-pausa agora é um **lembrete semanal** (Routine, segunda 09:00
+  BRT, push + e-mail) para abrir o Console do Appwrite e registrar atividade de
+  desenvolvimento — a única forma gratuita comprovada. Uptime garantido exigiria
+  plano pago.
 
 ## [Unreleased] — Treino: pontas soltas + editar sessões passadas
 
