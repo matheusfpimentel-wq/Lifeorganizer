@@ -50,6 +50,6 @@ jobs:
       - name: Apontar a config pro projeto real
         run: sed -i "s/REPLACE_WITH_PROJECT_ID/${APPWRITE_PROJECT_ID}/g" appwrite.config.json
       - name: Autenticar o CLI
-        run: npx appwrite client --endpoint "$APPWRITE_ENDPOINT" --projectId "$APPWRITE_PROJECT_ID" --key "$APPWRITE_API_KEY"
+        run: npx appwrite client --endpoint "$APPWRITE_ENDPOINT" --project-id "$APPWRITE_PROJECT_ID" --key "$APPWRITE_API_KEY"
       - name: Redeploy das functions (registra atividade de desenvolvimento)
         run: npx appwrite push functions --force
