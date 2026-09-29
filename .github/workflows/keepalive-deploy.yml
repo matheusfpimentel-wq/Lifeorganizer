@@ -52,4 +52,4 @@ jobs:
       - name: Autenticar o CLI
         run: npx appwrite client --endpoint "$APPWRITE_ENDPOINT" --project-id "$APPWRITE_PROJECT_ID" --key "$APPWRITE_API_KEY"
       - name: Redeploy das functions (registra atividade de desenvolvimento)
-        run: npx appwrite push functions --all --force
+        run: npx appwrite push functions --all --force --activate true --async
