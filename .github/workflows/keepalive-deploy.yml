@@ -1,0 +1,55 @@
+name: Appwrite keepalive (deploy)
+
+# Tentativa de anti-pausa via ATIVIDADE DE DESENVOLVIMENTO: a cada ~5 dias faz um
+# redeploy das functions (mesma ação do `npm run aw:push`), que é uma ação de
+# desenvolvedor — diferente de tráfego do app/CRUD, que o plano Free ignora.
+#
+# Usa API key em CI (não depende do login por GitHub OAuth do dono).
+#
+# Só dispara por agenda a partir do branch padrão do repositório.
+#
+# Secrets/variáveis (Settings > Secrets and variables > Actions):
+#   - APPWRITE_API_KEY  (secret) — PRECISA de escopo de functions + deployments
+#     (functions.read, functions.write). Uma key CI com acesso total também serve.
+#   - endpoint/projeto: reaproveita VITE_APPWRITE_ENDPOINT / VITE_APPWRITE_PROJECT_ID
+#     (ou defina APPWRITE_ENDPOINT / APPWRITE_PROJECT_ID).
+
+on:
+  schedule:
+    - cron: '0 6 */5 * *' # 06:00 UTC a cada 5 dias
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: appwrite-keepalive-deploy
+  cancel-in-progress: false
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    env:
+      APPWRITE_ENDPOINT: ${{ vars.APPWRITE_ENDPOINT || secrets.APPWRITE_ENDPOINT || vars.VITE_APPWRITE_ENDPOINT || secrets.VITE_APPWRITE_ENDPOINT }}
+      APPWRITE_PROJECT_ID: ${{ vars.APPWRITE_PROJECT_ID || secrets.APPWRITE_PROJECT_ID || vars.VITE_APPWRITE_PROJECT_ID || secrets.VITE_APPWRITE_PROJECT_ID }}
+      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Sanity — variáveis presentes
+        run: |
+          test -n "$APPWRITE_ENDPOINT"   || { echo '::error::APPWRITE_ENDPOINT vazio';   exit 1; }
+          test -n "$APPWRITE_PROJECT_ID" || { echo '::error::APPWRITE_PROJECT_ID vazio'; exit 1; }
+          test -n "$APPWRITE_API_KEY"    || { echo '::error::APPWRITE_API_KEY vazio (adicione o secret)'; exit 1; }
+      - name: Build das functions
+        run: npm run functions:build
+      - name: Apontar a config pro projeto real
+        run: sed -i "s/REPLACE_WITH_PROJECT_ID/${APPWRITE_PROJECT_ID}/g" appwrite.config.json
+      - name: Autenticar o CLI
+        run: npx appwrite client --endpoint "$APPWRITE_ENDPOINT" --projectId "$APPWRITE_PROJECT_ID" --key "$APPWRITE_API_KEY"
+      - name: Redeploy das functions (registra atividade de desenvolvimento)
+        run: npx appwrite push functions --force

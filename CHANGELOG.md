@@ -2,6 +2,19 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Anti-pausa: tentativa via redeploy agendado
+
+### Added
+- **Keepalive por deploy** (`.github/workflows/keepalive-deploy.yml`): a cada ~5
+  dias o GitHub Actions faz um redeploy das functions (`appwrite push functions
+  --force`, mesma ação do `aw:push`). Um deploy é *atividade de desenvolvimento*
+  — categoria que, ao contrário do tráfego de app/API (ignorado), tem chance de
+  resetar o contador de inatividade do plano Free. Usa API key em CI (não depende
+  do login por GitHub OAuth do dono). Requer o secret `APPWRITE_API_KEY` com
+  escopo de functions/deployments. Ainda é tentativa — só dá pra confirmar
+  observando ~1 semana. O lembrete semanal foi desativado (mantido dormente como
+  backup até a confirmação).
+
 ## [Unreleased] — Anti-pausa do Appwrite Free: descoberta e reversão
 
 ### Removed
