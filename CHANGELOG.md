@@ -2,6 +2,22 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/). Datas em DD/MM/AAAA.
 
+## [Unreleased] — Anti-pausa: keepalive por login de desenvolvedor
+
+### Added
+- **Keepalive por login** (`scripts/keepalive-login.mjs` +
+  `.github/workflows/keepalive-login.yml`): a cada ~5 dias loga na conta
+  (e-mail/senha), faz uma chamada de conta e encerra a sessão — réplica de abrir
+  o Console, a única atividade que o plano Free reconhece. Não usa API key;
+  credenciais só como secrets de CI (`APPWRITE_EMAIL`/`APPWRITE_PASSWORD`).
+  Requer conta sem 2FA.
+
+### Removed
+- **Keepalive por deploy** (`keepalive-deploy.yml`): descartado. Apesar dos runs
+  "verdes", o projeto pausou em 06/10 mesmo assim — confirmando que atividade via
+  API key (incluindo deploy) **não** reseta o contador de inatividade; só sessão
+  de desenvolvedor conta.
+
 ## [Unreleased] — Anti-pausa: tentativa via redeploy agendado
 
 ### Added
