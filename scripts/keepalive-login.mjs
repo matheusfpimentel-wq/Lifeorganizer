@@ -1,44 +1,85 @@
 /**
- * Keepalive do Appwrite via LOGIN de desenvolvedor.
+ * Keepalive do Appwrite via LOGIN de desenvolvedor no Console.
  *
- * O plano Free só considera "atividade de desenvolvimento" uma sessão de conta
- * (o que acontece ao abrir o cloud.appwrite.io e logar) — tráfego com API key
- * (CRUD ou até deploy) é ignorado. Este script replica o login: cria uma sessão
- * de e-mail/senha, faz uma chamada autenticada de conta e encerra a sessão.
+ * O plano Free só considera "atividade de desenvolvimento" uma sessão no Console
+ * (o que acontece ao abrir o cloud.appwrite.io e logar). Tráfego com API key
+ * (CRUD ou deploy) é ignorado. Este script replica abrir o Console:
+ *   1. cria sessão de e-mail/senha no projeto especial `console`
+ *      (a conta de desenvolvedor vive lá, NÃO no projeto do app);
+ *   2. lê a conta e abre o projeto do app (GET /projects/{id}), como o Console faz;
+ *   3. encerra a sessão.
  *
- * Roda no GitHub Actions a cada ~5 dias. As credenciais vivem SÓ como secrets de
- * CI (APPWRITE_EMAIL / APPWRITE_PASSWORD) — nunca no bundle. Não usa API key.
- * Requer que a conta NÃO tenha 2FA (login programático quebra com MFA).
+ * Usa fetch puro (sem SDK): sem API key o Appwrite não devolve session.secret,
+ * então a sessão é carregada pelo cookie `a_session_console`.
+ *
+ * Roda no GitHub Actions a cada ~5 dias. Credenciais só como secrets de CI
+ * (APPWRITE_EMAIL / APPWRITE_PASSWORD). Requer conta SEM 2FA.
  */
-import { Client, Account } from 'node-appwrite';
 
-const endpoint = process.env.APPWRITE_ENDPOINT;
+const consoleEndpoint = (process.env.APPWRITE_CONSOLE_ENDPOINT || 'https://cloud.appwrite.io/v1').replace(/\/$/, '');
 const projectId = process.env.APPWRITE_PROJECT_ID;
 const email = process.env.APPWRITE_EMAIL;
 const password = process.env.APPWRITE_PASSWORD;
 
-if (!endpoint || !projectId || !email || !password) {
-  console.error('[keepalive-login] faltam APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, APPWRITE_EMAIL e/ou APPWRITE_PASSWORD.');
+if (!projectId || !email || !password) {
+  console.error('[keepalive-login] faltam APPWRITE_PROJECT_ID, APPWRITE_EMAIL e/ou APPWRITE_PASSWORD.');
   process.exit(1);
 }
 
-const client = new Client().setEndpoint(endpoint).setProject(projectId); // sem API key — login de conta
-const account = new Account(client);
+const baseHeaders = {
+  'Content-Type': 'application/json',
+  'X-Appwrite-Project': 'console',
+  'X-Appwrite-Response-Format': '1.6.0',
+};
+
+async function call(method, path, { body, cookie } = {}) {
+  const res = await fetch(`${consoleEndpoint}${path}`, {
+    method,
+    headers: { ...baseHeaders, ...(cookie ? { Cookie: cookie } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  let data;
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { message: text }; }
+  if (!res.ok) {
+    const err = new Error(`${method} ${path} -> ${res.status}: ${data?.message ?? text}`);
+    err.type = data?.type;
+    throw err;
+  }
+  return { res, data };
+}
 
 try {
-  const session = await account.createEmailPasswordSession({ email, password });
-  client.setSession(session.secret);
-  const me = await account.get();
-  console.log(`[keepalive-login] login OK como ${me.email} @ ${new Date().toISOString()}`);
-  // higiene: encerra a sessão recém-criada pra não acumular
+  const { res } = await call('POST', '/account/sessions/email', { body: { email, password } });
+
+  const cookie = (res.headers.getSetCookie?.() ?? [])
+    .map((c) => c.split(';')[0])
+    .filter((c) => c.startsWith('a_session_console'))
+    .join('; ');
+  if (!cookie) throw new Error('login aceito, mas o cookie de sessão não veio na resposta.');
+
+  const { data: me } = await call('GET', '/account', { cookie });
+  console.log(`[keepalive-login] login OK no Console como ${me.email} @ ${new Date().toISOString()}`);
+
   try {
-    await account.deleteSession({ sessionId: 'current' });
+    const { data: project } = await call('GET', `/projects/${projectId}`, { cookie });
+    console.log(`[keepalive-login] projeto aberto: ${project.name ?? projectId}`);
+  } catch (e) {
+    console.log('[keepalive-login] aviso: não abriu o projeto:', e?.message ?? e);
+  }
+
+  try {
+    await call('DELETE', '/account/sessions/current', { cookie });
     console.log('[keepalive-login] sessão encerrada.');
   } catch (e) {
     console.log('[keepalive-login] aviso: não encerrou a sessão:', e?.message ?? e);
   }
+
   console.log('[keepalive-login] atividade de desenvolvedor registrada no Appwrite.');
 } catch (err) {
   console.error('[keepalive-login] falhou:', err?.message ?? err);
+  if (err?.type === 'user_more_factors_required') {
+    console.error('[keepalive-login] a conta tem 2FA ativo; login programático não funciona com MFA.');
+  }
   process.exit(1);
 }
